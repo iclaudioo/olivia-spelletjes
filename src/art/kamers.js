@@ -286,3 +286,16 @@ export const KAMER_ART = {
 export function kamerArt(sleutel) {
   return KAMER_ART[sleutel] || woonkamerSVG;
 }
+
+// Een passende emoji per kamer-art-sleutel (zelfde sleutels als KAMER_ART).
+export const KAMER_EMOJI = {
+  woonkamer: "🛋️",
+  keuken: "🍳",
+  badkamer: "🛁",
+  slaapkamer: "🛏️",
+};
+
+// Haalt de emoji op bij een art-sleutel; valt veilig terug op een huisje.
+export function kamerEmoji(sleutel) {
+  return KAMER_EMOJI[sleutel] || "🏠";
+}

@@ -27,7 +27,7 @@ export const woonkamerSVG = `
   <!-- raam -->
   <g>
     <rect x="80" y="70" width="220" height="180" rx="14" fill="#9bdcff"/>
-    <rect x="80" y="70" width="220" height="180" rx="14" fill="url(#lucht)"/>
+    <rect x="80" y="70" width="220" height="180" rx="14" fill="url(#woonLucht)"/>
     <circle cx="250" cy="120" r="26" fill="#fff3b0"/>
     <path d="M120 250 q40 -60 90 -30 q40 -50 90 0 v30 z" fill="#bff0d0"/>
     <rect x="80" y="70" width="220" height="180" rx="14" fill="none" stroke="#fff" stroke-width="10"/>
@@ -78,7 +78,7 @@ export const woonkamerSVG = `
   </g>
 
   <defs>
-    <linearGradient id="lucht" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="woonLucht" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#bdeaff"/>
       <stop offset="1" stop-color="#e9f8ff"/>
     </linearGradient>

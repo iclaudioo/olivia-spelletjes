@@ -5,14 +5,7 @@ import { getStaat } from "../state.js";
 import { navigeer, terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
-
-// Een passende emoji per kamer. Valt terug op een huisje als de kamer onbekend is.
-const KAMER_EMOJI = {
-  woonkamer: "🛋️",
-  keuken: "🍳",
-  badkamer: "🛁",
-  slaapkamer: "🛏️",
-};
+import { kamerEmoji } from "../art/kamers.js";
 
 export function toon(app, { huisId } = {}) {
   const staat = getStaat();
@@ -36,7 +29,7 @@ export function toon(app, { huisId } = {}) {
   for (const [kamerId, kamer] of kamers) {
     const kaart = maak("button", "kamer-kaart");
     kaart.append(
-      maak("div", "kamer-emoji", KAMER_EMOJI[kamerId] || "🏠"),
+      maak("div", "kamer-emoji", kamerEmoji(kamer.art)),
       maak("div", "kamer-naam", kamer.naam),
       maak("div", "kamer-status", statusTekst(kamer)),
     );
