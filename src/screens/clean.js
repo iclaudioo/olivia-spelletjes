@@ -1,6 +1,6 @@
 // Het schoonmaak-scherm: kamer + voortgangsbalk + toolbar + "klaar!"-viering.
 
-import { woonkamerSVG } from "../art/room.js";
+import { kamerArt } from "../art/kamers.js";
 import { TOOLS, toolById } from "../clean/tools.js";
 import { maakSchoonmaak } from "../clean/canvas.js";
 import {
@@ -17,11 +17,6 @@ import { muntGeluid, vieringGeluid, ontgrendelAudio } from "../audio/sfx.js";
 // Beloning voor een schoongemaakte kamer.
 const BELONING = 25;
 
-// Kamer-kunst per kamer (later breidt dit uit). Valt terug op de woonkamer.
-const KAMER_ART = {
-  woonkamer: woonkamerSVG,
-};
-
 export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const staat = getStaat();
   app.innerHTML = "";
@@ -37,7 +32,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // ---- Kamer ----
   const scherm = el("div", "clean-scherm");
   const wrap = el("div", "kamer-wrap");
-  wrap.innerHTML = KAMER_ART[kamerId] || woonkamerSVG;
+  wrap.innerHTML = kamerArt(getKamer(huisId, kamerId)?.art);
 
   const balk = el("div", "voortgang");
   const vul = el("div", "vul");

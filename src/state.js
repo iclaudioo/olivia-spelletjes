@@ -11,7 +11,10 @@ const standaard = {
       thema: "standaard",
       gekocht: true,
       kamers: {
-        woonkamer: { naam: "Woonkamer", schoonPct: 0, klaar: false, decor: [] },
+        woonkamer: { naam: "Woonkamer", art: "woonkamer", schoonPct: 0, klaar: false, decor: [] },
+        keuken: { naam: "Keuken", art: "keuken", schoonPct: 0, klaar: false, decor: [] },
+        badkamer: { naam: "Badkamer", art: "badkamer", schoonPct: 0, klaar: false, decor: [] },
+        slaapkamer: { naam: "Slaapkamer", art: "slaapkamer", schoonPct: 0, klaar: false, decor: [] },
       },
     },
   },
