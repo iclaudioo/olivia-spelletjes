@@ -1,27 +1,66 @@
-// Het schoonmaak-scherm: kamer + voortgangsbalk + toolbar + "klaar!"-viering.
+// Het schoonmaak-scherm: kamer + getypeerd vuil + rommel-naar-prullenbak +
+// voortgangsbalk + toolbar + "klaar!"-viering. Een kamer is pas klaar als ál
+// het vuil weg is ÉN alle rommel in de prullenbak zit.
 
-import { woonkamerSVG } from "../art/room.js";
+import { kamerArt } from "../art/kamers.js";
 import { TOOLS, toolById } from "../clean/tools.js";
-import { maakSchoonmaak } from "../clean/canvas.js";
-import { getStaat, voegMuntenToe, markeerKamerKlaar } from "../state.js";
-import { muntGeluid, vieringGeluid, ontgrendelAudio } from "../audio/sfx.js";
+import { maakSchoonmaak, VUIL_KLAAR_DREMPEL } from "../clean/canvas.js";
+import { maakRommel } from "../clean/rommel.js";
+import { kamerVuil } from "../clean/kamerVuil.js";
+import {
+  getStaat,
+  getKamerStaat,
+  setKamerSchoon,
+  markeerKamerKlaar,
+  voegMuntenToe,
+  getGekozenSkin,
+} from "../state.js";
+import { getKamerDef } from "../data/huizen.js";
+import { skinById, skinAccent } from "../data/skins.js";
+import { maakTopbar } from "../ui/topbar.js";
+import { maak as el } from "../ui/dom.js";
+import { vierVerdiendeStickers } from "../ui/toast.js";
+import { terug, vervang, navigeer } from "../router.js";
+import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
-export function toonSchoonmaak(app, { kamerId = "woonkamer", opnieuw = false } = {}) {
+// Beloning voor een schoongemaakte kamer (de eerste keer).
+const BELONING = 25;
+// Kleinere beloning voor opnieuw poetsen van een al-schone kamer ("Nog een
+// keer"). Zo blijft inkomen herhaalbaar en zijn dure huizen/meubels/skins
+// uiteindelijk bereikbaar door te spelen.
+const HERHAAL_BELONING = 10;
+// Hoe zwaar telt vuil vs. rommel in de gecombineerde voortgang.
+const VUIL_GEWICHT = 0.7;
+const ROMMEL_GEWICHT = 0.3;
+
+export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const staat = getStaat();
   app.innerHTML = "";
 
-  // ---- Topbalk ----
-  const top = el("div", "topbar");
-  const titel = el("div", "titel", "🧹 Maak de kamer schoon!");
-  const spacer = el("div", "spacer");
-  const munten = el("div", "munten");
-  munten.innerHTML = `<span class="coin">★</span><span class="muntwaarde">${staat.munten}</span>`;
-  top.append(titel, spacer, munten);
+  const kamerDef = getKamerDef(huisId, kamerId);
+  const art = kamerDef?.art;
+  const config = kamerVuil(art);
+
+  // ---- Topbalk met terug-knop naar het huis-overzicht ----
+  const { el: top, updateMunten } = maakTopbar({
+    titel: "🧹 Maak de kamer schoon!",
+    opTerug: () => terug(),
+    toonMunten: true,
+  });
+  updateMunten(staat.munten);
 
   // ---- Kamer ----
   const scherm = el("div", "clean-scherm");
   const wrap = el("div", "kamer-wrap");
-  wrap.innerHTML = woonkamerSVG;
+  wrap.innerHTML = kamerArt(art);
+
+  // ---- Prullenbak (in een hoek) ----
+  const prullenbak = el("div", "prullenbak", "🗑️");
+  wrap.append(prullenbak);
+
+  // ---- Rommel-laag (sleepbare emoji boven het vuil, onder de viering) ----
+  const rommelLaag = el("div", "rommel-laag");
+  wrap.append(rommelLaag);
 
   const balk = el("div", "voortgang");
   const vul = el("div", "vul");
@@ -35,69 +74,150 @@ export function toonSchoonmaak(app, { kamerId = "woonkamer", opnieuw = false } =
     <div class="kaart">
       <h2>Helemaal schoon! ✨</h2>
       <p>Wat heb jij goed gepoetst!</p>
-      <div class="beloning">+25 ★</div>
-      <button class="knop primair opnieuw">Nog een keer 🧽</button>
+      <div class="beloning">+${BELONING} ★</div>
+      <div class="viering-knoppen">
+        <button class="knop primair opnieuw">Nog een keer 🧽</button>
+        <button class="knop inrichten-knop">Inrichten 🛋️</button>
+      </div>
     </div>`;
+  const beloningEl = viering.querySelector(".beloning");
   wrap.append(viering);
 
   scherm.append(wrap);
 
-  // ---- Toolbar ----
+  // ---- Toolbar (met de gekozen gereedschap-skin) ----
+  // De skin levert het accent (markeerkleur van het actieve gereedschap) via een
+  // CSS-custom-property; .tool.actief gebruikt var(--skin-accent). Een skin mag
+  // optioneel per tool een eigen emoji geven; anders blijft de standaard-emoji.
+  const skinDef = skinById(getGekozenSkin());
+  const skinTools = skinDef?.tools || {};
   const toolbar = el("div", "toolbar");
+  toolbar.style.setProperty("--skin-accent", skinAccent(getGekozenSkin()));
   const knoppen = TOOLS.map((t) => {
     const b = el("button", "tool");
-    b.innerHTML = `${t.emoji}<span class="naam">${t.naam}</span>`;
+    const emoji = skinTools[t.id] || t.emoji;
+    b.innerHTML = `${emoji}<span class="naam">${t.naam}</span>`;
     b.addEventListener("pointerdown", () => kiesTool(t.id));
     toolbar.append(b);
     return { id: t.id, el: b };
   });
 
-  const hint = el("div", "cursief-hint", "Veeg met je vinger over het vuil 👆");
+  const hint = el("div", "cursief-hint", "Veeg het vuil weg en sleep de rommel naar de 🗑️");
 
   app.append(top, scherm, toolbar, hint);
 
-  // ---- Logica ----
-  let actieveTool = TOOLS[0].id;
+  // ---- Schoonmaak-canvas (getypeerde vuil-lagen) ----
+  const spel = maakSchoonmaak({
+    wrap,
+    vuilSoorten: config.vuil,
+    onProgress() { werkVoortgangBij(); },
+    // Vuurt zodra ál het vuil weg is (los van de rommel). Het sparkle-feest
+    // doet het canvas zelf; wij werken alleen de voortgang bij.
+    onVuilKlaar() { werkVoortgangBij(); },
+    onVerkeerdGereedschap() { toonVerkeerdHint(); },
+  });
+
+  // ---- Rommel opruimen ----
+  // De sleeplogica + prullenbak-hit-test zit in een apart module zodat het
+  // scherm netjes kan opruimen. Wij reageren alleen op een gebinde item.
+  const rommel = maakRommel({
+    wrap,
+    rommelLaag,
+    prullenbak,
+    items: config.rommel || [],
+    onWeg(cx, cy) {
+      spel.sparkleBij?.(cx, cy);
+      sparkleGeluid();
+      werkVoortgangBij();
+    },
+  });
+
+  // ---- Gecombineerde voortgang (vuil + rommel) ----
+  let klaarGevierd = false;
+  function werkVoortgangBij() {
+    const vuil = spel.vuilFractie ? spel.vuilFractie() : 0;
+    const rommelF = rommel.fractie();
+    const totaal = VUIL_GEWICHT * vuil + ROMMEL_GEWICHT * rommelF;
+    const p = Math.round(totaal * 100);
+    vul.style.width = p + "%";
+    lbl.textContent = p + "% schoon";
+    if (p > 0) hint.style.visibility = "hidden";
+
+    // Voortgang bewaren zolang de kamer nog niet klaar is.
+    if (!getKamerStaat(huisId, kamerId)?.klaar) {
+      setKamerSchoon(huisId, kamerId, p);
+    }
+
+    const helemaalKlaar = vuil >= VUIL_KLAAR_DREMPEL && rommel.over() === 0;
+    if (helemaalKlaar && !klaarGevierd) {
+      klaarGevierd = true;
+      vier();
+    }
+  }
+
+  function vier() {
+    const alKlaar = getKamerStaat(huisId, kamerId)?.klaar;
+    markeerKamerKlaar(huisId, kamerId);
+    // Eerste keer schoon → volle beloning; al-schone kamer opnieuw poetsen →
+    // kleinere herhaal-beloning. Zo blijft inkomen herhaalbaar (alle huizen,
+    // meubels en skins zijn uiteindelijk bereikbaar door te blijven spelen).
+    const beloning = alKlaar ? HERHAAL_BELONING : BELONING;
+    const nieuw = voegMuntenToe(beloning);
+    updateMunten(nieuw, true);
+    // De viering-kaart toont het bedrag dat ook echt is uitgekeerd.
+    if (beloningEl) beloningEl.textContent = `+${beloning} ★`;
+    // Eventueel verdiende stickers toekennen en vieren (dedup zit in de staat,
+    // dus bij opnieuw-poetsen komt er niets dubbels bij).
+    vierVerdiendeStickers();
+    // Het sparkle-feest doet het canvas zelf zodra ál het vuil weg is (in
+    // meet()). Hier niet nóg een keer vuren, anders krijg je een dubbel feest.
+    vieringGeluid();
+    setTimeout(() => muntGeluid(), 400);
+    setTimeout(() => viering.classList.add("aan"), 500);
+  }
+
+  // ---- Verkeerd-gereedschap-hint (vriendelijk, niet straffend) ----
+  let hintTimer = 0;
+  function toonVerkeerdHint() {
+    hint.textContent = "Hmm, probeer een ander gereedschap! 🧴";
+    hint.style.visibility = "visible";
+    hint.classList.add("flits");
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
+      hint.classList.remove("flits");
+      hint.style.visibility = "hidden";
+    }, 1600);
+  }
+
+  // ---- Logica: gereedschap kiezen ----
   function kiesTool(id) {
     ontgrendelAudio();
-    actieveTool = id;
     knoppen.forEach((k) => k.el.classList.toggle("actief", k.id === id));
     spel.setTool(toolById(id));
   }
 
-  const spel = maakSchoonmaak({
-    wrap,
-    onProgress(pct) {
-      const p = Math.round(pct * 100);
-      vul.style.width = p + "%";
-      lbl.textContent = p + "% schoon";
-      if (p > 0) hint.style.visibility = "hidden";
-    },
-    onKlaar() {
-      const al = staat.kamers[kamerId]?.klaar;
-      markeerKamerKlaar(kamerId);
-      if (!al) {
-        const nieuw = voegMuntenToe(25);
-        munten.querySelector(".muntwaarde").textContent = nieuw;
-        munten.querySelector(".coin").classList.add("pop");
-      }
-      vieringGeluid();
-      setTimeout(() => muntGeluid(), 400);
-      setTimeout(() => viering.classList.add("aan"), 500);
-    },
-  });
-
-  kiesTool(actieveTool);
+  const startTool = TOOLS[0].id;
+  kiesTool(startTool);
+  werkVoortgangBij();
 
   viering.querySelector(".opnieuw").addEventListener("click", () => {
-    toonSchoonmaak(app, { kamerId, opnieuw: true });
+    // Opnieuw poetsen: via de router opnieuw tonen. De router ruimt eerst het
+    // oude canvas op (RAF + listeners) en rendert dan een vers scherm met
+    // nieuw verspreid vuil + rommel.
+    vervang("schoonmaak", { huisId, kamerId });
   });
-}
 
-// kleine helper
-function el(tag, klasse, tekst) {
-  const e = document.createElement(tag);
-  if (klasse) e.className = klasse;
-  if (tekst != null) e.textContent = tekst;
-  return e;
+  viering.querySelector(".inrichten-knop").addEventListener("click", () => {
+    // Direct door naar het inricht-scherm voor de zojuist schoongemaakte kamer.
+    navigeer("inrichten", { huisId, kamerId });
+  });
+
+  // Geef de router een opruim-functie terug zodat het canvas (RAF + listeners)
+  // én de rommel (pointer-listeners + elementen) worden afgebroken zodra we
+  // weg-navigeren. Zo lekt er niets bij heen-en-weer navigeren.
+  return () => {
+    clearTimeout(hintTimer);
+    spel.destroy();
+    rommel.destroy();
+  };
 }

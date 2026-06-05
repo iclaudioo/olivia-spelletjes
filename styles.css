@@ -90,7 +90,244 @@ html, body {
 .munten .pop { animation: pop .35s ease; }
 @keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
 
+/* ===== Begin- en huis-scherm (kaarten) ===== */
+.home-scherm, .huis-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 24px;
+}
+
+.huis-rooster, .kamer-rooster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: clamp(14px, 2.5vw, 24px);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Een grote, vrolijke kaart (huis of kamer) */
+.huis-kaart, .kamer-kaart {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 26px;
+  padding: 22px 16px;
+  box-shadow: 0 8px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.huis-kaart:active, .kamer-kaart:active {
+  transform: translateY(3px);
+  box-shadow: 0 4px 0 var(--schaduw);
+}
+
+.huis-emoji, .kamer-emoji {
+  font-size: clamp(48px, 9vw, 76px);
+  line-height: 1;
+}
+.huis-naam, .kamer-naam {
+  font-weight: 900;
+  font-size: clamp(17px, 2.8vw, 24px);
+}
+.kamer-status {
+  font-weight: 800;
+  font-size: clamp(13px, 2.2vw, 17px);
+  opacity: .7;
+}
+
+/* Winkel-kaart op het beginscherm (om de winkel in te gaan) */
+.winkel-kaart {
+  background: var(--geel);
+}
+
+/* ===== Winkel ===== */
+.winkel-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 24px;
+}
+
+/* Een te-koop-kaart in de winkel */
+.winkel-kaart-koop {
+  gap: 6px;
+}
+.winkel-prijs {
+  font-weight: 900;
+  font-size: clamp(16px, 2.6vw, 22px);
+  color: var(--blauw-diep);
+}
+.winkel-prijs.te-duur {
+  color: #9aa7ad;
+}
+.winkel-sparen {
+  font-weight: 800;
+  font-size: clamp(12px, 2vw, 16px);
+  color: #9aa7ad;
+}
+.koop-knop {
+  margin-top: 4px;
+}
+.winkel-gekocht {
+  font-weight: 900;
+  font-size: clamp(14px, 2.4vw, 19px);
+  color: var(--groen);
+}
+.winkel-kaart-koop.gekocht {
+  background: #eafff0;
+}
+.winkel-leeg {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  padding: 40px 16px;
+  color: var(--donker);
+}
+
+/* Sectie-kop in de winkel (Huizen / Meubels) */
+.winkel-sectie-titel {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--donker);
+  margin: 14px 4px 8px;
+}
+.winkel-sectie-titel:first-child { margin-top: 4px; }
+
+/* Meubel-sprite op een te-koop-kaart (zelfde plek als de huis-emoji) */
+.winkel-meubel-sprite {
+  width: clamp(64px, 12vw, 96px);
+  height: clamp(64px, 12vw, 96px);
+}
+.winkel-meubel-sprite svg { width: 100%; height: 100%; display: block; }
+
+/* Skin-"vlag" op een te-koop-kaart: de skin-emoji op een gekleurd accent-rondje */
+.winkel-skin-vlag {
+  width: clamp(72px, 13vw, 104px);
+  height: clamp(72px, 13vw, 104px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .55), 0 5px 0 var(--schaduw);
+}
+
+/* ===== Instellingen-scherm ===== */
+.instellingen-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 24px;
+}
+.instellingen-vak {
+  background: var(--wit);
+  border-radius: 24px;
+  box-shadow: 0 8px 0 var(--schaduw);
+  padding: 18px 20px;
+  max-width: 640px;
+  margin: 0 auto 18px;
+}
+.instellingen-rij {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+.instellingen-label {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+}
+/* Grote, kindvriendelijke aan/uit-knop */
+.toggle-knop {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 900;
+  color: var(--donker);
+  background: #e8edf5;
+  border-radius: 20px;
+  padding: 12px 22px;
+  min-width: 116px;
+  font-size: clamp(16px, 2.6vw, 22px);
+  box-shadow: 0 5px 0 var(--schaduw);
+  transition: transform .08s ease, box-shadow .08s ease, background .15s ease;
+}
+.toggle-knop:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+.toggle-knop.aan { background: var(--groen); color: #fff; }
+
+.instellingen-sectie-titel {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  margin: 6px 4px 12px;
+}
+.skin-rooster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: clamp(12px, 2vw, 18px);
+}
+/* Eén selecteerbare skin-tegel in de picker */
+.skin-tegel {
+  border: 4px solid transparent;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 22px;
+  padding: 14px 8px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.skin-tegel:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--schaduw); }
+.skin-tegel.gekozen {
+  border-color: var(--donker);
+  box-shadow: 0 6px 0 var(--schaduw), 0 0 0 4px #fff inset;
+}
+.skin-tegel-vlag {
+  width: clamp(54px, 10vw, 72px);
+  height: clamp(54px, 10vw, 72px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: clamp(28px, 5vw, 40px);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .55);
+}
+.skin-tegel-naam {
+  font-weight: 900;
+  font-size: clamp(14px, 2.4vw, 19px);
+}
+.skin-hint {
+  font-weight: 800;
+  opacity: .7;
+  margin: 14px 4px 0;
+  font-size: clamp(14px, 2.2vw, 18px);
+}
+
 /* ===== Schoonmaak-scherm ===== */
+
+/* ----------------------------------------------------------------------------
+   z-index-stapel binnen .kamer-wrap (van onder naar boven):
+     1  .kamer-svg        — de getekende kamer (achtergrond)
+     2  .vuil-canvas      — vuil-lagen (gestapeld, vangen zelf geen aanrakingen)
+     3  .veeg-vanger      — onzichtbare aanraak-vanger voor het vegen
+     4  .rommel-laag      — sleepbare rommel-emoji (de laag zelf)
+     5  .prullenbak       — doel voor de rommel
+     6  .fx-canvas        — sparkles (en .voortgang deelt deze band)
+     7  .rommel.sleept    — een rommel-item terwijl je het sleept (boven alles)
+
+   GERESERVEERD voor M4 — inricht-overlay (decoreren):
+     8–9  .inricht-overlay e.d. — schuift hier netjes tussenin zonder de rest
+          te raken. Nog niet in gebruik; bewust vrijgehouden.
+
+   30 .viering — de "klaar!"-viering blijft altijd bovenop alles.
+   ---------------------------------------------------------------------------- */
+
 .clean-scherm { position: relative; flex: 1; display: flex; flex-direction: column; }
 
 .kamer-wrap {
@@ -102,13 +339,55 @@ html, body {
   box-shadow: 0 12px 0 var(--schaduw), inset 0 0 0 6px #ffffff;
   background: #fff;
 }
-.kamer-svg, .vuil-canvas, .fx-canvas {
+.kamer-svg, .vuil-canvas, .veeg-vanger, .fx-canvas {
   position: absolute; inset: 0; width: 100%; height: 100%;
   display: block;
 }
 .kamer-svg { z-index: 1; }
-.vuil-canvas { z-index: 2; touch-action: none; cursor: grab; }
-.fx-canvas { z-index: 3; pointer-events: none; }
+/* Vuil-lagen liggen gestapeld (één per soort), maar vangen zelf geen
+   aanrakingen — dat doet de onzichtbare veeg-vanger erbovenop. */
+.vuil-canvas { z-index: 2; pointer-events: none; }
+.veeg-vanger { z-index: 3; touch-action: none; cursor: grab; background: transparent; }
+.fx-canvas { z-index: 6; pointer-events: none; }
+
+/* ===== Rommel + prullenbak ===== */
+.prullenbak {
+  position: absolute;
+  right: 10px; bottom: 10px;
+  z-index: 5;
+  width: clamp(64px, 11vw, 96px);
+  height: clamp(64px, 11vw, 96px);
+  display: grid; place-items: center;
+  font-size: clamp(40px, 7vw, 62px);
+  background: rgba(255,255,255,.85);
+  border-radius: 22px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  pointer-events: none; /* alleen doel; niet sleepbaar */
+  transition: transform .12s ease;
+}
+.prullenbak.hap { transform: scale(1.18) rotate(-6deg); }
+
+.rommel-laag {
+  position: absolute; inset: 0;
+  z-index: 4;
+  pointer-events: none; /* alleen de items vangen aanrakingen */
+}
+.rommel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(40px, 7vw, 60px);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  filter: drop-shadow(0 4px 3px rgba(43,58,85,.3));
+  transition: transform .08s ease;
+  will-change: left, top, transform;
+}
+.rommel.sleept { cursor: grabbing; z-index: 7; }
+.rommel.weg { animation: rommelWeg .22s ease forwards; pointer-events: none; }
+@keyframes rommelWeg {
+  to { transform: translate(-50%, -50%) scale(0.1) rotate(40deg); opacity: 0; }
+}
 
 /* Voortgangsbalk */
 .voortgang {
@@ -162,7 +441,8 @@ html, body {
   white-space: nowrap; opacity: .7;
 }
 .tool.actief {
-  background: var(--geel);
+  /* Markeerkleur komt van de gekozen gereedschap-skin (valt terug op --geel). */
+  background: var(--skin-accent, var(--geel));
   transform: translateY(-10px) scale(1.08);
   box-shadow: 0 12px 0 var(--schaduw);
 }
@@ -197,4 +477,379 @@ html, body {
 .cursief-hint {
   text-align: center; padding: 4px; font-weight: 700; color: var(--donker);
   opacity: .65; font-size: clamp(13px, 2.2vw, 17px);
+  transition: color .15s ease;
+}
+.cursief-hint.flits {
+  opacity: 1; color: var(--blauw-diep);
+  animation: hintFlits .4s ease;
+}
+@keyframes hintFlits {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* ===== Kamer-kaart: actie-label + schone-kamer-accent ===== */
+.kamer-actie {
+  font-weight: 900;
+  font-size: clamp(13px, 2.2vw, 16px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: var(--blauw-diep);
+}
+.kamer-kaart.schoon {
+  background: #eafff0;
+}
+.kamer-kaart.schoon .kamer-actie {
+  background: var(--geel);
+  color: var(--donker);
+}
+
+/* ===== Viering: knoppenrij (nog een keer + inrichten) ===== */
+.viering-knoppen {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.viering .inrichten-knop {
+  background: var(--blauw);
+}
+
+/* ===== Inricht-scherm (decoreren) ===== */
+/* ----------------------------------------------------------------------------
+   z-index binnen .kamer-wrap (vervolg op de schoonmaak-stapel):
+     1    .kamer-svg     — de schone kamer
+     8    .tint-behang   — muur-tint (GERESERVEERDE band 8–9, multiply)
+     9    .tint-vloer    — vloer-tint (multiply)
+     12   .meubel-laag   — geplaatste meubels (sleepbaar; boven de tinten)
+     14   .inricht-bin   — prullenbak-hoek om meubels weg te halen
+     15   .meubel.sleept — een meubel terwijl je het sleept (boven alles binnen wrap)
+   De tint-lagen zijn pointer-events:none zodat ze het slepen niet blokkeren.
+   ---------------------------------------------------------------------------- */
+
+.tint-laag {
+  position: absolute;
+  left: 0; right: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  display: none; /* standaard uit; aan zodra een kleur gekozen is */
+}
+/* De muur/vloer-naad verschilt per kamer; decorate.js zet --vloer-grens op de
+   echte naad (fractie van de hoogte). Valt terug op 62% als die niet gezet is. */
+.tint-behang { top: 0; height: var(--vloer-grens, 62%); z-index: 8; }
+.tint-vloer { bottom: 0; height: calc(100% - var(--vloer-grens, 62%)); z-index: 9; }
+
+.meubel-laag {
+  position: absolute; inset: 0;
+  z-index: 12;
+  pointer-events: none; /* alleen de meubels zelf vangen aanrakingen */
+}
+.meubel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: clamp(72px, 13vw, 120px);
+  height: clamp(72px, 13vw, 120px);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  filter: drop-shadow(0 5px 4px rgba(43,58,85,.3));
+  transition: transform .08s ease;
+  will-change: left, top, transform;
+}
+.meubel svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+.meubel.sleept { cursor: grabbing; z-index: 15; }
+.meubel.boven-bin { opacity: .55; }
+.meubel.weg { animation: rommelWeg .2s ease forwards; pointer-events: none; }
+
+/* Prullenbak-hoek om meubels naartoe te slepen */
+.inricht-bin {
+  position: absolute;
+  right: 10px; bottom: 10px;
+  z-index: 14;
+  width: clamp(64px, 11vw, 96px);
+  height: clamp(64px, 11vw, 96px);
+  display: grid; place-items: center;
+  font-size: clamp(40px, 7vw, 62px);
+  background: rgba(255,255,255,.85);
+  border-radius: 22px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  pointer-events: none; /* alleen doel; niet aantikbaar */
+  transition: transform .12s ease;
+}
+.inricht-bin.hap { transform: scale(1.18) rotate(-6deg); }
+
+/* ===== Palet-balk (meubels + kleuren) ===== */
+.palet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 22px);
+  padding: 8px 14px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 10;
+  overflow-x: auto;
+}
+.palet-sectie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.palet-titel {
+  font-weight: 900;
+  font-size: clamp(12px, 2vw, 16px);
+  color: var(--donker);
+  opacity: .75;
+}
+.palet-rij {
+  display: flex;
+  gap: clamp(6px, 1.4vw, 12px);
+}
+.palet-item {
+  border: none;
+  width: clamp(54px, 8vw, 76px);
+  height: clamp(54px, 8vw, 76px);
+  border-radius: 18px;
+  background: var(--wit);
+  box-shadow: 0 5px 0 var(--schaduw);
+  padding: 6px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.palet-item svg { width: 100%; height: 100%; display: block; }
+.palet-item:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+
+/* Een nog-niet-gekocht meubel: grijs, met hangslot-overlay + prijs */
+.palet-item.op-slot { position: relative; cursor: not-allowed; }
+.palet-item.op-slot svg { opacity: .35; filter: grayscale(1); }
+.palet-item.op-slot:active { transform: none; box-shadow: 0 5px 0 var(--schaduw); }
+.palet-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.palet-slot-emoji { font-size: clamp(20px, 3.5vw, 30px); line-height: 1; }
+.palet-slot-prijs {
+  font-weight: 900;
+  font-size: clamp(11px, 1.8vw, 14px);
+  color: var(--blauw-diep);
+  background: rgba(255, 255, 255, .85);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.swatch {
+  border: 4px solid var(--wit);
+  width: clamp(44px, 6.5vw, 60px);
+  height: clamp(44px, 6.5vw, 60px);
+  border-radius: 50%;
+  box-shadow: 0 5px 0 var(--schaduw);
+  cursor: pointer;
+  transition: transform .1s ease, box-shadow .1s ease, border-color .1s ease;
+}
+.swatch:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+.swatch.gekozen {
+  border-color: var(--donker);
+  transform: scale(1.12);
+}
+
+/* ===== Foto-modus (📸) ===== */
+/* Foto-knop in de topbalk (naast de munten). */
+.foto-knop { background: var(--blauw); white-space: nowrap; }
+.foto-knop:disabled { opacity: .6; cursor: default; }
+
+/* Foto-overlay: modal boven alles (z-index boven de viering-band 30). De
+   container blijft altijd volledig zichtbaar; alleen de kaart binnenin krijgt
+   een vrolijke spring-animatie. Zo hangt de overlay nooit op opacity:0 vast. */
+.foto-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(43, 58, 85, .45);
+  backdrop-filter: blur(2px);
+}
+/* Het schattige lijstje rondom de foto. */
+.foto-kaart {
+  background: #fff;
+  border-radius: 28px;
+  padding: 18px;
+  max-width: min(92vw, 720px);
+  width: 100%;
+  box-shadow: 0 16px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: spring .45s cubic-bezier(.2,1.4,.4,1);
+}
+.foto-lijst {
+  background: linear-gradient(160deg, #ffe8f1, #e8f5ff);
+  border: 8px solid #fff;
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: 0 8px 0 var(--schaduw), inset 0 0 0 3px var(--geel);
+  width: 100%;
+}
+.foto-beeld {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.foto-knoppen {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+/* Een <a> als knop: zelfde uitstraling als .knop, maar zonder onderstreping. */
+a.foto-bewaar { text-decoration: none; display: inline-block; }
+.foto-tip {
+  text-align: center;
+  font-weight: 700;
+  font-size: clamp(12px, 2vw, 16px);
+  color: var(--donker);
+  opacity: .7;
+}
+
+/* ===== Verzamelboek (sticker-album) ===== */
+.verzamel-kaart {
+  background: var(--paars);
+}
+
+/* Instellingen-kaart op het beginscherm — eigen kleur zodat hij zich van de
+   winkel- (geel) en verzamel-kaart (paars) onderscheidt. */
+.instellingen-kaart {
+  background: var(--groen);
+}
+
+.verzamel-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 24px;
+}
+
+.verzamel-teller {
+  text-align: center;
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--donker);
+  text-shadow: 0 2px 0 #fff;
+  margin: 4px 0 14px;
+}
+
+.sticker-rooster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: clamp(12px, 2.2vw, 20px);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.sticker-kaart {
+  background: var(--wit);
+  border-radius: 22px;
+  padding: 18px 12px;
+  box-shadow: 0 7px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+/* Nog niet verdiend: grijs silhouet met de beschrijving als hint. */
+.sticker-kaart.op-slot {
+  background: #eef1f4;
+  box-shadow: 0 7px 0 rgba(43, 58, 85, 0.12);
+}
+.sticker-kaart.op-slot .sticker-emoji {
+  filter: grayscale(1);
+  opacity: .45;
+}
+.sticker-kaart.op-slot .sticker-naam {
+  color: #9aa7ad;
+}
+
+.sticker-emoji {
+  font-size: clamp(40px, 7vw, 60px);
+  line-height: 1;
+}
+.sticker-naam {
+  font-weight: 900;
+  font-size: clamp(14px, 2.3vw, 19px);
+}
+.sticker-hint {
+  font-weight: 700;
+  font-size: clamp(11px, 1.9vw, 15px);
+  color: #8896a0;
+}
+
+/* ===== Sticker-toast (nieuwe sticker verdiend) ===== */
+.sticker-toast-laag {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.sticker-toast {
+  background: var(--wit);
+  border-radius: 22px;
+  padding: 12px 22px;
+  box-shadow: 0 8px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 4px solid var(--geel);
+  animation: stickerToastIn .35s cubic-bezier(.2, 1.4, .5, 1) both;
+}
+.sticker-toast.weg {
+  animation: stickerToastUit .35s ease forwards;
+}
+.sticker-toast-kop {
+  font-weight: 900;
+  font-size: clamp(13px, 2.1vw, 17px);
+  color: var(--blauw-diep);
+}
+.sticker-toast-lijf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sticker-toast-emoji {
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1;
+}
+.sticker-toast-naam {
+  font-weight: 900;
+  font-size: clamp(16px, 2.6vw, 22px);
+  color: var(--donker);
+}
+
+@keyframes stickerToastIn {
+  from { opacity: 0; transform: translateY(-24px) scale(.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes stickerToastUit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-24px) scale(.9); }
 }
