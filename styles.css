@@ -415,8 +415,10 @@ html, body {
   mix-blend-mode: multiply;
   display: none; /* standaard uit; aan zodra een kleur gekozen is */
 }
-.tint-behang { top: 0; height: 62%; z-index: 8; }
-.tint-vloer { bottom: 0; height: 38%; z-index: 9; }
+/* De muur/vloer-naad verschilt per kamer; decorate.js zet --vloer-grens op de
+   echte naad (fractie van de hoogte). Valt terug op 62% als die niet gezet is. */
+.tint-behang { top: 0; height: var(--vloer-grens, 62%); z-index: 8; }
+.tint-vloer { bottom: 0; height: calc(100% - var(--vloer-grens, 62%)); z-index: 9; }
 
 .meubel-laag {
   position: absolute; inset: 0;

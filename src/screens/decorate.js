@@ -12,7 +12,7 @@
 //    pointercancel afgehandeld). Het scherm geeft een opruim-functie terug die
 //    alle meubel-listeners netjes loskoppelt — net als clean.js/rommel.js.
 
-import { kamerArt } from "../art/kamers.js";
+import { kamerArt, vloerGrens } from "../art/kamers.js";
 import {
   MEUBELS,
   MEUBEL_LIJST,
@@ -26,6 +26,7 @@ import { getStaat, getKamerStaat, setKamerDecor } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
+import { maakSleepbaar } from "../ui/sleep.js";
 import { terug } from "../router.js";
 import { sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
@@ -53,8 +54,13 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const wrap = el("div", "kamer-wrap");
   wrap.innerHTML = kamerArt(art);
 
-  // ---- Tint-lagen voor muur (boven ~62%) en vloer (onder ~38%) ----
+  // ---- Tint-lagen voor muur (boven de naad) en vloer (onder de naad) ----
   // mix-blend-mode: multiply hertint de bestaande kamer-kunst i.p.v. dekken.
+  // De muur/vloer-naad verschilt per kamer; daarom zetten we de grens als CSS-
+  // custom-property zodat de tint-band precies op de echte naad stopt i.p.v. een
+  // vaste 62/38-verdeling. Standaard 0.62 voor onbekende sleutels.
+  const grens = vloerGrens(art);
+  wrap.style.setProperty("--vloer-grens", grens * 100 + "%");
   const behangLaag = el("div", "tint-laag tint-behang");
   const vloerLaag = el("div", "tint-laag tint-vloer");
   wrap.append(behangLaag, vloerLaag);
@@ -109,8 +115,9 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   app.append(top, scherm, palet, hint);
 
   // ---- Beheer van geplaatste meubels ----
-  // Elke sleepbare sprite onthoudt zijn handlers zodat we netjes kunnen opruimen.
-  const sprites = []; // { el, data, omlaag, beweeg, omhoog }
+  // Elke sleepbare sprite onthoudt zijn grip (van maakSleepbaar) zodat we de
+  // pointer-listeners netjes kunnen loskoppelen bij opruimen.
+  const sprites = []; // { el, data, grip }
 
   // Tint + swatch-selectie eerst tonen op basis van geladen decor.
   pasBehangToe();
@@ -140,53 +147,39 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     plaats(sprite, m);
     meubelLaag.append(sprite);
 
-    let sleept = false;
-    let dx = 0, dy = 0; // greep-offset t.o.v. het midden
+    // De gedeelde sleep-controller doet pointerdown/move/up/cancel + capture.
+    // Wij schrijven de genormaliseerde positie terug in het decor-model en
+    // beslissen bij loslaten of het meubel in de prullenbak belandt.
+    const grip = maakSleepbaar(sprite, {
+      onStart() {
+        ontgrendelAudio();
+        sprite.classList.add("sleept");
+      },
+      onBeweeg({ clientX, clientY, dx, dy }) {
+        const wrapR = wrap.getBoundingClientRect();
+        let nx = (clientX - dx - wrapR.left) / wrapR.width;
+        let ny = (clientY - dy - wrapR.top) / wrapR.height;
+        nx = Math.max(0, Math.min(1, nx));
+        ny = Math.max(0, Math.min(1, ny));
+        m.x = nx;
+        m.y = ny;
+        plaats(sprite, m, true);
+        // Boven de prullenbak? Visueel hint geven.
+        sprite.classList.toggle("boven-bin", bovenBin(sprite));
+      },
+      onLos() {
+        sprite.classList.remove("sleept");
+        plaats(sprite, m);
+        if (bovenBin(sprite)) {
+          verwijderSprite(sprite, m);
+          return;
+        }
+        sprite.classList.remove("boven-bin");
+        bewaarDecor();
+      },
+    });
 
-    function omlaag(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      ontgrendelAudio();
-      sleept = true;
-      try { sprite.setPointerCapture?.(e.pointerId); } catch { /* negeren */ }
-      sprite.classList.add("sleept");
-      const r = sprite.getBoundingClientRect();
-      dx = e.clientX - (r.left + r.width / 2);
-      dy = e.clientY - (r.top + r.height / 2);
-    }
-    function beweeg(e) {
-      if (!sleept) return;
-      e.preventDefault();
-      const wrapR = wrap.getBoundingClientRect();
-      let nx = (e.clientX - dx - wrapR.left) / wrapR.width;
-      let ny = (e.clientY - dy - wrapR.top) / wrapR.height;
-      nx = Math.max(0, Math.min(1, nx));
-      ny = Math.max(0, Math.min(1, ny));
-      m.x = nx;
-      m.y = ny;
-      plaats(sprite, m, true);
-      // Boven de prullenbak? Visueel hint geven.
-      sprite.classList.toggle("boven-bin", bovenBin(sprite));
-    }
-    function omhoog() {
-      if (!sleept) return;
-      sleept = false;
-      sprite.classList.remove("sleept");
-      plaats(sprite, m);
-      if (bovenBin(sprite)) {
-        verwijderSprite(sprite, m);
-        return;
-      }
-      sprite.classList.remove("boven-bin");
-      bewaarDecor();
-    }
-
-    sprite.addEventListener("pointerdown", omlaag);
-    sprite.addEventListener("pointermove", beweeg);
-    sprite.addEventListener("pointerup", omhoog);
-    sprite.addEventListener("pointercancel", omhoog);
-
-    sprites.push({ el: sprite, data: m, omlaag, beweeg, omhoog });
+    sprites.push({ el: sprite, data: m, grip });
   }
 
   // Sprite positioneren uit genormaliseerde x,y. `groot` = lichte vergroting tijdens slepen.
@@ -214,11 +207,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
 
     const idx = sprites.findIndex((s) => s.el === sprite);
     if (idx >= 0) {
-      const s = sprites[idx];
-      sprite.removeEventListener("pointerdown", s.omlaag);
-      sprite.removeEventListener("pointermove", s.beweeg);
-      sprite.removeEventListener("pointerup", s.omhoog);
-      sprite.removeEventListener("pointercancel", s.omhoog);
+      sprites[idx].grip.los(); // pointer-listeners loskoppelen
       sprites.splice(idx, 1);
     }
     sprite.classList.add("weg");
@@ -268,10 +257,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // ---- Opruimen: alle meubel-pointer-listeners loskoppelen (geen lekken) ----
   return () => {
     for (const s of sprites) {
-      s.el.removeEventListener("pointerdown", s.omlaag);
-      s.el.removeEventListener("pointermove", s.beweeg);
-      s.el.removeEventListener("pointerup", s.omhoog);
-      s.el.removeEventListener("pointercancel", s.omhoog);
+      s.grip.los();
       s.el.remove();
     }
     sprites.length = 0;

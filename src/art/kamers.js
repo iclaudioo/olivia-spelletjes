@@ -70,3 +70,39 @@ export const KAMER_EMOJI = {
 export function kamerEmoji(sleutel) {
   return KAMER_EMOJI[sleutel] || "🏠";
 }
+
+// Per-kamer muur/vloer-grens als fractie 0..1 (de y van de <rect class="vloer">
+// gedeeld door de viewBox-hoogte 600). Het inricht-scherm gebruikt dit om de
+// behang-tint (muur) en vloer-tint precies op de naad te laten stoppen i.p.v.
+// een vaste 62/38-verdeling. Onbekende sleutels vallen terug op 0.62.
+//
+// Afgeleid uit de SVG's:
+//   y=380 → 0.633  (woonkamer, slaapkamer, strandwoonkamer, strandslaapkamer, troonzaal)
+//   y=400 → 0.667  (badkamer, kasteelkeuken, torenkamer)
+//   y=420 → 0.700  (ruimteslaapkamer)
+//   y=430 → 0.717  (keuken, strandkeuken, stuurkamer, ruimtekeuken)
+export const VLOER_GRENS = {
+  // standaard (Mijn Huis)
+  woonkamer: 0.63,
+  keuken: 0.7,
+  badkamer: 0.67,
+  slaapkamer: 0.63,
+  // strandhuis
+  strandwoonkamer: 0.63,
+  strandkeuken: 0.7,
+  strandslaapkamer: 0.63,
+  // kasteel
+  troonzaal: 0.63,
+  kasteelkeuken: 0.67,
+  torenkamer: 0.67,
+  // ruimteraket
+  stuurkamer: 0.7,
+  ruimtekeuken: 0.7,
+  ruimteslaapkamer: 0.7,
+};
+
+// Geeft de muur/vloer-grens (0..1) voor een art-sleutel; standaard 0.62.
+export function vloerGrens(sleutel) {
+  const g = VLOER_GRENS[sleutel];
+  return typeof g === "number" ? g : 0.62;
+}

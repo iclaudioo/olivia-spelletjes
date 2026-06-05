@@ -3,9 +3,12 @@
 // en de combinatie-voortgang los blijft van de sleeplogica.
 //
 // Sleeplogica met Pointer Events (werkt op iPad). Elk rommel-item vangt zijn
-// eigen pointer; daardoor blokkeert het de veeg-vanger niet en andersom.
+// eigen pointer; daardoor blokkeert het de veeg-vanger niet en andersom. De
+// pointer-afhandeling zelf zit in de gedeelde ui/sleep.js-controller; hier
+// blijft alleen de rommel-specifieke logica (positioneren + prullenbak-hit-test).
 
 import { ontgrendelAudio } from "../audio/sfx.js";
+import { maakSleepbaar } from "../ui/sleep.js";
 
 // maakRommel({ wrap, rommelLaag, prullenbak, items, onWeg })
 //   wrap        — de .kamer-wrap (voor coördinaten-omrekening)
@@ -16,7 +19,7 @@ import { ontgrendelAudio } from "../audio/sfx.js";
 //
 // Geeft terug: { fractie(), over(), destroy() }
 export function maakRommel({ wrap, rommelLaag, prullenbak, items = [], onWeg }) {
-  const rommelItems = []; // { el, omlaag, beweeg, omhoog } voor nette teardown
+  const rommelItems = []; // { el, grip } voor nette teardown
   const totaal = items.length;
   let over = items.length;
 
@@ -29,57 +32,44 @@ export function maakRommel({ wrap, rommelLaag, prullenbak, items = [], onWeg }) 
     const top = 52 + rnd(0, 30);
     item.style.left = Math.max(6, Math.min(78, links)) + "%";
     item.style.top = Math.max(40, Math.min(82, top)) + "%";
-    maakSleepbaar(item);
+    bindRommelSleep(item);
     rommelLaag.append(item);
   });
 
-  function maakSleepbaar(item) {
-    let sleept = false;
-    let dx = 0, dy = 0; // greep-offset
+  // Maakt één rommel-item sleepbaar via de gedeelde sleep-controller. De
+  // controller doet pointerdown/move/up/cancel + capture + greep-offset; hier
+  // blijft alleen: het item verplaatsen tijdens slepen en de prullenbak-hit-test
+  // bij loslaten (zelfde gedrag als voorheen).
+  function bindRommelSleep(item) {
+    const grip = maakSleepbaar(item, {
+      onStart() {
+        ontgrendelAudio();
+        item.classList.add("sleept");
+      },
+      onBeweeg({ clientX, clientY, dx, dy }) {
+        const wrapR = wrap.getBoundingClientRect();
+        const x = clientX - dx - wrapR.left;
+        const y = clientY - dy - wrapR.top;
+        item.style.left = (x / wrapR.width) * 100 + "%";
+        item.style.top = (y / wrapR.height) * 100 + "%";
+        item.style.transform = "translate(-50%, -50%) scale(1.15)";
+      },
+      onLos() {
+        item.classList.remove("sleept");
+        item.style.transform = "";
+        // Raakt het midden van het item de prullenbak?
+        const ir = item.getBoundingClientRect();
+        const pr = prullenbak.getBoundingClientRect();
+        const cx = ir.left + ir.width / 2;
+        const cy = ir.top + ir.height / 2;
+        const inBak = cx >= pr.left && cx <= pr.right && cy >= pr.top && cy <= pr.bottom;
+        if (inBak) {
+          gooieWeg(item, cx, cy);
+        }
+      },
+    });
 
-    function omlaag(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      ontgrendelAudio();
-      sleept = true;
-      try { item.setPointerCapture?.(e.pointerId); } catch { /* negeren */ }
-      item.classList.add("sleept");
-      const r = item.getBoundingClientRect();
-      dx = e.clientX - (r.left + r.width / 2);
-      dy = e.clientY - (r.top + r.height / 2);
-    }
-    function beweeg(e) {
-      if (!sleept) return;
-      e.preventDefault();
-      const wrapR = wrap.getBoundingClientRect();
-      const x = e.clientX - dx - wrapR.left;
-      const y = e.clientY - dy - wrapR.top;
-      item.style.left = (x / wrapR.width) * 100 + "%";
-      item.style.top = (y / wrapR.height) * 100 + "%";
-      item.style.transform = "translate(-50%, -50%) scale(1.15)";
-    }
-    function omhoog() {
-      if (!sleept) return;
-      sleept = false;
-      item.classList.remove("sleept");
-      item.style.transform = "";
-      // Raakt het midden van het item de prullenbak?
-      const ir = item.getBoundingClientRect();
-      const pr = prullenbak.getBoundingClientRect();
-      const cx = ir.left + ir.width / 2;
-      const cy = ir.top + ir.height / 2;
-      const inBak = cx >= pr.left && cx <= pr.right && cy >= pr.top && cy <= pr.bottom;
-      if (inBak) {
-        gooieWeg(item, cx, cy);
-      }
-    }
-
-    item.addEventListener("pointerdown", omlaag);
-    item.addEventListener("pointermove", beweeg);
-    item.addEventListener("pointerup", omhoog);
-    item.addEventListener("pointercancel", omhoog);
-
-    rommelItems.push({ el: item, omlaag, beweeg, omhoog });
+    rommelItems.push({ el: item, grip });
   }
 
   function gooieWeg(item, cx, cy) {
@@ -101,11 +91,8 @@ export function maakRommel({ wrap, rommelLaag, prullenbak, items = [], onWeg }) 
     fractie,
     over: () => over,
     destroy() {
-      for (const { el: item, omlaag, beweeg, omhoog } of rommelItems) {
-        item.removeEventListener("pointerdown", omlaag);
-        item.removeEventListener("pointermove", beweeg);
-        item.removeEventListener("pointerup", omhoog);
-        item.removeEventListener("pointercancel", omhoog);
+      for (const { el: item, grip } of rommelItems) {
+        grip.los(); // pointer-listeners loskoppelen
         item.remove();
       }
       rommelItems.length = 0;
