@@ -1,0 +1,34 @@
+// Per-kamer configuratie: welke vuilsoorten er liggen en welke rommel (emoji)
+// rondslingert. Zo heeft elke kamer een andere mix en is er ander gereedschap
+// nodig. De vuilsleutels MOETEN overeenkomen met `verwijdert` in tools.js:
+//   stof, vlek, modder, aangekoekt, spinnenweb, kruimel
+
+export const KAMER_VUIL = {
+  woonkamer: {
+    vuil: ["stof", "vlek", "spinnenweb"],
+    rommel: ["🧦", "🧸", "📚"],
+  },
+  keuken: {
+    vuil: ["vlek", "aangekoekt", "kruimel"],
+    rommel: ["🥤", "🍌", "🥫"],
+  },
+  badkamer: {
+    vuil: ["vlek", "aangekoekt", "spinnenweb"],
+    rommel: ["🧴", "🧻", "🦆"],
+  },
+  slaapkamer: {
+    vuil: ["stof", "spinnenweb", "vlek"],
+    rommel: ["🧦", "🧸", "👕"],
+  },
+};
+
+// Veilige standaard als een art-sleutel onbekend is.
+const STANDAARD = {
+  vuil: ["stof", "vlek", "modder"],
+  rommel: ["🧦", "🧸", "📚"],
+};
+
+// Haalt de vuil/rommel-config op bij een kamer-art-sleutel.
+export function kamerVuil(sleutel) {
+  return KAMER_VUIL[sleutel] || STANDAARD;
+}

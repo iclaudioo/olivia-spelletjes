@@ -1,37 +1,60 @@
-// Hart van het spel: vuil tekenen, met de vinger wegvegen, sparkles, en meten
-// hoeveel % schoon is.
+// Hart van het spel: getypeerd vuil tekenen in losse lagen (één canvas per
+// vuilsoort), met de vinger wegvegen — maar alleen met het JUISTE gereedschap —
+// sparkles, het meten van het schoon-percentage, en een vriendelijke hint als
+// het verkeerde gereedschap wordt gebruikt.
 
 import { schrobGeluid, sparkleGeluid } from "../audio/sfx.js";
 
-export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
+// Alle bekende vuilsoorten (sleutels gelijk aan tools.js `verwijdert`).
+export const VUIL_SOORTEN = ["stof", "vlek", "modder", "aangekoekt", "spinnenweb", "kruimel"];
+
+export function maakSchoonmaak({
+  wrap,
+  vuilSoorten = ["stof", "vlek", "modder"],
+  onProgress,
+  onKlaar,
+  onSchrob,
+  onVerkeerdGereedschap,
+}) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-  // Vuil-laag
-  const vuil = document.createElement("canvas");
-  vuil.className = "vuil-canvas";
-  const vctx = vuil.getContext("2d", { willReadFrequently: true });
+  // Alleen geldige, unieke soorten gebruiken.
+  const soorten = [...new Set(vuilSoorten)].filter((s) => VUIL_SOORTEN.includes(s));
 
-  // Effect-laag (sparkles) — vangt geen aanrakingen.
+  // Eén vuil-laag per soort. Elke laag heeft een eigen <canvas> + context.
+  // lagen[soort] = { canvas, ctx, beginPixels }
+  const lagen = {};
+  for (const soort of soorten) {
+    const c = document.createElement("canvas");
+    c.className = "vuil-canvas";
+    c.dataset.soort = soort;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    lagen[soort] = { canvas: c, ctx, beginPixels: 1 };
+    wrap.appendChild(c);
+  }
+
+  // Effect-laag (sparkles) — staat bovenop en vangt geen aanrakingen.
   const fx = document.createElement("canvas");
   fx.className = "fx-canvas";
   const fctx = fx.getContext("2d");
-
-  wrap.appendChild(vuil);
   wrap.appendChild(fx);
 
-  // Sampling-canvas om snel het schoon-percentage te meten.
+  // Sampling-canvas om snel het schoon-percentage per laag te meten.
   const sample = document.createElement("canvas");
   const sctx = sample.getContext("2d", { willReadFrequently: true });
 
   let breedte = 0, hoogte = 0;
-  let beginVuilPixels = 1;
+  let beginTotaal = 1;
   let klaarGemeld = false;
 
   function passendMaken() {
     const r = wrap.getBoundingClientRect();
     breedte = Math.max(1, Math.round(r.width * dpr));
     hoogte = Math.max(1, Math.round(r.height * dpr));
-    vuil.width = breedte; vuil.height = hoogte;
+    for (const soort of soorten) {
+      const c = lagen[soort].canvas;
+      c.width = breedte; c.height = hoogte;
+    }
     fx.width = breedte; fx.height = hoogte;
     sample.width = 90;
     sample.height = Math.max(1, Math.round(90 * (hoogte / breedte)));
@@ -41,82 +64,128 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
   // ---- Vuil schilderen ----
   function rnd(a, b) { return a + Math.random() * (b - a); }
 
-  function blob(x, y, r, kleur, alpha) {
-    vctx.globalAlpha = alpha;
-    const g = vctx.createRadialGradient(x, y, r * 0.2, x, y, r);
+  function blob(ctx, x, y, r, kleur, alpha) {
+    ctx.globalAlpha = alpha;
+    const g = ctx.createRadialGradient(x, y, r * 0.2, x, y, r);
     g.addColorStop(0, kleur);
     g.addColorStop(1, kleur + "00");
-    vctx.fillStyle = g;
-    vctx.beginPath();
-    vctx.arc(x, y, r, 0, Math.PI * 2);
-    vctx.fill();
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
   }
 
+  // Per-soort schilders. Elk maakt zijn eigen, visueel herkenbare vuil.
+  const schilders = {
+    // Licht grijze, zachte stofwolken — vooral in de bovenste helft.
+    stof(ctx, S) {
+      for (let i = 0; i < 28; i++) {
+        blob(ctx, rnd(0, breedte), rnd(0, hoogte * 0.7), rnd(45, 95) * S, "#c8c2b6", rnd(0.3, 0.55));
+      }
+    },
+    // Gekleurde/bruine vlekken (spetters).
+    vlek(ctx, S) {
+      const kleuren = ["#7a5a30", "#8a6a3a", "#9c6f44", "#6f5a2e"];
+      for (let i = 0; i < 30; i++) {
+        const k = kleuren[(Math.random() * kleuren.length) | 0];
+        blob(ctx, rnd(0, breedte), rnd(hoogte * 0.15, hoogte), rnd(28, 64) * S, k, rnd(0.55, 0.85));
+      }
+    },
+    // Donkerbruine modderklodders, dik en stevig.
+    modder(ctx, S) {
+      ctx.globalCompositeOperation = "source-over";
+      for (let i = 0; i < 24; i++) {
+        const x = rnd(0, breedte), y = rnd(hoogte * 0.4, hoogte);
+        const r = rnd(26, 58) * S;
+        ctx.globalAlpha = rnd(0.7, 0.95);
+        ctx.fillStyle = "#4a3318";
+        ctx.beginPath();
+        // grillige klodder
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+          const rr = r * rnd(0.7, 1.1);
+          const px = x + Math.cos(a) * rr;
+          const py = y + Math.sin(a) * rr;
+          a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+    },
+    // Donkere, knapperige aangekoekte spetters (klein + hard).
+    aangekoekt(ctx, S) {
+      ctx.globalCompositeOperation = "source-over";
+      for (let i = 0; i < 46; i++) {
+        ctx.globalAlpha = rnd(0.6, 0.9);
+        ctx.fillStyle = i % 3 === 0 ? "#2e1f10" : "#3f2d18";
+        ctx.beginPath();
+        ctx.arc(rnd(0, breedte), rnd(hoogte * 0.2, hoogte), rnd(5, 16) * S, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    },
+    // Witte spinnenwebben, vooral in de hoeken.
+    spinnenweb(ctx, S) {
+      tekenWeb(ctx, 0, 0, 165 * S, 1);
+      tekenWeb(ctx, breedte, 0, 165 * S, -1);
+      tekenWeb(ctx, 0, hoogte, 120 * S, 1, -1);
+    },
+    // Kleine verspreide kruimels (stipjes).
+    kruimel(ctx, S) {
+      ctx.globalCompositeOperation = "source-over";
+      const kleuren = ["#b48a4e", "#caa066", "#8a6a3a"];
+      for (let i = 0; i < 70; i++) {
+        ctx.globalAlpha = rnd(0.6, 0.95);
+        ctx.fillStyle = kleuren[(Math.random() * kleuren.length) | 0];
+        ctx.beginPath();
+        ctx.arc(rnd(0, breedte), rnd(hoogte * 0.35, hoogte), rnd(3, 8) * S, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    },
+  };
+
   function tekenVuil() {
-    vctx.globalCompositeOperation = "source-over";
-    vctx.clearRect(0, 0, breedte, hoogte);
-
-    // Basis grauwsluier over de hele kamer
-    vctx.globalAlpha = 0.5;
-    vctx.fillStyle = "#8a6a44";
-    vctx.fillRect(0, 0, breedte, hoogte);
-
     const S = breedte / 800; // schaal t.o.v. ontwerpgrootte
-
-    // Stofwolken bovenaan
-    for (let i = 0; i < 26; i++) {
-      blob(rnd(0, breedte), rnd(0, hoogte * 0.5), rnd(40, 90) * S, "#b9a98f", rnd(0.25, 0.5));
+    beginTotaal = 0;
+    for (const soort of soorten) {
+      const { ctx } = lagen[soort];
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, breedte, hoogte);
+      ctx.globalAlpha = 1;
+      schilders[soort]?.(ctx, S);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "destination-out";
+      const n = Math.max(1, telLaag(soort));
+      lagen[soort].beginPixels = n;
+      beginTotaal += n;
     }
-    // Modder- en groene vlekken
-    const vlekkleuren = ["#5e4326", "#6f5a2e", "#4e6b3a", "#735436"];
-    for (let i = 0; i < 34; i++) {
-      const k = vlekkleuren[(Math.random() * vlekkleuren.length) | 0];
-      blob(rnd(0, breedte), rnd(hoogte * 0.2, hoogte), rnd(30, 75) * S, k, rnd(0.55, 0.9));
-    }
-    // Donkere aangekoekte spetters
-    for (let i = 0; i < 40; i++) {
-      vctx.globalAlpha = rnd(0.5, 0.85);
-      vctx.fillStyle = "#3f2d18";
-      vctx.beginPath();
-      vctx.arc(rnd(0, breedte), rnd(0, hoogte), rnd(4, 14) * S, 0, Math.PI * 2);
-      vctx.fill();
-    }
-    // Spinnenwebben in de hoeken
-    tekenWeb(0, 0, 150 * S, 1);
-    tekenWeb(breedte, 0, 150 * S, -1);
-
-    vctx.globalAlpha = 1;
-    vctx.globalCompositeOperation = "destination-out";
-
-    beginVuilPixels = Math.max(1, telVuil());
+    beginTotaal = Math.max(1, beginTotaal);
     klaarGemeld = false;
   }
 
-  function tekenWeb(cx, cy, r, richting) {
-    vctx.save();
-    vctx.globalAlpha = 0.55;
-    vctx.strokeStyle = "#efe9dd";
-    vctx.lineWidth = Math.max(1.5, r * 0.012);
+  function tekenWeb(ctx, cx, cy, r, richtingX, richtingY = 1) {
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.strokeStyle = "#f4f1ea";
+    ctx.lineWidth = Math.max(1.8, r * 0.014);
     const lijnen = 6;
     for (let i = 0; i <= lijnen; i++) {
       const a = (Math.PI / 2) * (i / lijnen);
-      vctx.beginPath();
-      vctx.moveTo(cx, cy);
-      vctx.lineTo(cx + richting * Math.cos(a) * r, cy + Math.sin(a) * r);
-      vctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + richtingX * Math.cos(a) * r, cy + richtingY * Math.sin(a) * r);
+      ctx.stroke();
     }
     for (let ring = 1; ring <= 4; ring++) {
       const rr = (r / 4) * ring;
-      vctx.beginPath();
+      ctx.beginPath();
       for (let i = 0; i <= lijnen; i++) {
         const a = (Math.PI / 2) * (i / lijnen);
-        const px = cx + richting * Math.cos(a) * rr;
-        const py = cy + Math.sin(a) * rr;
-        i === 0 ? vctx.moveTo(px, py) : vctx.lineTo(px, py);
+        const px = cx + richtingX * Math.cos(a) * rr;
+        const py = cy + richtingY * Math.sin(a) * rr;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
-      vctx.stroke();
+      ctx.stroke();
     }
-    vctx.restore();
+    ctx.restore();
   }
 
   // ---- Vegen ----
@@ -126,8 +195,16 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
 
   function setTool(tool) { huidigeTool = tool; }
 
+  // De lagen die het huidige gereedschap mag wegvegen.
+  function actieveLagen() {
+    const t = huidigeTool;
+    if (!t) return [];
+    return (t.verwijdert || []).filter((s) => lagen[s]).map((s) => lagen[s]);
+  }
+
+  // De positie binnen het canvas (alle lagen liggen exact op elkaar).
   function pos(e) {
-    const r = vuil.getBoundingClientRect();
+    const r = fx.getBoundingClientRect();
     return {
       x: (e.clientX - r.left) / r.width * breedte,
       y: (e.clientY - r.top) / r.height * hoogte,
@@ -138,14 +215,17 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
     const t = huidigeTool;
     const straal = (t ? t.straal : 46) * (breedte / 800);
     const zacht = t ? t.zachtheid : 0.6;
-    vctx.globalCompositeOperation = "destination-out";
-    const g = vctx.createRadialGradient(x, y, straal * (1 - zacht), x, y, straal);
-    g.addColorStop(0, "rgba(0,0,0,1)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    vctx.fillStyle = g;
-    vctx.beginPath();
-    vctx.arc(x, y, straal, 0, Math.PI * 2);
-    vctx.fill();
+    for (const laag of actieveLagen()) {
+      const ctx = laag.ctx;
+      ctx.globalCompositeOperation = "destination-out";
+      const g = ctx.createRadialGradient(x, y, straal * (1 - zacht), x, y, straal);
+      g.addColorStop(0, "rgba(0,0,0,1)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, straal, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   function lijnVeeg(a, b) {
@@ -158,10 +238,27 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
     }
   }
 
+  // De "vanger": een onzichtbaar canvas bovenop de vuil-lagen (maar onder fx)
+  // dat alle aanrakingen voor het vegen opvangt. Zo hoeven de losse vuil-lagen
+  // geen pointer-events te hebben en blokkeren ze de rommel-emoji niet.
+  const vanger = document.createElement("canvas");
+  vanger.className = "veeg-vanger";
+  wrap.insertBefore(vanger, fx);
+
+  function vangerPassend() {
+    vanger.width = Math.max(1, breedte);
+    vanger.height = Math.max(1, hoogte);
+  }
+
+  let pixelsVoorStreek = 0;
+
   function omlaag(e) {
-    vuil.setPointerCapture?.(e.pointerId);
+    // Pointer-capture is fijn op de iPad (vinger blijft "vasthouden"), maar mag
+    // het vegen nooit blokkeren als de browser 'm weigert.
+    try { vanger.setPointerCapture?.(e.pointerId); } catch { /* negeren */ }
     veegt = true;
     laatst = pos(e);
+    pixelsVoorStreek = telActieveResterend();
     veeg(laatst.x, laatst.y);
     spawnSparkles(laatst.x, laatst.y, 2);
     onSchrob?.();
@@ -179,25 +276,66 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
     meetThrottled();
   }
   function omhoog() {
+    if (!veegt) return;
     veegt = false;
     laatst = null;
+    controleerVerkeerd();
     meet();
   }
 
-  vuil.addEventListener("pointerdown", omlaag);
-  vuil.addEventListener("pointermove", beweeg);
-  vuil.addEventListener("pointerup", omhoog);
-  vuil.addEventListener("pointercancel", omhoog);
-  vuil.addEventListener("pointerleave", () => { if (veegt) meet(); });
+  vanger.addEventListener("pointerdown", omlaag);
+  vanger.addEventListener("pointermove", beweeg);
+  vanger.addEventListener("pointerup", omhoog);
+  vanger.addEventListener("pointercancel", omhoog);
+  vanger.addEventListener("pointerleave", () => { if (veegt) { controleerVerkeerd(); meet(); } });
 
   // ---- Voortgang meten ----
-  function telVuil() {
+  function telLaag(soort) {
+    const c = lagen[soort].canvas;
     sctx.clearRect(0, 0, sample.width, sample.height);
-    sctx.drawImage(vuil, 0, 0, sample.width, sample.height);
+    sctx.drawImage(c, 0, 0, sample.width, sample.height);
     const data = sctx.getImageData(0, 0, sample.width, sample.height).data;
     let n = 0;
     for (let i = 3; i < data.length; i += 4) if (data[i] > 25) n++;
     return n;
+  }
+
+  // Resterend vuil over ALLE lagen samen.
+  function telTotaalResterend() {
+    let n = 0;
+    for (const soort of soorten) n += telLaag(soort);
+    return n;
+  }
+
+  // Resterend vuil in alleen de lagen die het huidige gereedschap kan weghalen.
+  function telActieveResterend() {
+    let n = 0;
+    const t = huidigeTool;
+    if (!t) return 0;
+    for (const s of t.verwijdert || []) if (lagen[s]) n += telLaag(s);
+    return n;
+  }
+
+  // Resterend vuil in lagen die GEEN enkel gereedschap... -> hier: alle lagen
+  // die het huidige gereedschap NIET kan weghalen maar die nog wel vuil hebben.
+  function telVerkeerdeResterend() {
+    let n = 0;
+    const t = huidigeTool;
+    const kan = new Set((t && t.verwijdert) || []);
+    for (const s of soorten) if (!kan.has(s)) n += telLaag(s);
+    return n;
+  }
+
+  // Na een streek: als er ~0 verwijderbaar vuil weg is, terwijl er nog wél
+  // vuil ligt dat dit gereedschap NIET aankan, dan poetste het kind met het
+  // verkeerde gereedschap → vriendelijke hint.
+  function controleerVerkeerd() {
+    const naStreek = telActieveResterend();
+    const verwijderd = pixelsVoorStreek - naStreek;
+    if (verwijderd <= 2) {
+      const verkeerdAanwezig = telVerkeerdeResterend();
+      if (verkeerdAanwezig > 4) onVerkeerdGereedschap?.();
+    }
   }
 
   let meetTimer = 0;
@@ -206,11 +344,18 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
     meetTimer = setTimeout(() => { meetTimer = 0; meet(); }, 140);
   }
 
+  // De vuil-voortgang als fractie 0..1 over alle lagen samen.
+  function vuilFractie() {
+    const over = telTotaalResterend();
+    let pct = 1 - over / beginTotaal;
+    return Math.max(0, Math.min(1, pct));
+  }
+
   function meet() {
-    const over = telVuil();
-    let pct = 1 - over / beginVuilPixels;
-    pct = Math.max(0, Math.min(1, pct));
+    const pct = vuilFractie();
     onProgress?.(pct);
+    // De viering/"klaar" wordt door clean.js bepaald (vuil + rommel samen),
+    // maar we vuren onKlaar als ALLE vuil weg is, voor het sparkle-feest.
     if (pct >= 0.985 && !klaarGemeld) {
       klaarGemeld = true;
       feestSparkles();
@@ -238,6 +383,14 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
       spawnSparkles(rnd(0, breedte), rnd(0, hoogte), 1);
     }
     sparkleGeluid();
+  }
+
+  // Sparkle-uitbarsting op een willekeurige plek (gebruikt door rommel→prullenbak).
+  function sparkleBij(clientX, clientY) {
+    const r = fx.getBoundingClientRect();
+    const x = (clientX - r.left) / r.width * breedte;
+    const y = (clientY - r.top) / r.height * hoogte;
+    spawnSparkles(x, y, 10);
   }
 
   function tekenSter(x, y, r, rot) {
@@ -271,19 +424,31 @@ export function maakSchoonmaak({ wrap, onProgress, onKlaar, onSchrob }) {
   }
   raf = requestAnimationFrame(lus);
 
-  const onResize = () => passendMaken();
+  const onResize = () => { passendMaken(); vangerPassend(); };
   window.addEventListener("resize", onResize);
   window.addEventListener("orientationchange", onResize);
 
   passendMaken();
+  vangerPassend();
 
   return {
     setTool,
+    // Voor de combinatie-voortgang in clean.js.
+    vuilFractie,
+    // Sparkle-feestje (bv. wanneer rommel + vuil samen klaar zijn).
+    feestSparkles,
+    sparkleBij,
     destroy() {
       cancelAnimationFrame(raf);
+      if (meetTimer) { clearTimeout(meetTimer); meetTimer = 0; }
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
-      vuil.remove();
+      vanger.removeEventListener("pointerdown", omlaag);
+      vanger.removeEventListener("pointermove", beweeg);
+      vanger.removeEventListener("pointerup", omhoog);
+      vanger.removeEventListener("pointercancel", omhoog);
+      for (const soort of soorten) lagen[soort].canvas.remove();
+      vanger.remove();
       fx.remove();
     },
   };

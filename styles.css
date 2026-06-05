@@ -152,13 +152,55 @@ html, body {
   box-shadow: 0 12px 0 var(--schaduw), inset 0 0 0 6px #ffffff;
   background: #fff;
 }
-.kamer-svg, .vuil-canvas, .fx-canvas {
+.kamer-svg, .vuil-canvas, .veeg-vanger, .fx-canvas {
   position: absolute; inset: 0; width: 100%; height: 100%;
   display: block;
 }
 .kamer-svg { z-index: 1; }
-.vuil-canvas { z-index: 2; touch-action: none; cursor: grab; }
-.fx-canvas { z-index: 3; pointer-events: none; }
+/* Vuil-lagen liggen gestapeld (één per soort), maar vangen zelf geen
+   aanrakingen — dat doet de onzichtbare veeg-vanger erbovenop. */
+.vuil-canvas { z-index: 2; pointer-events: none; }
+.veeg-vanger { z-index: 3; touch-action: none; cursor: grab; background: transparent; }
+.fx-canvas { z-index: 6; pointer-events: none; }
+
+/* ===== Rommel + prullenbak ===== */
+.prullenbak {
+  position: absolute;
+  right: 10px; bottom: 10px;
+  z-index: 5;
+  width: clamp(64px, 11vw, 96px);
+  height: clamp(64px, 11vw, 96px);
+  display: grid; place-items: center;
+  font-size: clamp(40px, 7vw, 62px);
+  background: rgba(255,255,255,.85);
+  border-radius: 22px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  pointer-events: none; /* alleen doel; niet sleepbaar */
+  transition: transform .12s ease;
+}
+.prullenbak.hap { transform: scale(1.18) rotate(-6deg); }
+
+.rommel-laag {
+  position: absolute; inset: 0;
+  z-index: 4;
+  pointer-events: none; /* alleen de items vangen aanrakingen */
+}
+.rommel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(40px, 7vw, 60px);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  filter: drop-shadow(0 4px 3px rgba(43,58,85,.3));
+  transition: transform .08s ease;
+  will-change: left, top, transform;
+}
+.rommel.sleept { cursor: grabbing; z-index: 7; }
+.rommel.weg { animation: rommelWeg .22s ease forwards; pointer-events: none; }
+@keyframes rommelWeg {
+  to { transform: translate(-50%, -50%) scale(0.1) rotate(40deg); opacity: 0; }
+}
 
 /* Voortgangsbalk */
 .voortgang {
@@ -247,4 +289,14 @@ html, body {
 .cursief-hint {
   text-align: center; padding: 4px; font-weight: 700; color: var(--donker);
   opacity: .65; font-size: clamp(13px, 2.2vw, 17px);
+  transition: color .15s ease;
+}
+.cursief-hint.flits {
+  opacity: 1; color: var(--blauw-diep);
+  animation: hintFlits .4s ease;
+}
+@keyframes hintFlits {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
 }
