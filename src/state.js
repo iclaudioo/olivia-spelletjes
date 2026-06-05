@@ -197,9 +197,12 @@ export function kiesSkin(id) {
   return true;
 }
 
-// De gekozen skin-id (valt terug op de standaard-skin als er niets gekozen is).
+// De gekozen skin-id. Valt terug op de standaard-skin als er niets gekozen is,
+// of als de gekozen skin niet (meer) in bezit is (corrupte/bewerkte save of een
+// uit de catalogus verwijderde skin) — zo tonen we nooit een niet-bezeten skin.
 export function getGekozenSkin() {
-  return staat.gekozenSkin || STANDAARD_SKIN;
+  const id = staat.gekozenSkin;
+  return id && bezitSkin(id) ? id : STANDAARD_SKIN;
 }
 
 // ---- Kamer-voortgang ----

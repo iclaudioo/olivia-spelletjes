@@ -1,11 +1,21 @@
-// Herbruikbare top-balk: optionele terug-knop, titel, spacer en munten-teller.
-// Gebruikt door alle schermen zodat de koptekst overal hetzelfde aanvoelt.
+// Herbruikbare top-balk: optionele terug-knop, titel, spacer, snelle muziek-
+// knop en munten-teller. Gebruikt door alle schermen zodat de koptekst overal
+// hetzelfde aanvoelt.
 
-// maakTopbar({ titel, opTerug, toonMunten }) -> { el, updateMunten(waarde) }
+import { getStaat, bewaren } from "../state.js";
+import { zetMuziek } from "../audio/muziek.js";
+
+// maakTopbar({ titel, opTerug, toonMunten, toonMuziek }) -> { el, updateMunten(waarde) }
 //  - titel:      tekst in het midden-links
 //  - opTerug:    functie; als die is meegegeven verschijnt een ronde terug-knop
 //  - toonMunten: of de munten-teller rechts wordt getoond (standaard: true)
-export function maakTopbar({ titel, opTerug, toonMunten = true } = {}) {
+//  - toonMuziek: of de snelle muziek-aan/uit-knop wordt getoond (standaard: true)
+export function maakTopbar({
+  titel,
+  opTerug,
+  toonMunten = true,
+  toonMuziek = true,
+} = {}) {
   const el = maak("div", "topbar");
 
   // Ronde terug-knop (alleen als er een terug-actie is).
@@ -19,6 +29,28 @@ export function maakTopbar({ titel, opTerug, toonMunten = true } = {}) {
   const titelEl = maak("div", "titel", titel || "");
   const spacer = maak("div", "spacer");
   el.append(titelEl, spacer);
+
+  // Snelle muziek-aan/uit-knop (vóór de munten). Leest de huidige instelling bij
+  // het renderen; tikken wisselt + bewaart + start/stopt de muziek. zetMuziek
+  // faalt stil als de audio nog niet klaar is, dus dit kan niet crashen.
+  if (toonMuziek) {
+    const muziekKnop = maak("button", "knop rond muziek-knop");
+    function tekenMuziek() {
+      const aan = getStaat().instellingen?.muziek === true;
+      muziekKnop.textContent = aan ? "🔊" : "🔇";
+      muziekKnop.setAttribute("aria-label", aan ? "Muziek uit" : "Muziek aan");
+      muziekKnop.setAttribute("aria-pressed", aan ? "true" : "false");
+    }
+    muziekKnop.addEventListener("click", () => {
+      const aan = !(getStaat().instellingen?.muziek === true);
+      getStaat().instellingen.muziek = aan;
+      bewaren();
+      zetMuziek(aan);
+      tekenMuziek();
+    });
+    tekenMuziek();
+    el.append(muziekKnop);
+  }
 
   // Munten-teller rechts.
   let waardeEl = null;

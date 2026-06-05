@@ -729,6 +729,12 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   background: var(--paars);
 }
 
+/* Instellingen-kaart op het beginscherm — eigen kleur zodat hij zich van de
+   winkel- (geel) en verzamel-kaart (paars) onderscheidt. */
+.instellingen-kaart {
+  background: var(--groen);
+}
+
 .verzamel-scherm {
   flex: 1;
   overflow-y: auto;

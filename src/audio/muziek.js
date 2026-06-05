@@ -150,11 +150,6 @@ export function zetMuziek(aan) {
   else stopMuziek();
 }
 
-// Of de muziek momenteel speelt (voor verificatie/debug).
-export function muziekSpeelt() {
-  return speelt;
-}
-
 // Op app-load: start de muziek alleen als de instelling aan staat. Bedoeld om
 // vanaf het eerste gebaar te worden aangeroepen (main.js).
 export function startMuziekIndienAan() {
