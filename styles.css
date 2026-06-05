@@ -1,0 +1,200 @@
+/* ===== Olivia's Schoonmaak Huizen — stijl ===== */
+
+:root {
+  --blauw: #6ec8ff;
+  --blauw-diep: #3aa0e6;
+  --geel: #ffd24a;
+  --roze: #ff8fb6;
+  --groen: #7bd88f;
+  --paars: #b98cff;
+  --donker: #2b3a55;
+  --wit: #ffffff;
+  --schaduw: rgba(43, 58, 85, 0.22);
+  --font: "Baloo 2", "Comic Sans MS", "Segoe UI Rounded", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overscroll-behavior: none;
+  background: linear-gradient(160deg, #bfe9ff 0%, #d9f3ff 40%, #fff0f6 100%);
+  font-family: var(--font);
+  color: var(--donker);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== Top-balk ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  padding-top: max(10px, env(safe-area-inset-top));
+  z-index: 20;
+}
+.topbar .titel {
+  font-size: clamp(18px, 3.4vw, 30px);
+  font-weight: 800;
+  color: var(--donker);
+  text-shadow: 0 2px 0 #fff;
+}
+.spacer { flex: 1; }
+
+.knop {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 800;
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 18px;
+  padding: 10px 18px;
+  font-size: clamp(15px, 2.4vw, 20px);
+  box-shadow: 0 5px 0 var(--schaduw);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.knop:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+.knop.primair { background: var(--geel); }
+.knop.rond { border-radius: 50%; width: 54px; height: 54px; padding: 0; font-size: 26px; }
+
+/* Munten-teller */
+.munten {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--wit);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 900;
+  font-size: clamp(16px, 2.6vw, 22px);
+  box-shadow: 0 5px 0 var(--schaduw);
+}
+.munten .coin {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe680, #f4b400);
+  border: 3px solid #e09b00;
+  display: grid; place-items: center;
+  font-size: 15px;
+}
+.munten .pop { animation: pop .35s ease; }
+@keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
+
+/* ===== Schoonmaak-scherm ===== */
+.clean-scherm { position: relative; flex: 1; display: flex; flex-direction: column; }
+
+.kamer-wrap {
+  position: relative;
+  flex: 1;
+  margin: 6px 14px;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 12px 0 var(--schaduw), inset 0 0 0 6px #ffffff;
+  background: #fff;
+}
+.kamer-svg, .vuil-canvas, .fx-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block;
+}
+.kamer-svg { z-index: 1; }
+.vuil-canvas { z-index: 2; touch-action: none; cursor: grab; }
+.fx-canvas { z-index: 3; pointer-events: none; }
+
+/* Voortgangsbalk */
+.voortgang {
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 6;
+  width: min(60%, 420px);
+  height: 26px;
+  background: rgba(255,255,255,.7);
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--schaduw);
+  overflow: hidden;
+}
+.voortgang .vul {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--groen), #58c46f);
+  border-radius: 999px;
+  transition: width .2s ease;
+}
+.voortgang .label {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-weight: 900; font-size: 15px; color: var(--donker);
+}
+
+/* ===== Toolbar met schoonmaakgerei ===== */
+.toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(8px, 1.6vw, 16px);
+  padding: 8px 14px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 10;
+}
+.tool {
+  position: relative;
+  border: none;
+  width: clamp(58px, 9vw, 84px);
+  height: clamp(58px, 9vw, 84px);
+  border-radius: 22px;
+  background: var(--wit);
+  box-shadow: 0 6px 0 var(--schaduw);
+  font-size: clamp(28px, 4.6vw, 42px);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .1s ease, box-shadow .1s ease, background .15s ease;
+}
+.tool .naam {
+  position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 800; color: var(--donker);
+  white-space: nowrap; opacity: .7;
+}
+.tool.actief {
+  background: var(--geel);
+  transform: translateY(-10px) scale(1.08);
+  box-shadow: 0 12px 0 var(--schaduw);
+}
+.tool:active { transform: translateY(2px) scale(1.02); }
+
+/* ===== Klaar! viering ===== */
+.viering {
+  position: absolute; inset: 0; z-index: 30;
+  display: none;
+  place-items: center;
+  background: rgba(43,58,85,.35);
+  backdrop-filter: blur(2px);
+}
+.viering.aan { display: grid; animation: fade .3s ease; }
+@keyframes fade { from{opacity:0} to{opacity:1} }
+.viering .kaart {
+  background: #fff;
+  border-radius: 30px;
+  padding: 30px 40px;
+  text-align: center;
+  box-shadow: 0 16px 0 var(--schaduw);
+  animation: spring .5s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes spring { 0%{transform:scale(.6)} 100%{transform:scale(1)} }
+.viering h2 { font-size: clamp(28px, 5vw, 44px); margin: 0 0 6px; }
+.viering p { font-size: clamp(16px, 2.8vw, 22px); margin: 0 0 18px; }
+.viering .beloning {
+  font-size: clamp(22px, 4vw, 34px); font-weight: 900; color: #f4b400;
+  margin-bottom: 18px;
+}
+
+.cursief-hint {
+  text-align: center; padding: 4px; font-weight: 700; color: var(--donker);
+  opacity: .65; font-size: clamp(13px, 2.2vw, 17px);
+}
