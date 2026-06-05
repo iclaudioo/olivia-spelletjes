@@ -27,10 +27,11 @@ export function toon(app, { huisId } = {}) {
 
   for (const [kamerId, kamer] of kamers) {
     const kaart = maak("button", "kamer-kaart");
-    kaart.innerHTML = `
-      <div class="kamer-emoji">🛋️</div>
-      <div class="kamer-naam">${kamer.naam}</div>
-      <div class="kamer-status">${statusTekst(kamer)}</div>`;
+    kaart.append(
+      maak("div", "kamer-emoji", "🛋️"),
+      maak("div", "kamer-naam", kamer.naam),
+      maak("div", "kamer-status", statusTekst(kamer)),
+    );
     kaart.addEventListener("click", () => {
       ontgrendelAudio();
       navigeer("schoonmaak", { huisId, kamerId });

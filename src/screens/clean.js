@@ -11,7 +11,7 @@ import {
   voegMuntenToe,
 } from "../state.js";
 import { maakTopbar } from "../ui/topbar.js";
-import { navigeer, terug } from "../router.js";
+import { terug, vervang } from "../router.js";
 import { muntGeluid, vieringGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
 // Beloning voor een schoongemaakte kamer.
@@ -109,10 +109,14 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   kiesTool(actieveTool);
 
   viering.querySelector(".opnieuw").addEventListener("click", () => {
-    // Opnieuw poetsen: dezelfde kamer opnieuw tonen.
-    spel.destroy();
-    toon(app, { huisId, kamerId });
+    // Opnieuw poetsen: via de router opnieuw tonen. De router ruimt eerst het
+    // oude canvas op (RAF + listeners) voordat het verse scherm rendert.
+    vervang("schoonmaak", { huisId, kamerId });
   });
+
+  // Geef de router een opruim-functie terug zodat het canvas (RAF + listeners)
+  // wordt afgebroken zodra we weg-navigeren.
+  return () => spel.destroy();
 }
 
 // kleine helper
