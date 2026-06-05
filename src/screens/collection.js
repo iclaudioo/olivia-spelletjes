@@ -41,8 +41,9 @@ export function toon(app, _params = {}) {
 
     const emoji = maak("div", "sticker-emoji", heeft ? st.emoji : "❓");
     const naam = maak("div", "sticker-naam", heeft ? st.naam : "???");
-    // Verdiend: toon de naam. Nog niet: toon de beschrijving als hint hoe je
-    // hem verdient (de naam blijft verborgen als verrassing).
+    // De beschrijving staat altijd onder de kaart: bij een verdiende sticker als
+    // toelichting, bij een nog-niet-verdiende als hint hoe je hem verdient (de
+    // naam blijft dan verborgen als verrassing).
     const onder = maak("div", "sticker-hint", st.beschrijving);
 
     kaart.append(emoji, naam, onder);

@@ -557,6 +557,68 @@ html, body {
   transform: scale(1.12);
 }
 
+/* ===== Foto-modus (📸) ===== */
+/* Foto-knop in de topbalk (naast de munten). */
+.foto-knop { background: var(--blauw); white-space: nowrap; }
+.foto-knop:disabled { opacity: .6; cursor: default; }
+
+/* Foto-overlay: modal boven alles (z-index boven de viering-band 30). De
+   container blijft altijd volledig zichtbaar; alleen de kaart binnenin krijgt
+   een vrolijke spring-animatie. Zo hangt de overlay nooit op opacity:0 vast. */
+.foto-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(43, 58, 85, .45);
+  backdrop-filter: blur(2px);
+}
+/* Het schattige lijstje rondom de foto. */
+.foto-kaart {
+  background: #fff;
+  border-radius: 28px;
+  padding: 18px;
+  max-width: min(92vw, 720px);
+  width: 100%;
+  box-shadow: 0 16px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: spring .45s cubic-bezier(.2,1.4,.4,1);
+}
+.foto-lijst {
+  background: linear-gradient(160deg, #ffe8f1, #e8f5ff);
+  border: 8px solid #fff;
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: 0 8px 0 var(--schaduw), inset 0 0 0 3px var(--geel);
+  width: 100%;
+}
+.foto-beeld {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.foto-knoppen {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+/* Een <a> als knop: zelfde uitstraling als .knop, maar zonder onderstreping. */
+a.foto-bewaar { text-decoration: none; display: inline-block; }
+.foto-tip {
+  text-align: center;
+  font-weight: 700;
+  font-size: clamp(12px, 2vw, 16px);
+  color: var(--donker);
+  opacity: .7;
+}
+
 /* ===== Verzamelboek (sticker-album) ===== */
 .verzamel-kaart {
   background: var(--paars);

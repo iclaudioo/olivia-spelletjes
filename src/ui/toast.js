@@ -8,6 +8,8 @@
 // weg is, zodat er niets lekt — ook niet als je tussendoor weg-navigeert.
 
 import { sparkleGeluid } from "../audio/sfx.js";
+import { verdienStickers } from "../state.js";
+import { stickerById } from "../data/stickers.js";
 
 // Hoe lang een toast zichtbaar blijft vóór hij vervaagt (sluit aan op de CSS).
 const TOON_MS = 2500;
@@ -34,6 +36,13 @@ export function toonStickerToast(sticker) {
   if (!sticker) return;
   wachtrij.push(sticker);
   if (!bezig) volgende();
+}
+
+// Gedeelde helper: ken nieuw-verdiende stickers toe (via de staat, met dedup) en
+// vier elke nieuwe met een toast. Vervangt het vroegere, per-scherm gedupliceerde
+// `for (const id of verdienStickers()) toonStickerToast(stickerById(id))`.
+export function vierVerdiendeStickers() {
+  for (const id of verdienStickers()) toonStickerToast(stickerById(id));
 }
 
 function volgende() {

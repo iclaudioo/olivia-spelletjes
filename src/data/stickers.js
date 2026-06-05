@@ -7,7 +7,7 @@
 // Dit bestand importeert ALLEEN uit huizen.js (om de kamers van een huis te
 // kunnen opsommen) en NIET uit state.js — zo ontstaat er geen import-cyclus.
 
-import { HUIS_CATALOGUS, getHuisDef } from "./huizen.js";
+import { getHuisDef } from "./huizen.js";
 
 // ---- Kleine helpers over de staat (defensief: alle velden kunnen ontbreken) ----
 
@@ -140,6 +140,13 @@ export const STICKERS = [
       const eigen = eigenHuisIds(s);
       return eigen.length > 0 && eigen.every((id) => huisHelemaalSchoon(s, id));
     },
+  },
+  {
+    id: "fotograaf",
+    naam: "Fotograaf",
+    emoji: "📸",
+    beschrijving: "Maak een foto van je kamer",
+    verdiend: (s) => !!s.fotoGemaakt,
   },
 ];
 

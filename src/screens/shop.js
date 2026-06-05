@@ -14,15 +14,13 @@ import {
   koopHuis,
   bezitMeubel,
   koopMeubel,
-  verdienStickers,
 } from "../state.js";
 import { HUIS_CATALOGUS, getHuisDef } from "../data/huizen.js";
 import { MEUBELS, MEUBEL_LIJST, meubelPrijs } from "../art/meubels.js";
-import { stickerById } from "../data/stickers.js";
 import { terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
-import { toonStickerToast } from "../ui/toast.js";
+import { vierVerdiendeStickers } from "../ui/toast.js";
 import { muntGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
 // Hoe lang de "Gekocht! ✨"-bevestiging op de kaart blijft staan vóór het
@@ -158,7 +156,7 @@ export function toon(app, _params = {}) {
 
     // Eventueel verdiende stickers toekennen en vieren (bv. "shopper" of een
     // huis-specifieke sticker zoals "strandganger").
-    for (const id of verdienStickers()) toonStickerToast(stickerById(id));
+    vierVerdiendeStickers();
 
     // Korte bevestiging op de kaart vóór het hertekenen: dezelfde kop + flits.
     kaart.classList.add("gekocht");

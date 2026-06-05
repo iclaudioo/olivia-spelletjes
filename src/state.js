@@ -55,6 +55,8 @@ function maakStandaard() {
     // registry's prijs===0 set). De rest koop je in de winkel.
     inventaris: { meubels: [...MEUBEL_GRATIS], skins: [] },
     stickers: [],
+    // Of er ooit een foto van een kamer is gemaakt (voor de "fotograaf"-sticker).
+    fotoGemaakt: false,
   };
 }
 
@@ -190,6 +192,16 @@ export function setKamerDecor(huisId, kamerId, decor) {
   const k = getKamerStaat(huisId, kamerId);
   if (!k) return;
   k.decor = decor;
+  bewaren();
+}
+
+// ---- Foto (inricht-scherm) ----
+
+// Markeert dat er een foto van een kamer is gemaakt en bewaart. Dit ontgrendelt
+// de "fotograaf"-sticker. Idempotent: nogmaals fotograferen verandert niets.
+export function markeerFotoGemaakt() {
+  if (staat.fotoGemaakt === true) return;
+  staat.fotoGemaakt = true;
   bewaren();
 }
 

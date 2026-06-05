@@ -28,14 +28,14 @@ import {
   getKamerStaat,
   setKamerDecor,
   bezitMeubel,
-  verdienStickers,
+  markeerFotoGemaakt,
 } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
-import { stickerById } from "../data/stickers.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
-import { toonStickerToast } from "../ui/toast.js";
+import { vierVerdiendeStickers } from "../ui/toast.js";
 import { maakSleepbaar } from "../ui/sleep.js";
+import { maakKamerFoto } from "../foto/foto.js";
 import { terug } from "../router.js";
 import { sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
@@ -62,6 +62,14 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     toonMunten: true,
   });
   updateMunten(staat.munten);
+
+  // ---- Foto-knop in de topbalk (vóór de munten-teller) ----
+  const fotoKnop = el("button", "knop foto-knop", "📸 Foto");
+  fotoKnop.setAttribute("aria-label", "Maak een foto van je kamer");
+  fotoKnop.addEventListener("click", () => maakFoto());
+  const muntenEl = top.querySelector(".munten");
+  if (muntenEl) top.insertBefore(fotoKnop, muntenEl);
+  else top.append(fotoKnop);
 
   // ---- Kamer ----
   const scherm = el("div", "clean-scherm");
@@ -142,6 +150,10 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // pointer-listeners netjes kunnen loskoppelen bij opruimen.
   const sprites = []; // { el, data, grip }
 
+  // De actieve foto-overlay (of null). We houden hem bij zodat hij ook bij
+  // weg-navigeren netjes wordt opgeruimd (geen achtergebleven modal/listeners).
+  let fotoOverlay = null;
+
   // Tint + swatch-selectie eerst tonen op basis van geladen decor.
   pasBehangToe();
   pasVloerToe();
@@ -157,7 +169,82 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // een meubel neerzet, of "kleurexpert" bij behang + vloer). Dedup zit in de
   // staat, dus herhaalde acties leveren niets dubbels op.
   function vierStickers() {
-    for (const id of verdienStickers()) toonStickerToast(stickerById(id));
+    vierVerdiendeStickers();
+  }
+
+  // ---- Foto maken: render de huidige kamer naar een PNG en toon hem in een
+  // schattig lijstje (modal). Markeert de foto in de staat (voor de "fotograaf"-
+  // sticker) en viert eventuele nieuwe stickers. ----
+  async function maakFoto() {
+    ontgrendelAudio();
+    if (fotoOverlay) return; // al een foto open: niet dubbel
+    fotoKnop.disabled = true;
+    let dataURL;
+    try {
+      dataURL = await maakKamerFoto({ art, decor });
+    } catch {
+      // Lukt het rasteriseren niet, dan gewoon stilletjes terug — geen crash.
+      fotoKnop.disabled = false;
+      return;
+    }
+    fotoKnop.disabled = false;
+    // Tussen het starten en klaar zijn kan het scherm zijn opgeruimd; dan niet
+    // alsnog een overlay tonen.
+    if (!app.isConnected || !document.body.contains(app)) return;
+    toonFotoOverlay(dataURL);
+  }
+
+  function toonFotoOverlay(dataURL) {
+    const overlay = el("div", "foto-overlay");
+    const kaart = el("div", "foto-kaart");
+
+    const lijst = el("div", "foto-lijst");
+    const img = el("img", "foto-beeld");
+    img.alt = "Foto van je kamer";
+    img.src = dataURL;
+    lijst.append(img);
+
+    const knoppen = el("div", "foto-knoppen");
+
+    // Bewaar-link: download-attribuut werkt op desktop; iOS Safari negeert het,
+    // vandaar de extra tip eronder (ingedrukt houden om te bewaren).
+    const bewaar = el("a", "knop primair foto-bewaar", "💾 Bewaar");
+    bewaar.href = dataURL;
+    bewaar.download = "mijn-kamer.png";
+
+    const sluit = el("button", "knop foto-sluit", "Sluiten");
+    sluit.addEventListener("click", () => sluitFotoOverlay());
+
+    knoppen.append(bewaar, sluit);
+
+    const tip = el(
+      "div",
+      "foto-tip",
+      "Houd de foto ingedrukt om te bewaren op de iPad."
+    );
+
+    kaart.append(lijst, knoppen, tip);
+    overlay.append(kaart);
+
+    // Tik buiten de kaart sluit ook.
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) sluitFotoOverlay();
+    });
+
+    app.append(overlay);
+    fotoOverlay = overlay;
+
+    sparkleGeluid();
+
+    // De foto telt: markeren in de staat en eventuele nieuwe sticker vieren.
+    markeerFotoGemaakt();
+    vierStickers();
+  }
+
+  function sluitFotoOverlay() {
+    if (!fotoOverlay) return;
+    fotoOverlay.remove();
+    fotoOverlay = null;
   }
 
   // ---- Hint tonen bij een tik op een meubel-op-slot (gesloten meubel) ----
@@ -311,6 +398,8 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
       s.el.remove();
     }
     sprites.length = 0;
+    // Een eventueel open foto-overlay (modal + listeners) ook opruimen.
+    sluitFotoOverlay();
   };
 }
 
