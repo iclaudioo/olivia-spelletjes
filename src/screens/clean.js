@@ -13,10 +13,13 @@ import {
   setKamerSchoon,
   markeerKamerKlaar,
   voegMuntenToe,
+  verdienStickers,
 } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
+import { stickerById } from "../data/stickers.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
+import { toonStickerToast } from "../ui/toast.js";
 import { terug, vervang, navigeer } from "../router.js";
 import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
@@ -147,6 +150,9 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
       const nieuw = voegMuntenToe(BELONING);
       updateMunten(nieuw, true);
     }
+    // Eventueel verdiende stickers toekennen en vieren (dedup zit in de staat,
+    // dus bij opnieuw-poetsen komt er niets dubbels bij).
+    for (const id of verdienStickers()) toonStickerToast(stickerById(id));
     // Het sparkle-feest doet het canvas zelf zodra ál het vuil weg is (in
     // meet()). Hier niet nóg een keer vuren, anders krijg je een dubbel feest.
     vieringGeluid();

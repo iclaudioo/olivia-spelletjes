@@ -28,10 +28,13 @@ import {
   getKamerStaat,
   setKamerDecor,
   bezitMeubel,
+  verdienStickers,
 } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
+import { stickerById } from "../data/stickers.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
+import { toonStickerToast } from "../ui/toast.js";
 import { maakSleepbaar } from "../ui/sleep.js";
 import { terug } from "../router.js";
 import { sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
@@ -150,6 +153,13 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     setKamerDecor(huisId, kamerId, decor);
   }
 
+  // Eventueel verdiende stickers toekennen en vieren (bv. "inrichter" zodra je
+  // een meubel neerzet, of "kleurexpert" bij behang + vloer). Dedup zit in de
+  // staat, dus herhaalde acties leveren niets dubbels op.
+  function vierStickers() {
+    for (const id of verdienStickers()) toonStickerToast(stickerById(id));
+  }
+
   // ---- Hint tonen bij een tik op een meubel-op-slot (gesloten meubel) ----
   // Vervangt kort de standaard-hint door een vriendelijke koop-tip en flitst hem.
   let hintTimer = null;
@@ -174,6 +184,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     maakSprite(m);
     bewaarDecor();
     sparkleGeluid();
+    vierStickers();
   }
 
   // ---- Eén sleepbare sprite maken voor een decor-meubel ----
@@ -261,12 +272,14 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     decor.behang = decor.behang === id ? null : id; // nogmaals tikken = uit
     pasBehangToe();
     bewaarDecor();
+    vierStickers();
   }
   function kiesVloer(id) {
     ontgrendelAudio();
     decor.vloer = decor.vloer === id ? null : id;
     pasVloerToe();
     bewaarDecor();
+    vierStickers();
   }
 
   function pasBehangToe() {

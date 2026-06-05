@@ -16,6 +16,7 @@
 
 import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
 import { MEUBEL_GRATIS, meubelPrijs } from "./art/meubels.js";
+import { STICKERS } from "./data/stickers.js";
 
 const SLEUTEL = "olivia-schoonmaak-v4";
 
@@ -190,6 +191,37 @@ export function setKamerDecor(huisId, kamerId, decor) {
   if (!k) return;
   k.decor = decor;
   bewaren();
+}
+
+// ---- Stickers (Verzamelboek) ----
+
+// Of een sticker al verdiend (en bewaard) is.
+export function heeftSticker(id) {
+  return Array.isArray(staat.stickers) && staat.stickers.includes(id);
+}
+
+// Evalueert élke sticker uit de catalogus tegen de huidige staat en voegt de
+// nieuw-verdiende id's toe aan staat.stickers (gededupliceerd). Bewaart als er
+// iets bijkwam en geeft de array van NIEUW verdiende id's terug, zodat de
+// aanroeper ze kan vieren (toast). Niets nieuw → lege array, geen save.
+export function verdienStickers() {
+  if (!Array.isArray(staat.stickers)) staat.stickers = [];
+  const nieuw = [];
+  for (const st of STICKERS) {
+    if (staat.stickers.includes(st.id)) continue; // al verdiend → niet dubbel
+    let verdiend = false;
+    try {
+      verdiend = !!st.verdiend(staat);
+    } catch {
+      verdiend = false; // een kapot predicaat mag het spel nooit breken
+    }
+    if (verdiend) {
+      staat.stickers.push(st.id);
+      nieuw.push(st.id);
+    }
+  }
+  if (nieuw.length) bewaren();
+  return nieuw;
 }
 
 export function resetAlles() {

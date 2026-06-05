@@ -48,6 +48,18 @@ export function toon(app, _params = {}) {
   });
   rooster.append(winkelKaart);
 
+  // ---- Verzamelboek-kaart (sticker-album) ----
+  const verzamelKaart = maakHuisKaart({
+    emoji: "📖",
+    naam: "Verzamelboek",
+    extraKlasse: "verzamel-kaart",
+  });
+  verzamelKaart.addEventListener("click", () => {
+    ontgrendelAudio();
+    navigeer("verzamelboek");
+  });
+  rooster.append(verzamelKaart);
+
   scherm.append(rooster);
   app.append(top, scherm);
 }

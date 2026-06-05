@@ -6,6 +6,7 @@ import { toon as toonHuis } from "./screens/house.js";
 import { toon as toonSchoonmaak } from "./screens/clean.js";
 import { toon as toonInrichten } from "./screens/decorate.js";
 import { toon as toonWinkel } from "./screens/shop.js";
+import { toon as toonVerzamelboek } from "./screens/collection.js";
 import { ontgrendelAudio } from "./audio/sfx.js";
 
 // Schermen aanmelden.
@@ -14,6 +15,7 @@ registreer("huis", toonHuis);
 registreer("schoonmaak", toonSchoonmaak);
 registreer("inrichten", toonInrichten);
 registreer("winkel", toonWinkel);
+registreer("verzamelboek", toonVerzamelboek);
 
 // Audio ontgrendelen bij de allereerste aanraking (vereist door iOS Safari).
 window.addEventListener("pointerdown", () => ontgrendelAudio(), { once: true });
