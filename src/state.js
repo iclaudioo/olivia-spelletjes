@@ -15,6 +15,7 @@
 // veld-voor-veld gemigreerd — een verse v4-standaard is prima.
 
 import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
+import { MEUBEL_GRATIS, meubelPrijs } from "./art/meubels.js";
 
 const SLEUTEL = "olivia-schoonmaak-v4";
 
@@ -49,7 +50,9 @@ function maakStandaard() {
     munten: 0,
     instellingen: { geluid: true, muziek: false },
     huizen,
-    inventaris: { meubels: [], skins: [] },
+    // De gratis startset-meubels bezit je vanaf het begin (afgeleid uit de
+    // registry's prijs===0 set). De rest koop je in de winkel.
+    inventaris: { meubels: [...MEUBEL_GRATIS], skins: [] },
     stickers: [],
   };
 }
@@ -126,6 +129,30 @@ export function koopHuis(id) {
 
   staat.munten -= huisDef.prijs;
   staat.huizen[id] = { gekocht: true, kamers: zaaiKamers(huisDef) };
+  bewaren();
+  return true;
+}
+
+// ---- Meubel-bezit (inventaris) ----
+
+// Of een meubel beschikbaar is om te plaatsen: gratis meubels (prijs 0) bezit je
+// altijd; gekochte meubels staan in inventaris.meubels.
+export function bezitMeubel(id) {
+  if (meubelPrijs(id) === 0) return true;
+  return staat.inventaris?.meubels?.includes(id) === true;
+}
+
+// Een meubel kopen: kijkt naar de prijs in de registry. Lukt alleen als je het
+// nog niet hebt én genoeg munten hebt. Trekt dan munten af, zet het in de
+// inventaris en bewaart. Geeft true terug bij succes, anders false.
+export function koopMeubel(id) {
+  if (bezitMeubel(id)) return false;
+  const prijs = meubelPrijs(id);
+  if (staat.munten < prijs) return false;
+
+  staat.munten -= prijs;
+  if (!Array.isArray(staat.inventaris.meubels)) staat.inventaris.meubels = [];
+  staat.inventaris.meubels.push(id);
   bewaren();
   return true;
 }

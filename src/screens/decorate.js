@@ -17,12 +17,18 @@ import {
   MEUBELS,
   MEUBEL_LIJST,
   meubelSVG,
+  meubelPrijs,
   BEHANG_KLEUREN,
   VLOER_KLEUREN,
   behangKleur,
   vloerKleur,
 } from "../art/meubels.js";
-import { getStaat, getKamerStaat, setKamerDecor } from "../state.js";
+import {
+  getStaat,
+  getKamerStaat,
+  setKamerDecor,
+  bezitMeubel,
+} from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
@@ -84,10 +90,19 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const meubelRij = el("div", "palet-rij");
   for (const id of MEUBEL_LIJST) {
     const def = MEUBELS[id];
-    const knop = el("button", "palet-item");
+    const bezit = bezitMeubel(id);
+    const knop = el("button", bezit ? "palet-item" : "palet-item op-slot");
     knop.innerHTML = def.svg;
     knop.setAttribute("aria-label", def.naam);
-    knop.addEventListener("click", () => voegMeubelToe(id));
+    if (bezit) {
+      knop.addEventListener("click", () => voegMeubelToe(id));
+    } else {
+      // Slot-overlay: hangslot + prijs. Tikken plaatst niet, maar geeft een hint.
+      const slot = el("div", "palet-slot");
+      slot.append(el("span", "palet-slot-emoji", "🔒"), el("span", "palet-slot-prijs", `★${meubelPrijs(id)}`));
+      knop.append(slot);
+      knop.addEventListener("click", () => toonKoopHint());
+    }
     meubelRij.append(knop);
   }
   meubelSectie.append(meubelRij);
@@ -128,6 +143,24 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // ---- Persist-helper ----
   function bewaarDecor() {
     setKamerDecor(huisId, kamerId, decor);
+  }
+
+  // ---- Hint tonen bij een tik op een meubel-op-slot (gesloten meubel) ----
+  // Vervangt kort de standaard-hint door een vriendelijke koop-tip en flitst hem.
+  const STANDAARD_HINT =
+    "Tik een meubel en sleep het op z'n plek. Sleep naar 🗑️ om het weg te halen.";
+  let hintTimer = null;
+  function toonKoopHint() {
+    ontgrendelAudio();
+    hint.textContent = "Koop dit eerst in de winkel! 🛒";
+    hint.classList.remove("flits");
+    void hint.offsetWidth; // reflow zodat de animatie opnieuw start
+    hint.classList.add("flits");
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
+      hint.textContent = STANDAARD_HINT;
+      hint.classList.remove("flits");
+    }, 1800);
   }
 
   // ---- Meubel toevoegen (verschijnt bij het midden; kind sleept het dan) ----
@@ -256,6 +289,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
 
   // ---- Opruimen: alle meubel-pointer-listeners loskoppelen (geen lekken) ----
   return () => {
+    clearTimeout(hintTimer);
     for (const s of sprites) {
       s.grip.los();
       s.el.remove();

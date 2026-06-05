@@ -189,6 +189,22 @@ html, body {
   color: var(--donker);
 }
 
+/* Sectie-kop in de winkel (Huizen / Meubels) */
+.winkel-sectie-titel {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--donker);
+  margin: 14px 4px 8px;
+}
+.winkel-sectie-titel:first-child { margin-top: 4px; }
+
+/* Meubel-sprite op een te-koop-kaart (zelfde plek als de huis-emoji) */
+.winkel-meubel-sprite {
+  width: clamp(64px, 12vw, 96px);
+  height: clamp(64px, 12vw, 96px);
+}
+.winkel-meubel-sprite svg { width: 100%; height: 100%; display: block; }
+
 /* ===== Schoonmaak-scherm ===== */
 
 /* ----------------------------------------------------------------------------
@@ -501,6 +517,30 @@ html, body {
 }
 .palet-item svg { width: 100%; height: 100%; display: block; }
 .palet-item:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+
+/* Een nog-niet-gekocht meubel: grijs, met hangslot-overlay + prijs */
+.palet-item.op-slot { position: relative; cursor: not-allowed; }
+.palet-item.op-slot svg { opacity: .35; filter: grayscale(1); }
+.palet-item.op-slot:active { transform: none; box-shadow: 0 5px 0 var(--schaduw); }
+.palet-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.palet-slot-emoji { font-size: clamp(20px, 3.5vw, 30px); line-height: 1; }
+.palet-slot-prijs {
+  font-weight: 900;
+  font-size: clamp(11px, 1.8vw, 14px);
+  color: var(--blauw-diep);
+  background: rgba(255, 255, 255, .85);
+  border-radius: 999px;
+  padding: 0 6px;
+}
 
 .swatch {
   border: 4px solid var(--wit);
