@@ -16,6 +16,7 @@
 
 import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
 import { MEUBEL_GRATIS, meubelPrijs } from "./art/meubels.js";
+import { GRATIS_SKINS, STANDAARD_SKIN, skinPrijs } from "./data/skins.js";
 import { STICKERS } from "./data/stickers.js";
 
 const SLEUTEL = "olivia-schoonmaak-v4";
@@ -52,8 +53,11 @@ function maakStandaard() {
     instellingen: { geluid: true, muziek: false },
     huizen,
     // De gratis startset-meubels bezit je vanaf het begin (afgeleid uit de
-    // registry's prijs===0 set). De rest koop je in de winkel.
-    inventaris: { meubels: [...MEUBEL_GRATIS], skins: [] },
+    // registry's prijs===0 set). De rest koop je in de winkel. Idem voor de
+    // gratis gereedschap-skin(s): die bezit je altijd, de rest koop je.
+    inventaris: { meubels: [...MEUBEL_GRATIS], skins: [...GRATIS_SKINS] },
+    // De gekozen gereedschap-skin (markeerkleur van de toolbar).
+    gekozenSkin: STANDAARD_SKIN,
     stickers: [],
     // Of er ooit een foto van een kamer is gemaakt (voor de "fotograaf"-sticker).
     fotoGemaakt: false,
@@ -158,6 +162,44 @@ export function koopMeubel(id) {
   staat.inventaris.meubels.push(id);
   bewaren();
   return true;
+}
+
+// ---- Gereedschap-skins (inventaris + gekozen) ----
+
+// Of een skin in bezit is: gratis skins (prijs 0) bezit je altijd; gekochte
+// skins staan in inventaris.skins.
+export function bezitSkin(id) {
+  if (skinPrijs(id) === 0) return true;
+  return staat.inventaris?.skins?.includes(id) === true;
+}
+
+// Een skin kopen: kijkt naar de prijs in de registry. Lukt alleen als je hem
+// nog niet hebt én genoeg munten hebt. Trekt dan munten af, zet hem in de
+// inventaris en bewaart. Geeft true terug bij succes, anders false.
+export function koopSkin(id) {
+  if (bezitSkin(id)) return false;
+  const prijs = skinPrijs(id);
+  if (staat.munten < prijs) return false;
+
+  staat.munten -= prijs;
+  if (!Array.isArray(staat.inventaris.skins)) staat.inventaris.skins = [];
+  staat.inventaris.skins.push(id);
+  bewaren();
+  return true;
+}
+
+// Een skin kiezen (alleen als je hem bezit): zet gekozenSkin + bewaart. Geeft
+// true terug bij succes, anders false (onbekend of niet in bezit).
+export function kiesSkin(id) {
+  if (!bezitSkin(id)) return false;
+  staat.gekozenSkin = id;
+  bewaren();
+  return true;
+}
+
+// De gekozen skin-id (valt terug op de standaard-skin als er niets gekozen is).
+export function getGekozenSkin() {
+  return staat.gekozenSkin || STANDAARD_SKIN;
 }
 
 // ---- Kamer-voortgang ----

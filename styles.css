@@ -205,6 +205,110 @@ html, body {
 }
 .winkel-meubel-sprite svg { width: 100%; height: 100%; display: block; }
 
+/* Skin-"vlag" op een te-koop-kaart: de skin-emoji op een gekleurd accent-rondje */
+.winkel-skin-vlag {
+  width: clamp(72px, 13vw, 104px);
+  height: clamp(72px, 13vw, 104px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .55), 0 5px 0 var(--schaduw);
+}
+
+/* ===== Instellingen-scherm ===== */
+.instellingen-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 24px;
+}
+.instellingen-vak {
+  background: var(--wit);
+  border-radius: 24px;
+  box-shadow: 0 8px 0 var(--schaduw);
+  padding: 18px 20px;
+  max-width: 640px;
+  margin: 0 auto 18px;
+}
+.instellingen-rij {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+.instellingen-label {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+}
+/* Grote, kindvriendelijke aan/uit-knop */
+.toggle-knop {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 900;
+  color: var(--donker);
+  background: #e8edf5;
+  border-radius: 20px;
+  padding: 12px 22px;
+  min-width: 116px;
+  font-size: clamp(16px, 2.6vw, 22px);
+  box-shadow: 0 5px 0 var(--schaduw);
+  transition: transform .08s ease, box-shadow .08s ease, background .15s ease;
+}
+.toggle-knop:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+.toggle-knop.aan { background: var(--groen); color: #fff; }
+
+.instellingen-sectie-titel {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  margin: 6px 4px 12px;
+}
+.skin-rooster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: clamp(12px, 2vw, 18px);
+}
+/* Eén selecteerbare skin-tegel in de picker */
+.skin-tegel {
+  border: 4px solid transparent;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 22px;
+  padding: 14px 8px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.skin-tegel:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--schaduw); }
+.skin-tegel.gekozen {
+  border-color: var(--donker);
+  box-shadow: 0 6px 0 var(--schaduw), 0 0 0 4px #fff inset;
+}
+.skin-tegel-vlag {
+  width: clamp(54px, 10vw, 72px);
+  height: clamp(54px, 10vw, 72px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: clamp(28px, 5vw, 40px);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .55);
+}
+.skin-tegel-naam {
+  font-weight: 900;
+  font-size: clamp(14px, 2.4vw, 19px);
+}
+.skin-hint {
+  font-weight: 800;
+  opacity: .7;
+  margin: 14px 4px 0;
+  font-size: clamp(14px, 2.2vw, 18px);
+}
+
 /* ===== Schoonmaak-scherm ===== */
 
 /* ----------------------------------------------------------------------------
@@ -337,7 +441,8 @@ html, body {
   white-space: nowrap; opacity: .7;
 }
 .tool.actief {
-  background: var(--geel);
+  /* Markeerkleur komt van de gekozen gereedschap-skin (valt terug op --geel). */
+  background: var(--skin-accent, var(--geel));
   transform: translateY(-10px) scale(1.08);
   box-shadow: 0 12px 0 var(--schaduw);
 }

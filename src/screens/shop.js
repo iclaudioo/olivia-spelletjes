@@ -14,9 +14,12 @@ import {
   koopHuis,
   bezitMeubel,
   koopMeubel,
+  bezitSkin,
+  koopSkin,
 } from "../state.js";
 import { HUIS_CATALOGUS, getHuisDef } from "../data/huizen.js";
 import { MEUBELS, MEUBEL_LIJST, meubelPrijs } from "../art/meubels.js";
+import { SKIN_LIJST, skinById, skinPrijs } from "../data/skins.js";
 import { terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
@@ -81,6 +84,26 @@ export function toon(app, _params = {}) {
         const sprite = maak("div", "winkel-meubel-sprite");
         sprite.innerHTML = MEUBELS[id].svg;
         kaart.append(sprite, maak("div", "huis-naam", MEUBELS[id].naam));
+        return kaart;
+      },
+    },
+    {
+      container: null,
+      titel: "Gereedschap-uiterlijk",
+      leegTekst: "Alle uiterlijken in huis! 🎉",
+      // Ongekochte skin-ids in catalogus-volgorde (de gratis skin valt af).
+      lijst: () => SKIN_LIJST.filter((id) => !bezitSkin(id)),
+      naam: (id) => skinById(id).naam,
+      prijs: (id) => skinPrijs(id),
+      bezit: (id) => bezitSkin(id),
+      koop: (id) => koopSkin(id),
+      // Visuele "kop": de skin-emoji groot + naam, met het accent als vlag-kleur.
+      maakHoofd: (id) => {
+        const def = skinById(id);
+        const kaart = maak("div", "huis-kaart winkel-kaart-koop");
+        const vlag = maak("div", "winkel-skin-vlag huis-emoji", def.emoji);
+        vlag.style.background = def.accent;
+        kaart.append(vlag, maak("div", "huis-naam", def.naam));
         return kaart;
       },
     },

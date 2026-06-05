@@ -5,7 +5,10 @@ import { getStaat } from "../state.js";
 let ctx = null;
 let ruisBuffer = null;
 
-function audio() {
+// De ENE gedeelde AudioContext voor alle geluid (sfx én muziek). De muziek-
+// module importeert deze i.p.v. een eigen context te maken — anders krijg je
+// concurrerende contexten (op iOS vaak een hard limiet).
+export function audio() {
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     ctx = new AC();

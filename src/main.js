@@ -7,7 +7,9 @@ import { toon as toonSchoonmaak } from "./screens/clean.js";
 import { toon as toonInrichten } from "./screens/decorate.js";
 import { toon as toonWinkel } from "./screens/shop.js";
 import { toon as toonVerzamelboek } from "./screens/collection.js";
+import { toon as toonInstellingen } from "./screens/settings.js";
 import { ontgrendelAudio } from "./audio/sfx.js";
+import { startMuziekIndienAan } from "./audio/muziek.js";
 
 // Schermen aanmelden.
 registreer("home", toonHome);
@@ -16,9 +18,19 @@ registreer("schoonmaak", toonSchoonmaak);
 registreer("inrichten", toonInrichten);
 registreer("winkel", toonWinkel);
 registreer("verzamelboek", toonVerzamelboek);
+registreer("instellingen", toonInstellingen);
 
 // Audio ontgrendelen bij de allereerste aanraking (vereist door iOS Safari).
-window.addEventListener("pointerdown", () => ontgrendelAudio(), { once: true });
+// Datzelfde gebaar telt ook om de achtergrondmuziek te mogen starten — dus als
+// de instelling "muziek" aan staat, starten we hem hier (anders blijft hij uit).
+window.addEventListener(
+  "pointerdown",
+  () => {
+    ontgrendelAudio();
+    startMuziekIndienAan();
+  },
+  { once: true }
+);
 
 // Voorkom dubbel-tik-zoom en slepen van de pagina op de iPad.
 document.addEventListener("gesturestart", (e) => e.preventDefault());

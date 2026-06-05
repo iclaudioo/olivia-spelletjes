@@ -8,6 +8,7 @@
 // kunnen opsommen) en NIET uit state.js — zo ontstaat er geen import-cyclus.
 
 import { getHuisDef } from "./huizen.js";
+import { GRATIS_SKINS } from "./skins.js";
 
 // ---- Kleine helpers over de staat (defensief: alle velden kunnen ontbreken) ----
 
@@ -147,6 +148,14 @@ export const STICKERS = [
     emoji: "📸",
     beschrijving: "Maak een foto van je kamer",
     verdiend: (s) => !!s.fotoGemaakt,
+  },
+  {
+    id: "gereedschap-fan",
+    naam: "Gereedschap-fan",
+    emoji: "🛠️",
+    beschrijving: "Koop een nieuw gereedschap-uiterlijk",
+    // Verdiend zodra je minstens één NIET-gratis skin bezit.
+    verdiend: (s) => (s?.inventaris?.skins?.length || 0) > GRATIS_SKINS.length,
   },
 ];
 

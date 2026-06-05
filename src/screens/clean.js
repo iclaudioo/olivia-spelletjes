@@ -13,8 +13,10 @@ import {
   setKamerSchoon,
   markeerKamerKlaar,
   voegMuntenToe,
+  getGekozenSkin,
 } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
+import { skinById, skinAccent } from "../data/skins.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
 import { vierVerdiendeStickers } from "../ui/toast.js";
@@ -78,11 +80,18 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
 
   scherm.append(wrap);
 
-  // ---- Toolbar ----
+  // ---- Toolbar (met de gekozen gereedschap-skin) ----
+  // De skin levert het accent (markeerkleur van het actieve gereedschap) via een
+  // CSS-custom-property; .tool.actief gebruikt var(--skin-accent). Een skin mag
+  // optioneel per tool een eigen emoji geven; anders blijft de standaard-emoji.
+  const skinDef = skinById(getGekozenSkin());
+  const skinTools = skinDef?.tools || {};
   const toolbar = el("div", "toolbar");
+  toolbar.style.setProperty("--skin-accent", skinAccent(getGekozenSkin()));
   const knoppen = TOOLS.map((t) => {
     const b = el("button", "tool");
-    b.innerHTML = `${t.emoji}<span class="naam">${t.naam}</span>`;
+    const emoji = skinTools[t.id] || t.emoji;
+    b.innerHTML = `${emoji}<span class="naam">${t.naam}</span>`;
     b.addEventListener("pointerdown", () => kiesTool(t.id));
     toolbar.append(b);
     return { id: t.id, el: b };

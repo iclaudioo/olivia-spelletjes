@@ -60,6 +60,18 @@ export function toon(app, _params = {}) {
   });
   rooster.append(verzamelKaart);
 
+  // ---- Instellingen-kaart (geluid/muziek + skins) ----
+  const instellingenKaart = maakHuisKaart({
+    emoji: "⚙️",
+    naam: "Instellingen",
+    extraKlasse: "instellingen-kaart",
+  });
+  instellingenKaart.addEventListener("click", () => {
+    ontgrendelAudio();
+    navigeer("instellingen");
+  });
+  rooster.append(instellingenKaart);
+
   scherm.append(rooster);
   app.append(top, scherm);
 }

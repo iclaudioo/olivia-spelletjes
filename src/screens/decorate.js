@@ -154,6 +154,12 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // weg-navigeren netjes wordt opgeruimd (geen achtergebleven modal/listeners).
   let fotoOverlay = null;
 
+  // Liveness-vlag voor async werk (foto rasteriseren). #app is de vaste router-
+  // root en wordt NOOIT losgekoppeld (de router doet alleen innerHTML=""), dus
+  // een DOM-check zou nooit afgaan. De opruim-closure zet `levend = false`, zo
+  // weten we of dit scherm nog actief is wanneer een await terugkeert.
+  let levend = true;
+
   // Tint + swatch-selectie eerst tonen op basis van geladen decor.
   pasBehangToe();
   pasVloerToe();
@@ -189,8 +195,9 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     }
     fotoKnop.disabled = false;
     // Tussen het starten en klaar zijn kan het scherm zijn opgeruimd; dan niet
-    // alsnog een overlay tonen.
-    if (!app.isConnected || !document.body.contains(app)) return;
+    // alsnog een overlay tonen. We leunen op de liveness-vlag (door de opruim-
+    // closure op false gezet) i.p.v. een DOM-check op de vaste #app-root.
+    if (!levend) return;
     toonFotoOverlay(dataURL);
   }
 
@@ -392,6 +399,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
 
   // ---- Opruimen: alle meubel-pointer-listeners loskoppelen (geen lekken) ----
   return () => {
+    levend = false; // lopend async foto-werk weet zo dat het scherm weg is
     clearTimeout(hintTimer);
     for (const s of sprites) {
       s.grip.los();
