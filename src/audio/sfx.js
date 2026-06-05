@@ -19,7 +19,7 @@ export function audio() {
 }
 
 function aanGeluid() {
-  return getStaat().instellingen.geluid !== false;
+  return getStaat().instellingen?.geluid !== false;
 }
 
 // Eenmalig opwekken bij eerste aanraking (vereist door iOS).

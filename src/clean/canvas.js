@@ -50,19 +50,64 @@ export function maakSchoonmaak({
   let breedte = 0, hoogte = 0;
   let beginTotaal = 1;
   let klaarGemeld = false;
+  // Alleen de ALLEReerste keer verspreiden we vers vuil. Bij een latere resize
+  // (iPad draaien / Safari split-view) zou opnieuw tekenen de voortgang wissen,
+  // dus dán schalen we de bestaande (deels gepoetste) bitmaps mee i.p.v. te
+  // hertekenen.
+  let eersteKeer = true;
 
   function passendMaken() {
     const r = wrap.getBoundingClientRect();
-    breedte = Math.max(1, Math.round(r.width * dpr));
-    hoogte = Math.max(1, Math.round(r.height * dpr));
+    const nieuweBreedte = Math.max(1, Math.round(r.width * dpr));
+    const nieuweHoogte = Math.max(1, Math.round(r.height * dpr));
+
+    if (eersteKeer) {
+      breedte = nieuweBreedte;
+      hoogte = nieuweHoogte;
+      for (const soort of soorten) {
+        const c = lagen[soort].canvas;
+        c.width = breedte; c.height = hoogte;
+      }
+      fx.width = breedte; fx.height = hoogte;
+      sample.width = 90;
+      sample.height = Math.max(1, Math.round(90 * (hoogte / breedte)));
+      tekenVuil();
+      eersteKeer = false;
+      return;
+    }
+
+    // Echte resize: niets verandert aan de afmetingen → niets te doen.
+    if (nieuweBreedte === breedte && nieuweHoogte === hoogte) return;
+
+    // Echte resize: bewaar de huidige (deels gepoetste) bitmap van elke vuil-laag
+    // en schaal hem mee naar de nieuwe canvas-grootte. Zo blijven gepoetste/
+    // weggeveegde plekken behouden — de voortgang reset NIET naar 0.
     for (const soort of soorten) {
       const c = lagen[soort].canvas;
-      c.width = breedte; c.height = hoogte;
+      // Snapshot op de OUDE grootte.
+      const tmp = document.createElement("canvas");
+      tmp.width = c.width;
+      tmp.height = c.height;
+      tmp.getContext("2d").drawImage(c, 0, 0);
+      // Canvas naar de nieuwe grootte (dit wist de inhoud) en de snapshot er
+      // weer geschaald op tekenen.
+      c.width = nieuweBreedte;
+      c.height = nieuweHoogte;
+      const ctx = lagen[soort].ctx;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.drawImage(tmp, 0, 0, tmp.width, tmp.height, 0, 0, nieuweBreedte, nieuweHoogte);
     }
+
+    breedte = nieuweBreedte;
+    hoogte = nieuweHoogte;
+
+    // fx + sample meeschalen. Sparkles zijn vluchtig, dus die hoeven we niet te
+    // bewaren. beginTotaal wordt via het 90px sample-canvas gemeten en blijft
+    // dus vergelijkbaar over resoluties heen — niet opnieuw zetten.
     fx.width = breedte; fx.height = hoogte;
     sample.width = 90;
     sample.height = Math.max(1, Math.round(90 * (hoogte / breedte)));
-    tekenVuil();
   }
 
   // ---- Vuil schilderen ----

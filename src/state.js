@@ -74,9 +74,28 @@ function laden() {
     if (!ruw) return structuredClone(standaard);
     const data = JSON.parse(ruw);
     // Samenvoegen met standaard zodat nieuwe velden niet ontbreken (migratie-veilig).
-    return diepSamenvoegen(structuredClone(standaard), data);
+    const samengevoegd = diepSamenvoegen(structuredClone(standaard), data);
+    zaaiOntbrekendeKamers(samengevoegd);
+    return samengevoegd;
   } catch {
     return structuredClone(standaard);
+  }
+}
+
+// Zorgt dat élk BEZETEN huis voor iedere kamer uit de catalogus een voortgangs-
+// entry heeft. Zo blijven later-toegevoegde kamers ook in bestaande saves
+// speelbaar (anders zou getKamerStaat undefined geven en de kamer onmaakbaar).
+function zaaiOntbrekendeKamers(s) {
+  if (!isObject(s.huizen)) return;
+  for (const huisId of Object.keys(s.huizen)) {
+    const huis = s.huizen[huisId];
+    if (!huis || huis.gekocht !== true) continue;
+    const def = getHuisDef(huisId);
+    if (!def) continue;
+    if (!isObject(huis.kamers)) huis.kamers = {};
+    for (const k of def.kamers) {
+      if (!huis.kamers[k.id]) huis.kamers[k.id] = nieuweKamer();
+    }
   }
 }
 

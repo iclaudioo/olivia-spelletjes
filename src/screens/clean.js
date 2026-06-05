@@ -23,8 +23,12 @@ import { vierVerdiendeStickers } from "../ui/toast.js";
 import { terug, vervang, navigeer } from "../router.js";
 import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
-// Beloning voor een schoongemaakte kamer.
+// Beloning voor een schoongemaakte kamer (de eerste keer).
 const BELONING = 25;
+// Kleinere beloning voor opnieuw poetsen van een al-schone kamer ("Nog een
+// keer"). Zo blijft inkomen herhaalbaar en zijn dure huizen/meubels/skins
+// uiteindelijk bereikbaar door te spelen.
+const HERHAAL_BELONING = 10;
 // Hoe zwaar telt vuil vs. rommel in de gecombineerde voortgang.
 const VUIL_GEWICHT = 0.7;
 const ROMMEL_GEWICHT = 0.3;
@@ -76,6 +80,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
         <button class="knop inrichten-knop">Inrichten 🛋️</button>
       </div>
     </div>`;
+  const beloningEl = viering.querySelector(".beloning");
   wrap.append(viering);
 
   scherm.append(wrap);
@@ -153,10 +158,14 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   function vier() {
     const alKlaar = getKamerStaat(huisId, kamerId)?.klaar;
     markeerKamerKlaar(huisId, kamerId);
-    if (!alKlaar) {
-      const nieuw = voegMuntenToe(BELONING);
-      updateMunten(nieuw, true);
-    }
+    // Eerste keer schoon → volle beloning; al-schone kamer opnieuw poetsen →
+    // kleinere herhaal-beloning. Zo blijft inkomen herhaalbaar (alle huizen,
+    // meubels en skins zijn uiteindelijk bereikbaar door te blijven spelen).
+    const beloning = alKlaar ? HERHAAL_BELONING : BELONING;
+    const nieuw = voegMuntenToe(beloning);
+    updateMunten(nieuw, true);
+    // De viering-kaart toont het bedrag dat ook echt is uitgekeerd.
+    if (beloningEl) beloningEl.textContent = `+${beloning} ★`;
     // Eventueel verdiende stickers toekennen en vieren (dedup zit in de staat,
     // dus bij opnieuw-poetsen komt er niets dubbels bij).
     vierVerdiendeStickers();

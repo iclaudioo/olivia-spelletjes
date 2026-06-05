@@ -98,7 +98,9 @@ function tekenIcoon(N) {
   return png(N, N, buf);
 }
 
+// Schrijf de iconen in public/ zodat Vite ze 1-op-1 (zelfde naam, geen hash)
+// naar dist/ kopieert en de manifest + index.html ze op /icon-*.png vinden.
 for (const N of [192, 512, 180]) {
-  writeFileSync(new URL(`./icon-${N}.png`, import.meta.url), tekenIcoon(N));
-  console.log(`icon-${N}.png gemaakt`);
+  writeFileSync(new URL(`../../public/icon-${N}.png`, import.meta.url), tekenIcoon(N));
+  console.log(`public/icon-${N}.png gemaakt`);
 }

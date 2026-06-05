@@ -24,10 +24,14 @@ export function toon(app, _params = {}) {
   app.innerHTML = "";
 
   // ---- Topbalk met terug-knop naar het beginscherm ----
+  // Geen snelle muziek-knop in de topbalk hier: dit scherm heeft z'n eigen
+  // Muziek-toggle. Twee knoppen die elkaar niet bijwerken gaven tegenstrijdige
+  // standen, dus op Instellingen bedient alleen de in-pagina toggle de muziek.
   const { el: top, updateMunten } = maakTopbar({
     titel: "⚙️ Instellingen",
     opTerug: () => terug(),
     toonMunten: true,
+    toonMuziek: false,
   });
   updateMunten(staat.munten);
 
