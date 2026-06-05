@@ -1,0 +1,317 @@
+// Inricht-scherm (M4 — decoreren): een SCHONE kamer aankleden.
+// Je plaatst meubels (sleepbaar), kiest een behang- en vloer-kleur, en alles
+// wordt direct bewaard zodat het bij terugkomst nog precies zo staat.
+//
+// Belangrijk:
+//  - Geen vuil/rommel hier; we tonen de schone kamer-SVG.
+//  - Muur/vloer worden getint met twee overlay-lagen (mix-blend-mode: multiply)
+//    in de GERESERVEERDE z-index-band 8–9, zodat ze boven de kamer-SVG maar
+//    onder de meubels/bediening zitten. De tint-lagen zijn pointer-events:none
+//    zodat ze het slepen van meubels niet blokkeren.
+//  - Slepen met Pointer Events (touch-action:none, setPointerCapture in try,
+//    pointercancel afgehandeld). Het scherm geeft een opruim-functie terug die
+//    alle meubel-listeners netjes loskoppelt — net als clean.js/rommel.js.
+
+import { kamerArt } from "../art/kamers.js";
+import {
+  MEUBELS,
+  MEUBEL_LIJST,
+  meubelSVG,
+  BEHANG_KLEUREN,
+  VLOER_KLEUREN,
+  behangKleur,
+  vloerKleur,
+} from "../art/meubels.js";
+import { getStaat, getKamerStaat, setKamerDecor } from "../state.js";
+import { getKamerDef } from "../data/huizen.js";
+import { maakTopbar } from "../ui/topbar.js";
+import { maak as el } from "../ui/dom.js";
+import { terug } from "../router.js";
+import { sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
+
+export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
+  const staat = getStaat();
+  app.innerHTML = "";
+
+  const kamerDef = getKamerDef(huisId, kamerId);
+  const art = kamerDef?.art;
+
+  // ---- Decor laden (diep gekopieerd; we bewaren bij elke wijziging) ----
+  const opgeslagen = getKamerStaat(huisId, kamerId)?.decor;
+  const decor = normaliseerDecor(opgeslagen);
+
+  // ---- Topbalk ----
+  const { el: top, updateMunten } = maakTopbar({
+    titel: "🛋️ Richt in",
+    opTerug: () => terug(),
+    toonMunten: true,
+  });
+  updateMunten(staat.munten);
+
+  // ---- Kamer ----
+  const scherm = el("div", "clean-scherm");
+  const wrap = el("div", "kamer-wrap");
+  wrap.innerHTML = kamerArt(art);
+
+  // ---- Tint-lagen voor muur (boven ~62%) en vloer (onder ~38%) ----
+  // mix-blend-mode: multiply hertint de bestaande kamer-kunst i.p.v. dekken.
+  const behangLaag = el("div", "tint-laag tint-behang");
+  const vloerLaag = el("div", "tint-laag tint-vloer");
+  wrap.append(behangLaag, vloerLaag);
+
+  // ---- Meubel-laag (geplaatste sprites) ----
+  const meubelLaag = el("div", "meubel-laag");
+  wrap.append(meubelLaag);
+
+  // ---- Prullenbak-hoek om meubels te verwijderen ----
+  const prullenbak = el("div", "inricht-bin", "🗑️");
+  wrap.append(prullenbak);
+
+  scherm.append(wrap);
+
+  // ---- Palet-balk (meubels + kleuren) ----
+  const palet = el("div", "palet");
+
+  // Sectie: Meubels
+  const meubelSectie = el("div", "palet-sectie");
+  meubelSectie.append(el("div", "palet-titel", "Meubels"));
+  const meubelRij = el("div", "palet-rij");
+  for (const id of MEUBEL_LIJST) {
+    const def = MEUBELS[id];
+    const knop = el("button", "palet-item");
+    knop.innerHTML = def.svg;
+    knop.setAttribute("aria-label", def.naam);
+    knop.addEventListener("click", () => voegMeubelToe(id));
+    meubelRij.append(knop);
+  }
+  meubelSectie.append(meubelRij);
+
+  // Sectie: Behang
+  const behangSectie = el("div", "palet-sectie");
+  behangSectie.append(el("div", "palet-titel", "Behang"));
+  const behangRij = el("div", "palet-rij");
+  const behangSwatches = maakSwatches(BEHANG_KLEUREN, (id) => kiesBehang(id));
+  for (const s of behangSwatches) behangRij.append(s.el);
+  behangSectie.append(behangRij);
+
+  // Sectie: Vloer
+  const vloerSectie = el("div", "palet-sectie");
+  vloerSectie.append(el("div", "palet-titel", "Vloer"));
+  const vloerRij = el("div", "palet-rij");
+  const vloerSwatches = maakSwatches(VLOER_KLEUREN, (id) => kiesVloer(id));
+  for (const s of vloerSwatches) vloerRij.append(s.el);
+  vloerSectie.append(vloerRij);
+
+  palet.append(meubelSectie, behangSectie, vloerSectie);
+
+  const hint = el("div", "cursief-hint", "Tik een meubel en sleep het op z'n plek. Sleep naar 🗑️ om het weg te halen.");
+
+  app.append(top, scherm, palet, hint);
+
+  // ---- Beheer van geplaatste meubels ----
+  // Elke sleepbare sprite onthoudt zijn handlers zodat we netjes kunnen opruimen.
+  const sprites = []; // { el, data, omlaag, beweeg, omhoog }
+
+  // Tint + swatch-selectie eerst tonen op basis van geladen decor.
+  pasBehangToe();
+  pasVloerToe();
+  // Bestaande meubels renderen.
+  for (const m of decor.meubels) maakSprite(m);
+
+  // ---- Persist-helper ----
+  function bewaarDecor() {
+    setKamerDecor(huisId, kamerId, decor);
+  }
+
+  // ---- Meubel toevoegen (verschijnt bij het midden; kind sleept het dan) ----
+  function voegMeubelToe(id) {
+    ontgrendelAudio();
+    const m = { id, x: 0.5, y: 0.55 };
+    decor.meubels.push(m);
+    maakSprite(m);
+    bewaarDecor();
+    sparkleGeluid();
+  }
+
+  // ---- Eén sleepbare sprite maken voor een decor-meubel ----
+  function maakSprite(m) {
+    const sprite = el("div", "meubel");
+    sprite.innerHTML = meubelSVG(m.id);
+    plaats(sprite, m);
+    meubelLaag.append(sprite);
+
+    let sleept = false;
+    let dx = 0, dy = 0; // greep-offset t.o.v. het midden
+
+    function omlaag(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ontgrendelAudio();
+      sleept = true;
+      try { sprite.setPointerCapture?.(e.pointerId); } catch { /* negeren */ }
+      sprite.classList.add("sleept");
+      const r = sprite.getBoundingClientRect();
+      dx = e.clientX - (r.left + r.width / 2);
+      dy = e.clientY - (r.top + r.height / 2);
+    }
+    function beweeg(e) {
+      if (!sleept) return;
+      e.preventDefault();
+      const wrapR = wrap.getBoundingClientRect();
+      let nx = (e.clientX - dx - wrapR.left) / wrapR.width;
+      let ny = (e.clientY - dy - wrapR.top) / wrapR.height;
+      nx = Math.max(0, Math.min(1, nx));
+      ny = Math.max(0, Math.min(1, ny));
+      m.x = nx;
+      m.y = ny;
+      plaats(sprite, m, true);
+      // Boven de prullenbak? Visueel hint geven.
+      sprite.classList.toggle("boven-bin", bovenBin(sprite));
+    }
+    function omhoog() {
+      if (!sleept) return;
+      sleept = false;
+      sprite.classList.remove("sleept");
+      plaats(sprite, m);
+      if (bovenBin(sprite)) {
+        verwijderSprite(sprite, m);
+        return;
+      }
+      sprite.classList.remove("boven-bin");
+      bewaarDecor();
+    }
+
+    sprite.addEventListener("pointerdown", omlaag);
+    sprite.addEventListener("pointermove", beweeg);
+    sprite.addEventListener("pointerup", omhoog);
+    sprite.addEventListener("pointercancel", omhoog);
+
+    sprites.push({ el: sprite, data: m, omlaag, beweeg, omhoog });
+  }
+
+  // Sprite positioneren uit genormaliseerde x,y. `groot` = lichte vergroting tijdens slepen.
+  function plaats(sprite, m, groot = false) {
+    sprite.style.left = m.x * 100 + "%";
+    sprite.style.top = m.y * 100 + "%";
+    sprite.style.transform = groot
+      ? "translate(-50%, -50%) scale(1.12)"
+      : "translate(-50%, -50%)";
+  }
+
+  // Raakt het midden van de sprite de prullenbak-hoek?
+  function bovenBin(sprite) {
+    const ir = sprite.getBoundingClientRect();
+    const pr = prullenbak.getBoundingClientRect();
+    const cx = ir.left + ir.width / 2;
+    const cy = ir.top + ir.height / 2;
+    return cx >= pr.left && cx <= pr.right && cy >= pr.top && cy <= pr.bottom;
+  }
+
+  // Een geplaatst meubel weghalen (uit DOM, data en listeners) en bewaren.
+  function verwijderSprite(sprite, m) {
+    prullenbak.classList.add("hap");
+    setTimeout(() => prullenbak.classList.remove("hap"), 220);
+
+    const idx = sprites.findIndex((s) => s.el === sprite);
+    if (idx >= 0) {
+      const s = sprites[idx];
+      sprite.removeEventListener("pointerdown", s.omlaag);
+      sprite.removeEventListener("pointermove", s.beweeg);
+      sprite.removeEventListener("pointerup", s.omhoog);
+      sprite.removeEventListener("pointercancel", s.omhoog);
+      sprites.splice(idx, 1);
+    }
+    sprite.classList.add("weg");
+    setTimeout(() => sprite.remove(), 200);
+
+    const di = decor.meubels.indexOf(m);
+    if (di >= 0) decor.meubels.splice(di, 1);
+    bewaarDecor();
+    sparkleGeluid();
+  }
+
+  // ---- Kleur-keuze ----
+  function kiesBehang(id) {
+    ontgrendelAudio();
+    decor.behang = decor.behang === id ? null : id; // nogmaals tikken = uit
+    pasBehangToe();
+    bewaarDecor();
+  }
+  function kiesVloer(id) {
+    ontgrendelAudio();
+    decor.vloer = decor.vloer === id ? null : id;
+    pasVloerToe();
+    bewaarDecor();
+  }
+
+  function pasBehangToe() {
+    const kleur = behangKleur(decor.behang);
+    if (kleur) {
+      behangLaag.style.background = kleur;
+      behangLaag.style.display = "block";
+    } else {
+      behangLaag.style.display = "none";
+    }
+    behangSwatches.forEach((s) => s.el.classList.toggle("gekozen", s.id === decor.behang));
+  }
+  function pasVloerToe() {
+    const kleur = vloerKleur(decor.vloer);
+    if (kleur) {
+      vloerLaag.style.background = kleur;
+      vloerLaag.style.display = "block";
+    } else {
+      vloerLaag.style.display = "none";
+    }
+    vloerSwatches.forEach((s) => s.el.classList.toggle("gekozen", s.id === decor.vloer));
+  }
+
+  // ---- Opruimen: alle meubel-pointer-listeners loskoppelen (geen lekken) ----
+  return () => {
+    for (const s of sprites) {
+      s.el.removeEventListener("pointerdown", s.omlaag);
+      s.el.removeEventListener("pointermove", s.beweeg);
+      s.el.removeEventListener("pointerup", s.omhoog);
+      s.el.removeEventListener("pointercancel", s.omhoog);
+      s.el.remove();
+    }
+    sprites.length = 0;
+  };
+}
+
+// Kleur-swatches bouwen; geeft [{ id, el }] terug. opKies(id) bij een tik.
+function maakSwatches(kleuren, opKies) {
+  return kleuren.map(({ id, kleur }) => {
+    const knop = el("button", "swatch");
+    knop.style.background = kleur;
+    knop.setAttribute("aria-label", id);
+    knop.addEventListener("click", () => opKies(id));
+    return { id, el: knop };
+  });
+}
+
+// Maakt van (mogelijk oude/onvolledige) opgeslagen decor een veilige kopie met
+// de volledige v4-vorm. We werken op een kopie zodat de staat alleen via
+// setKamerDecor wordt aangeraakt.
+function normaliseerDecor(d) {
+  const bron = d && typeof d === "object" && !Array.isArray(d) ? d : {};
+  const meubels = Array.isArray(bron.meubels)
+    ? bron.meubels
+        .filter((m) => m && MEUBELS[m.id])
+        .map((m) => ({
+          id: m.id,
+          x: klem(m.x, 0.5),
+          y: klem(m.y, 0.55),
+        }))
+    : [];
+  return {
+    meubels,
+    behang: typeof bron.behang === "string" ? bron.behang : null,
+    vloer: typeof bron.vloer === "string" ? bron.vloer : null,
+  };
+}
+
+function klem(v, terugval) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return terugval;
+  return Math.max(0, Math.min(1, n));
+}

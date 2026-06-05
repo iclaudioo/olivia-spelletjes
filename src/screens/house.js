@@ -31,15 +31,24 @@ export function toon(app, { huisId } = {}) {
 
   for (const kamerDef of kamers) {
     const voortgang = getKamerStaat(huisId, kamerDef.id);
-    const kaart = maak("button", "kamer-kaart");
+    const schoon = voortgang?.klaar === true;
+    // Schone kamers krijgen een eigen accent + andere actie-tekst zodat
+    // duidelijk is dat je ze kunt inrichten i.p.v. (nog eens) schoonmaken.
+    const kaart = maak("button", schoon ? "kamer-kaart schoon" : "kamer-kaart");
     kaart.append(
       maak("div", "kamer-emoji", kamerEmoji(kamerDef.art)),
       maak("div", "kamer-naam", kamerDef.naam),
       maak("div", "kamer-status", statusTekst(voortgang)),
+      maak("div", "kamer-actie", schoon ? "🛋️ Inrichten" : "🧹 Schoonmaken"),
     );
     kaart.addEventListener("click", () => {
       ontgrendelAudio();
-      navigeer("schoonmaak", { huisId, kamerId: kamerDef.id });
+      // Schone kamer → inrichten; nog vuile kamer → schoonmaken.
+      if (schoon) {
+        navigeer("inrichten", { huisId, kamerId: kamerDef.id });
+      } else {
+        navigeer("schoonmaak", { huisId, kamerId: kamerDef.id });
+      }
     });
     rooster.append(kaart);
   }

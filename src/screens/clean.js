@@ -17,7 +17,7 @@ import {
 import { getKamerDef } from "../data/huizen.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
-import { terug, vervang } from "../router.js";
+import { terug, vervang, navigeer } from "../router.js";
 import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
 // Beloning voor een schoongemaakte kamer.
@@ -68,7 +68,10 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
       <h2>Helemaal schoon! ✨</h2>
       <p>Wat heb jij goed gepoetst!</p>
       <div class="beloning">+${BELONING} ★</div>
-      <button class="knop primair opnieuw">Nog een keer 🧽</button>
+      <div class="viering-knoppen">
+        <button class="knop primair opnieuw">Nog een keer 🧽</button>
+        <button class="knop inrichten-knop">Inrichten 🛋️</button>
+      </div>
     </div>`;
   wrap.append(viering);
 
@@ -180,6 +183,11 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     // oude canvas op (RAF + listeners) en rendert dan een vers scherm met
     // nieuw verspreid vuil + rommel.
     vervang("schoonmaak", { huisId, kamerId });
+  });
+
+  viering.querySelector(".inrichten-knop").addEventListener("click", () => {
+    // Direct door naar het inricht-scherm voor de zojuist schoongemaakte kamer.
+    navigeer("inrichten", { huisId, kamerId });
   });
 
   // Geef de router een opruim-functie terug zodat het canvas (RAF + listeners)

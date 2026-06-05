@@ -367,3 +367,150 @@ html, body {
   40% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
+
+/* ===== Kamer-kaart: actie-label + schone-kamer-accent ===== */
+.kamer-actie {
+  font-weight: 900;
+  font-size: clamp(13px, 2.2vw, 16px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: var(--blauw-diep);
+}
+.kamer-kaart.schoon {
+  background: #eafff0;
+}
+.kamer-kaart.schoon .kamer-actie {
+  background: var(--geel);
+  color: var(--donker);
+}
+
+/* ===== Viering: knoppenrij (nog een keer + inrichten) ===== */
+.viering-knoppen {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.viering .inrichten-knop {
+  background: var(--blauw);
+}
+
+/* ===== Inricht-scherm (decoreren) ===== */
+/* ----------------------------------------------------------------------------
+   z-index binnen .kamer-wrap (vervolg op de schoonmaak-stapel):
+     1    .kamer-svg     — de schone kamer
+     8    .tint-behang   — muur-tint (GERESERVEERDE band 8–9, multiply)
+     9    .tint-vloer    — vloer-tint (multiply)
+     12   .meubel-laag   — geplaatste meubels (sleepbaar; boven de tinten)
+     14   .inricht-bin   — prullenbak-hoek om meubels weg te halen
+     15   .meubel.sleept — een meubel terwijl je het sleept (boven alles binnen wrap)
+   De tint-lagen zijn pointer-events:none zodat ze het slepen niet blokkeren.
+   ---------------------------------------------------------------------------- */
+
+.tint-laag {
+  position: absolute;
+  left: 0; right: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  display: none; /* standaard uit; aan zodra een kleur gekozen is */
+}
+.tint-behang { top: 0; height: 62%; z-index: 8; }
+.tint-vloer { bottom: 0; height: 38%; z-index: 9; }
+
+.meubel-laag {
+  position: absolute; inset: 0;
+  z-index: 12;
+  pointer-events: none; /* alleen de meubels zelf vangen aanrakingen */
+}
+.meubel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: clamp(72px, 13vw, 120px);
+  height: clamp(72px, 13vw, 120px);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  filter: drop-shadow(0 5px 4px rgba(43,58,85,.3));
+  transition: transform .08s ease;
+  will-change: left, top, transform;
+}
+.meubel svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+.meubel.sleept { cursor: grabbing; z-index: 15; }
+.meubel.boven-bin { opacity: .55; }
+.meubel.weg { animation: rommelWeg .2s ease forwards; pointer-events: none; }
+
+/* Prullenbak-hoek om meubels naartoe te slepen */
+.inricht-bin {
+  position: absolute;
+  right: 10px; bottom: 10px;
+  z-index: 14;
+  width: clamp(64px, 11vw, 96px);
+  height: clamp(64px, 11vw, 96px);
+  display: grid; place-items: center;
+  font-size: clamp(40px, 7vw, 62px);
+  background: rgba(255,255,255,.85);
+  border-radius: 22px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  pointer-events: none; /* alleen doel; niet aantikbaar */
+  transition: transform .12s ease;
+}
+.inricht-bin.hap { transform: scale(1.18) rotate(-6deg); }
+
+/* ===== Palet-balk (meubels + kleuren) ===== */
+.palet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 22px);
+  padding: 8px 14px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 10;
+  overflow-x: auto;
+}
+.palet-sectie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.palet-titel {
+  font-weight: 900;
+  font-size: clamp(12px, 2vw, 16px);
+  color: var(--donker);
+  opacity: .75;
+}
+.palet-rij {
+  display: flex;
+  gap: clamp(6px, 1.4vw, 12px);
+}
+.palet-item {
+  border: none;
+  width: clamp(54px, 8vw, 76px);
+  height: clamp(54px, 8vw, 76px);
+  border-radius: 18px;
+  background: var(--wit);
+  box-shadow: 0 5px 0 var(--schaduw);
+  padding: 6px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.palet-item svg { width: 100%; height: 100%; display: block; }
+.palet-item:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+
+.swatch {
+  border: 4px solid var(--wit);
+  width: clamp(44px, 6.5vw, 60px);
+  height: clamp(44px, 6.5vw, 60px);
+  border-radius: 50%;
+  box-shadow: 0 5px 0 var(--schaduw);
+  cursor: pointer;
+  transition: transform .1s ease, box-shadow .1s ease, border-color .1s ease;
+}
+.swatch:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--schaduw); }
+.swatch.gekozen {
+  border-color: var(--donker);
+  transform: scale(1.12);
+}

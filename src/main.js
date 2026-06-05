@@ -4,6 +4,7 @@ import { registreer, navigeer } from "./router.js";
 import { toon as toonHome } from "./screens/home.js";
 import { toon as toonHuis } from "./screens/house.js";
 import { toon as toonSchoonmaak } from "./screens/clean.js";
+import { toon as toonInrichten } from "./screens/decorate.js";
 import { toon as toonWinkel } from "./screens/shop.js";
 import { ontgrendelAudio } from "./audio/sfx.js";
 
@@ -11,6 +12,7 @@ import { ontgrendelAudio } from "./audio/sfx.js";
 registreer("home", toonHome);
 registreer("huis", toonHuis);
 registreer("schoonmaak", toonSchoonmaak);
+registreer("inrichten", toonInrichten);
 registreer("winkel", toonWinkel);
 
 // Audio ontgrendelen bij de allereerste aanraking (vereist door iOS Safari).

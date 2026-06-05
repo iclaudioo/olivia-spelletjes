@@ -5,14 +5,27 @@
 // Vorm:
 //   huizen: { [huisId]: { gekocht: bool,
 //                         kamers: { [kamerId]: { schoonPct, klaar, decor } } } }
+//
+// Sinds v4 is `decor` een object i.p.v. een lege array (M4 — inrichten):
+//   decor: { meubels: [ { id, x, y } ], behang: null, vloer: null }
+//     meubels — geplaatste meubels (id = sleutel uit src/art/meubels.js;
+//               x,y = genormaliseerde positie 0..1 binnen de kamer)
+//     behang/vloer — gekozen kleur-sleutel (of null = geen tint)
+// De sleutel is bewust naar v4 gebumpt omdat de vorm wijzigde; v3 wordt NIET
+// veld-voor-veld gemigreerd — een verse v4-standaard is prima.
 
 import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
 
-const SLEUTEL = "olivia-schoonmaak-v3";
+const SLEUTEL = "olivia-schoonmaak-v4";
 
 // Verse voortgang voor één kamer.
 function nieuweKamer() {
-  return { schoonPct: 0, klaar: false, decor: [] };
+  return { schoonPct: 0, klaar: false, decor: nieuwDecor() };
+}
+
+// Verse, lege decor voor één kamer.
+function nieuwDecor() {
+  return { meubels: [], behang: null, vloer: null };
 }
 
 // Bouwt het voortgangs-object voor alle kamers van een huis uit de catalogus,
@@ -138,6 +151,17 @@ export function markeerKamerKlaar(huisId, kamerId) {
   if (!k) return;
   k.schoonPct = 100;
   k.klaar = true;
+  bewaren();
+}
+
+// ---- Inrichten (decor) ----
+
+// De hele decor van een kamer overschrijven en bewaren. Het inricht-scherm
+// beheert de decor lokaal en geeft het hele object door bij elke wijziging.
+export function setKamerDecor(huisId, kamerId, decor) {
+  const k = getKamerStaat(huisId, kamerId);
+  if (!k) return;
+  k.decor = decor;
   bewaren();
 }
 
