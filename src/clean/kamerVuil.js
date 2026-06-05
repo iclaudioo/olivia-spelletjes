@@ -20,6 +20,20 @@ export const KAMER_VUIL = {
     vuil: ["stof", "spinnenweb", "vlek"],
     rommel: ["🧦", "🧸", "👕"],
   },
+
+  // ---- Strandhuis (zand, schelpen, strandspullen) ----
+  strandwoonkamer: {
+    vuil: ["stof", "modder", "vlek"],
+    rommel: ["🐚", "🩴", "🏐"],
+  },
+  strandkeuken: {
+    vuil: ["vlek", "aangekoekt", "kruimel"],
+    rommel: ["🍍", "🥥", "🥤"],
+  },
+  strandslaapkamer: {
+    vuil: ["stof", "modder", "spinnenweb"],
+    rommel: ["🐚", "🪣", "👙"],
+  },
 };
 
 // Veilige standaard als een art-sleutel onbekend is.

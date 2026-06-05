@@ -1,26 +1,46 @@
 // Spelstaat — wordt bewaard in localStorage zodat de voortgang op de iPad blijft.
+//
+// Sinds v3 bewaart de staat ALLEEN bezit + voortgang. Alle metadata (naam, art,
+// emoji, thema, prijs, welke kamers) komt uit de catalogus (src/data/huizen.js).
+// Vorm:
+//   huizen: { [huisId]: { gekocht: bool,
+//                         kamers: { [kamerId]: { schoonPct, klaar, decor } } } }
 
-const SLEUTEL = "olivia-schoonmaak-v2";
+import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
 
-const standaard = {
-  munten: 0,
-  instellingen: { geluid: true, muziek: false },
-  huizen: {
-    thuis: {
-      naam: "Mijn Huis",
-      thema: "standaard",
-      gekocht: true,
-      kamers: {
-        woonkamer: { naam: "Woonkamer", art: "woonkamer", schoonPct: 0, klaar: false, decor: [] },
-        keuken: { naam: "Keuken", art: "keuken", schoonPct: 0, klaar: false, decor: [] },
-        badkamer: { naam: "Badkamer", art: "badkamer", schoonPct: 0, klaar: false, decor: [] },
-        slaapkamer: { naam: "Slaapkamer", art: "slaapkamer", schoonPct: 0, klaar: false, decor: [] },
-      },
-    },
-  },
-  inventaris: { meubels: [], skins: [] },
-  stickers: [],
-};
+const SLEUTEL = "olivia-schoonmaak-v3";
+
+// Verse voortgang voor één kamer.
+function nieuweKamer() {
+  return { schoonPct: 0, klaar: false, decor: [] };
+}
+
+// Bouwt het voortgangs-object voor alle kamers van een huis uit de catalogus,
+// zodat staat en catalogus altijd in sync blijven.
+function zaaiKamers(huisDef) {
+  const kamers = {};
+  for (const k of huisDef.kamers) kamers[k.id] = nieuweKamer();
+  return kamers;
+}
+
+// Standaard-staat: het starthuis "thuis" is gratis in bezit, de rest niet.
+function maakStandaard() {
+  const huizen = {};
+  for (const huisDef of HUIS_CATALOGUS) {
+    if (huisDef.prijs === 0) {
+      huizen[huisDef.id] = { gekocht: true, kamers: zaaiKamers(huisDef) };
+    }
+  }
+  return {
+    munten: 0,
+    instellingen: { geluid: true, muziek: false },
+    huizen,
+    inventaris: { meubels: [], skins: [] },
+    stickers: [],
+  };
+}
+
+const standaard = maakStandaard();
 
 let staat = laden();
 
@@ -74,14 +94,38 @@ export function voegMuntenToe(aantal) {
   return staat.munten;
 }
 
-// Een kamer opzoeken (of undefined als die niet bestaat).
-export function getKamer(huisId, kamerId) {
+// ---- Bezit ----
+
+// Of een huis in bezit is.
+export function bezitHuis(id) {
+  return staat.huizen?.[id]?.gekocht === true;
+}
+
+// Een huis kopen: kijkt naar de prijs in de catalogus. Lukt alleen als je het
+// nog niet hebt én genoeg munten hebt. Trekt dan munten af, maakt verse
+// voortgang aan en bewaart. Geeft true terug bij succes, anders false.
+export function koopHuis(id) {
+  if (bezitHuis(id)) return false;
+  const huisDef = getHuisDef(id);
+  if (!huisDef) return false;
+  if (staat.munten < huisDef.prijs) return false;
+
+  staat.munten -= huisDef.prijs;
+  staat.huizen[id] = { gekocht: true, kamers: zaaiKamers(huisDef) };
+  bewaren();
+  return true;
+}
+
+// ---- Kamer-voortgang ----
+
+// De voortgang van een kamer opzoeken (of undefined als die niet bestaat).
+export function getKamerStaat(huisId, kamerId) {
   return staat.huizen?.[huisId]?.kamers?.[kamerId];
 }
 
 // Het schoon-percentage van een kamer bijwerken (0–100).
 export function setKamerSchoon(huisId, kamerId, pct) {
-  const k = getKamer(huisId, kamerId);
+  const k = getKamerStaat(huisId, kamerId);
   if (!k) return;
   k.schoonPct = Math.max(0, Math.min(100, Math.round(pct)));
   bewaren();
@@ -89,7 +133,7 @@ export function setKamerSchoon(huisId, kamerId, pct) {
 
 // Een kamer als helemaal schoon markeren.
 export function markeerKamerKlaar(huisId, kamerId) {
-  const k = getKamer(huisId, kamerId);
+  const k = getKamerStaat(huisId, kamerId);
   if (!k) return;
   k.schoonPct = 100;
   k.klaar = true;

@@ -1,7 +1,9 @@
-// Beginscherm: toont de huizen die je hebt als grote, aantikbare kaarten.
-// Een winkel komt later (andere mijlpaal) — hier alleen je eigen huizen.
+// Beginscherm: toont de huizen die je hebt als grote, aantikbare kaarten,
+// plus een "Winkel"-kaart om nieuwe huizen te kopen. Metadata (naam, emoji)
+// komt uit de catalogus; bezit komt uit de staat.
 
-import { getStaat } from "../state.js";
+import { getStaat, bezitHuis } from "../state.js";
+import { HUIS_CATALOGUS } from "../data/huizen.js";
 import { navigeer } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
@@ -21,22 +23,33 @@ export function toon(app, _params = {}) {
   const scherm = maak("div", "home-scherm");
   const rooster = maak("div", "huis-rooster");
 
-  const huizen = Object.entries(staat.huizen || {})
-    .filter(([, huis]) => huis.gekocht)
-    .map(([huisId, huis]) => ({ huisId, huis }));
+  // Eigen huizen uit de catalogus (alleen die je bezit), in catalogus-volgorde.
+  const eigenHuizen = HUIS_CATALOGUS.filter((h) => bezitHuis(h.id));
 
-  for (const { huisId, huis } of huizen) {
+  for (const huis of eigenHuizen) {
     const kaart = maak("button", "huis-kaart");
     kaart.append(
-      maak("div", "huis-emoji", "🏡"),
+      maak("div", "huis-emoji", huis.emoji),
       maak("div", "huis-naam", huis.naam),
     );
     kaart.addEventListener("click", () => {
       ontgrendelAudio();
-      navigeer("huis", { huisId });
+      navigeer("huis", { huisId: huis.id });
     });
     rooster.append(kaart);
   }
+
+  // ---- Winkel-kaart ----
+  const winkelKaart = maak("button", "huis-kaart winkel-kaart");
+  winkelKaart.append(
+    maak("div", "huis-emoji", "🛒"),
+    maak("div", "huis-naam", "Winkel"),
+  );
+  winkelKaart.addEventListener("click", () => {
+    ontgrendelAudio();
+    navigeer("winkel");
+  });
+  rooster.append(winkelKaart);
 
   scherm.append(rooster);
   app.append(top, scherm);

@@ -9,11 +9,12 @@ import { maakRommel } from "../clean/rommel.js";
 import { kamerVuil } from "../clean/kamerVuil.js";
 import {
   getStaat,
-  getKamer,
+  getKamerStaat,
   setKamerSchoon,
   markeerKamerKlaar,
   voegMuntenToe,
 } from "../state.js";
+import { getKamerDef } from "../data/huizen.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { terug, vervang } from "../router.js";
 import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
@@ -28,8 +29,9 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const staat = getStaat();
   app.innerHTML = "";
 
-  const kamer = getKamer(huisId, kamerId);
-  const config = kamerVuil(kamer?.art);
+  const kamerDef = getKamerDef(huisId, kamerId);
+  const art = kamerDef?.art;
+  const config = kamerVuil(art);
 
   // ---- Topbalk met terug-knop naar het huis-overzicht ----
   const { el: top, updateMunten } = maakTopbar({
@@ -42,7 +44,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   // ---- Kamer ----
   const scherm = el("div", "clean-scherm");
   const wrap = el("div", "kamer-wrap");
-  wrap.innerHTML = kamerArt(kamer?.art);
+  wrap.innerHTML = kamerArt(art);
 
   // ---- Prullenbak (in een hoek) ----
   const prullenbak = el("div", "prullenbak", "🗑️");
@@ -123,7 +125,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     if (p > 0) hint.style.visibility = "hidden";
 
     // Voortgang bewaren zolang de kamer nog niet klaar is.
-    if (!getKamer(huisId, kamerId)?.klaar) {
+    if (!getKamerStaat(huisId, kamerId)?.klaar) {
       setKamerSchoon(huisId, kamerId, p);
     }
 
@@ -135,7 +137,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   }
 
   function vier() {
-    const alKlaar = getKamer(huisId, kamerId)?.klaar;
+    const alKlaar = getKamerStaat(huisId, kamerId)?.klaar;
     markeerKamerKlaar(huisId, kamerId);
     if (!alKlaar) {
       const nieuw = voegMuntenToe(BELONING);
