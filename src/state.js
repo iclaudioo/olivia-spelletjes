@@ -1,14 +1,22 @@
 // Spelstaat — wordt bewaard in localStorage zodat de voortgang op de iPad blijft.
 
-const SLEUTEL = "olivia-schoonmaak-v1";
+const SLEUTEL = "olivia-schoonmaak-v2";
 
 const standaard = {
   munten: 0,
   instellingen: { geluid: true, muziek: false },
-  // In latere mijlpalen: huizen[], inventaris{}, stickers[]
-  kamers: {
-    woonkamer: { schoonPct: 0, klaar: false },
+  huizen: {
+    thuis: {
+      naam: "Mijn Huis",
+      thema: "standaard",
+      gekocht: true,
+      kamers: {
+        woonkamer: { naam: "Woonkamer", schoonPct: 0, klaar: false, decor: [] },
+      },
+    },
   },
+  inventaris: { meubels: [], skins: [] },
+  stickers: [],
 };
 
 let staat = laden();
@@ -18,11 +26,31 @@ function laden() {
     const ruw = localStorage.getItem(SLEUTEL);
     if (!ruw) return structuredClone(standaard);
     const data = JSON.parse(ruw);
-    // Samenvoegen met standaard zodat nieuwe velden niet ontbreken.
-    return { ...structuredClone(standaard), ...data };
+    // Samenvoegen met standaard zodat nieuwe velden niet ontbreken (migratie-veilig).
+    return diepSamenvoegen(structuredClone(standaard), data);
   } catch {
     return structuredClone(standaard);
   }
+}
+
+// Voegt `bron` diep over `doel` heen: bestaande standaard-velden blijven bestaan,
+// opgeslagen waarden overschrijven ze. Arrays worden in z'n geheel overgenomen.
+function diepSamenvoegen(doel, bron) {
+  if (!isObject(doel) || !isObject(bron)) return bron;
+  for (const sleutel of Object.keys(bron)) {
+    const b = bron[sleutel];
+    const d = doel[sleutel];
+    if (isObject(b) && isObject(d)) {
+      doel[sleutel] = diepSamenvoegen(d, b);
+    } else {
+      doel[sleutel] = b;
+    }
+  }
+  return doel;
+}
+
+function isObject(v) {
+  return v != null && typeof v === "object" && !Array.isArray(v);
 }
 
 export function bewaren() {
@@ -43,13 +71,26 @@ export function voegMuntenToe(aantal) {
   return staat.munten;
 }
 
-export function markeerKamerKlaar(kamerId) {
-  const k = staat.kamers[kamerId];
-  if (k) {
-    k.schoonPct = 100;
-    k.klaar = true;
-    bewaren();
-  }
+// Een kamer opzoeken (of undefined als die niet bestaat).
+export function getKamer(huisId, kamerId) {
+  return staat.huizen?.[huisId]?.kamers?.[kamerId];
+}
+
+// Het schoon-percentage van een kamer bijwerken (0–100).
+export function setKamerSchoon(huisId, kamerId, pct) {
+  const k = getKamer(huisId, kamerId);
+  if (!k) return;
+  k.schoonPct = Math.max(0, Math.min(100, Math.round(pct)));
+  bewaren();
+}
+
+// Een kamer als helemaal schoon markeren.
+export function markeerKamerKlaar(huisId, kamerId) {
+  const k = getKamer(huisId, kamerId);
+  if (!k) return;
+  k.schoonPct = 100;
+  k.klaar = true;
+  bewaren();
 }
 
 export function resetAlles() {

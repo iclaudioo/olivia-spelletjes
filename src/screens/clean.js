@@ -3,25 +3,41 @@
 import { woonkamerSVG } from "../art/room.js";
 import { TOOLS, toolById } from "../clean/tools.js";
 import { maakSchoonmaak } from "../clean/canvas.js";
-import { getStaat, voegMuntenToe, markeerKamerKlaar } from "../state.js";
+import {
+  getStaat,
+  getKamer,
+  setKamerSchoon,
+  markeerKamerKlaar,
+  voegMuntenToe,
+} from "../state.js";
+import { maakTopbar } from "../ui/topbar.js";
+import { navigeer, terug } from "../router.js";
 import { muntGeluid, vieringGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
-export function toonSchoonmaak(app, { kamerId = "woonkamer", opnieuw = false } = {}) {
+// Beloning voor een schoongemaakte kamer.
+const BELONING = 25;
+
+// Kamer-kunst per kamer (later breidt dit uit). Valt terug op de woonkamer.
+const KAMER_ART = {
+  woonkamer: woonkamerSVG,
+};
+
+export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const staat = getStaat();
   app.innerHTML = "";
 
-  // ---- Topbalk ----
-  const top = el("div", "topbar");
-  const titel = el("div", "titel", "🧹 Maak de kamer schoon!");
-  const spacer = el("div", "spacer");
-  const munten = el("div", "munten");
-  munten.innerHTML = `<span class="coin">★</span><span class="muntwaarde">${staat.munten}</span>`;
-  top.append(titel, spacer, munten);
+  // ---- Topbalk met terug-knop naar het huis-overzicht ----
+  const { el: top, updateMunten } = maakTopbar({
+    titel: "🧹 Maak de kamer schoon!",
+    opTerug: () => terug(),
+    toonMunten: true,
+  });
+  updateMunten(staat.munten);
 
   // ---- Kamer ----
   const scherm = el("div", "clean-scherm");
   const wrap = el("div", "kamer-wrap");
-  wrap.innerHTML = woonkamerSVG;
+  wrap.innerHTML = KAMER_ART[kamerId] || woonkamerSVG;
 
   const balk = el("div", "voortgang");
   const vul = el("div", "vul");
@@ -35,7 +51,7 @@ export function toonSchoonmaak(app, { kamerId = "woonkamer", opnieuw = false } =
     <div class="kaart">
       <h2>Helemaal schoon! ✨</h2>
       <p>Wat heb jij goed gepoetst!</p>
-      <div class="beloning">+25 ★</div>
+      <div class="beloning">+${BELONING} ★</div>
       <button class="knop primair opnieuw">Nog een keer 🧽</button>
     </div>`;
   wrap.append(viering);
@@ -72,14 +88,17 @@ export function toonSchoonmaak(app, { kamerId = "woonkamer", opnieuw = false } =
       vul.style.width = p + "%";
       lbl.textContent = p + "% schoon";
       if (p > 0) hint.style.visibility = "hidden";
+      // Voortgang bewaren zolang de kamer nog niet klaar is.
+      if (!getKamer(huisId, kamerId)?.klaar) {
+        setKamerSchoon(huisId, kamerId, p);
+      }
     },
     onKlaar() {
-      const al = staat.kamers[kamerId]?.klaar;
-      markeerKamerKlaar(kamerId);
-      if (!al) {
-        const nieuw = voegMuntenToe(25);
-        munten.querySelector(".muntwaarde").textContent = nieuw;
-        munten.querySelector(".coin").classList.add("pop");
+      const alKlaar = getKamer(huisId, kamerId)?.klaar;
+      markeerKamerKlaar(huisId, kamerId);
+      if (!alKlaar) {
+        const nieuw = voegMuntenToe(BELONING);
+        updateMunten(nieuw, true);
       }
       vieringGeluid();
       setTimeout(() => muntGeluid(), 400);
@@ -90,7 +109,9 @@ export function toonSchoonmaak(app, { kamerId = "woonkamer", opnieuw = false } =
   kiesTool(actieveTool);
 
   viering.querySelector(".opnieuw").addEventListener("click", () => {
-    toonSchoonmaak(app, { kamerId, opnieuw: true });
+    // Opnieuw poetsen: dezelfde kamer opnieuw tonen.
+    spel.destroy();
+    toon(app, { huisId, kamerId });
   });
 }
 
