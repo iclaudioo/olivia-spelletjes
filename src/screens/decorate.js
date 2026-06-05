@@ -36,6 +36,11 @@ import { maakSleepbaar } from "../ui/sleep.js";
 import { terug } from "../router.js";
 import { sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
+// Standaard-hint onderaan het inricht-scherm. Eén bron zodat de begin-hint en
+// het herstel na een koop-tip exact dezelfde tekst tonen.
+const STANDAARD_HINT =
+  "Tik een meubel en sleep het op z'n plek. Sleep naar 🗑️ om het weg te halen.";
+
 export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   const staat = getStaat();
   app.innerHTML = "";
@@ -125,7 +130,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
 
   palet.append(meubelSectie, behangSectie, vloerSectie);
 
-  const hint = el("div", "cursief-hint", "Tik een meubel en sleep het op z'n plek. Sleep naar 🗑️ om het weg te halen.");
+  const hint = el("div", "cursief-hint", STANDAARD_HINT);
 
   app.append(top, scherm, palet, hint);
 
@@ -147,8 +152,6 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
 
   // ---- Hint tonen bij een tik op een meubel-op-slot (gesloten meubel) ----
   // Vervangt kort de standaard-hint door een vriendelijke koop-tip en flitst hem.
-  const STANDAARD_HINT =
-    "Tik een meubel en sleep het op z'n plek. Sleep naar 🗑️ om het weg te halen.";
   let hintTimer = null;
   function toonKoopHint() {
     ontgrendelAudio();
