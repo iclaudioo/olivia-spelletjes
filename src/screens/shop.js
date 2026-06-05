@@ -6,7 +6,12 @@ import { getStaat, bezitHuis, koopHuis } from "../state.js";
 import { HUIS_CATALOGUS } from "../data/huizen.js";
 import { terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
+import { maak, maakHuisKaart } from "../ui/dom.js";
 import { muntGeluid, ontgrendelAudio } from "../audio/sfx.js";
+
+// Hoe lang de "Gekocht! ✨"-bevestiging op de kaart blijft staan vóór het
+// rooster opnieuw wordt getekend (en het gekochte huis verdwijnt).
+const GEKOCHT_FEEST_MS = 900;
 
 export function toon(app, _params = {}) {
   app.innerHTML = "";
@@ -49,11 +54,12 @@ export function toon(app, _params = {}) {
     const munten = getStaat().munten;
     const betaalbaar = munten >= huis.prijs;
 
-    const kaart = maak("div", "huis-kaart winkel-kaart-koop");
-    kaart.append(
-      maak("div", "huis-emoji", huis.emoji),
-      maak("div", "huis-naam", huis.naam),
-    );
+    const kaart = maakHuisKaart({
+      emoji: huis.emoji,
+      naam: huis.naam,
+      tag: "div",
+      extraKlasse: "winkel-kaart-koop",
+    });
 
     const prijsEl = maak("div", "winkel-prijs", `★${huis.prijs}`);
     if (!betaalbaar) prijsEl.classList.add("te-duur");
@@ -90,14 +96,6 @@ export function toon(app, _params = {}) {
       maak("div", "winkel-gekocht", "Gekocht! ✨"),
     );
 
-    setTimeout(tekenRooster, 900);
+    setTimeout(tekenRooster, GEKOCHT_FEEST_MS);
   }
-}
-
-// kleine helper
-function maak(tag, klasse, tekst) {
-  const e = document.createElement(tag);
-  if (klasse) e.className = klasse;
-  if (tekst != null) e.textContent = tekst;
-  return e;
 }

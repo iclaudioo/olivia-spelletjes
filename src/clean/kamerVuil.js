@@ -34,6 +34,34 @@ export const KAMER_VUIL = {
     vuil: ["stof", "modder", "spinnenweb"],
     rommel: ["🐚", "🪣", "👙"],
   },
+
+  // ---- Kasteel (stof van eeuwen, spinnenwebben, modder van de ridders) ----
+  troonzaal: {
+    vuil: ["stof", "spinnenweb", "vlek"],
+    rommel: ["👑", "🗝️", "🛡️"],
+  },
+  kasteelkeuken: {
+    vuil: ["aangekoekt", "vlek", "kruimel"],
+    rommel: ["🍗", "🥖", "🍷"],
+  },
+  torenkamer: {
+    vuil: ["stof", "spinnenweb", "modder"],
+    rommel: ["📜", "🕯️", "🪄"],
+  },
+
+  // ---- Ruimteraket (sterrenstof, gemorste smeerolie, drijvende kruimels) ----
+  stuurkamer: {
+    vuil: ["stof", "vlek", "aangekoekt"],
+    rommel: ["🛰️", "🔧", "📡"],
+  },
+  ruimtekeuken: {
+    vuil: ["vlek", "aangekoekt", "kruimel"],
+    rommel: ["🥫", "🧃", "🍪"],
+  },
+  ruimteslaapkamer: {
+    vuil: ["stof", "spinnenweb", "vlek"],
+    rommel: ["🧦", "🎧", "🚀"],
+  },
 };
 
 // Veilige standaard als een art-sleutel onbekend is.

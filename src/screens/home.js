@@ -6,6 +6,7 @@ import { getStaat, bezitHuis } from "../state.js";
 import { HUIS_CATALOGUS } from "../data/huizen.js";
 import { navigeer } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
+import { maak, maakHuisKaart } from "../ui/dom.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
 
 export function toon(app, _params = {}) {
@@ -27,11 +28,7 @@ export function toon(app, _params = {}) {
   const eigenHuizen = HUIS_CATALOGUS.filter((h) => bezitHuis(h.id));
 
   for (const huis of eigenHuizen) {
-    const kaart = maak("button", "huis-kaart");
-    kaart.append(
-      maak("div", "huis-emoji", huis.emoji),
-      maak("div", "huis-naam", huis.naam),
-    );
+    const kaart = maakHuisKaart({ emoji: huis.emoji, naam: huis.naam });
     kaart.addEventListener("click", () => {
       ontgrendelAudio();
       navigeer("huis", { huisId: huis.id });
@@ -40,11 +37,11 @@ export function toon(app, _params = {}) {
   }
 
   // ---- Winkel-kaart ----
-  const winkelKaart = maak("button", "huis-kaart winkel-kaart");
-  winkelKaart.append(
-    maak("div", "huis-emoji", "🛒"),
-    maak("div", "huis-naam", "Winkel"),
-  );
+  const winkelKaart = maakHuisKaart({
+    emoji: "🛒",
+    naam: "Winkel",
+    extraKlasse: "winkel-kaart",
+  });
   winkelKaart.addEventListener("click", () => {
     ontgrendelAudio();
     navigeer("winkel");
@@ -53,12 +50,4 @@ export function toon(app, _params = {}) {
 
   scherm.append(rooster);
   app.append(top, scherm);
-}
-
-// kleine helper
-function maak(tag, klasse, tekst) {
-  const e = document.createElement(tag);
-  if (klasse) e.className = klasse;
-  if (tekst != null) e.textContent = tekst;
-  return e;
 }

@@ -23,11 +23,12 @@ function zaaiKamers(huisDef) {
   return kamers;
 }
 
-// Standaard-staat: het starthuis "thuis" is gratis in bezit, de rest niet.
+// Standaard-staat: huizen met `startbezit` heb je vanaf het begin in bezit
+// (het starthuis "thuis"), de rest koop je in de winkel.
 function maakStandaard() {
   const huizen = {};
   for (const huisDef of HUIS_CATALOGUS) {
-    if (huisDef.prijs === 0) {
+    if (huisDef.startbezit) {
       huizen[huisDef.id] = { gekocht: true, kamers: zaaiKamers(huisDef) };
     }
   }

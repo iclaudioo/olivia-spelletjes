@@ -16,6 +16,7 @@ import {
 } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
 import { maakTopbar } from "../ui/topbar.js";
+import { maak as el } from "../ui/dom.js";
 import { terug, vervang } from "../router.js";
 import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
@@ -189,12 +190,4 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     spel.destroy();
     rommel.destroy();
   };
-}
-
-// kleine helpers
-function el(tag, klasse, tekst) {
-  const e = document.createElement(tag);
-  if (klasse) e.className = klasse;
-  if (tekst != null) e.textContent = tekst;
-  return e;
 }

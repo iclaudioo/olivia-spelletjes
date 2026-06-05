@@ -6,6 +6,7 @@ import { getStaat, getKamerStaat } from "../state.js";
 import { getHuisDef } from "../data/huizen.js";
 import { navigeer, terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
+import { maak } from "../ui/dom.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
 import { kamerEmoji } from "../art/kamers.js";
 
@@ -53,12 +54,4 @@ function statusTekst(voortgang) {
   if (voortgang.klaar) return "✨ schoon";
   if (voortgang.schoonPct > 0) return `${voortgang.schoonPct}% schoon`;
   return "vuil";
-}
-
-// kleine helper
-function maak(tag, klasse, tekst) {
-  const e = document.createElement(tag);
-  if (klasse) e.className = klasse;
-  if (tekst != null) e.textContent = tekst;
-  return e;
 }

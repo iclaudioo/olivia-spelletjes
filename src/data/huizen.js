@@ -9,6 +9,7 @@ export const HUIS_CATALOGUS = [
     emoji: "🏡",
     thema: "standaard",
     prijs: 0,
+    startbezit: true, // dit huis heb je vanaf het begin gratis in bezit
     kamers: [
       { id: "woonkamer", naam: "Woonkamer", art: "woonkamer" },
       { id: "keuken", naam: "Keuken", art: "keuken" },
@@ -26,6 +27,30 @@ export const HUIS_CATALOGUS = [
       { id: "strandwoonkamer", naam: "Strand-woonkamer", art: "strandwoonkamer" },
       { id: "strandkeuken", naam: "Strand-keuken", art: "strandkeuken" },
       { id: "strandslaapkamer", naam: "Strand-slaapkamer", art: "strandslaapkamer" },
+    ],
+  },
+  {
+    id: "kasteel",
+    naam: "Kasteel",
+    emoji: "🏰",
+    thema: "kasteel",
+    prijs: 150,
+    kamers: [
+      { id: "troonzaal", naam: "Troonzaal", art: "troonzaal" },
+      { id: "kasteelkeuken", naam: "Kasteel-keuken", art: "kasteelkeuken" },
+      { id: "torenkamer", naam: "Torenkamer", art: "torenkamer" },
+    ],
+  },
+  {
+    id: "raket",
+    naam: "Ruimteraket",
+    emoji: "🚀",
+    thema: "ruimte",
+    prijs: 250,
+    kamers: [
+      { id: "stuurkamer", naam: "Stuurkamer", art: "stuurkamer" },
+      { id: "ruimtekeuken", naam: "Ruimte-keuken", art: "ruimtekeuken" },
+      { id: "ruimteslaapkamer", naam: "Ruimte-slaapkamer", art: "ruimteslaapkamer" },
     ],
   },
 ];
