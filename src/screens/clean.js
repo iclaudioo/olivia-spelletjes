@@ -4,7 +4,8 @@
 
 import { kamerArt } from "../art/kamers.js";
 import { TOOLS, toolById } from "../clean/tools.js";
-import { maakSchoonmaak } from "../clean/canvas.js";
+import { maakSchoonmaak, VUIL_KLAAR_DREMPEL } from "../clean/canvas.js";
+import { maakRommel } from "../clean/rommel.js";
 import { kamerVuil } from "../clean/kamerVuil.js";
 import {
   getStaat,
@@ -89,104 +90,33 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     wrap,
     vuilSoorten: config.vuil,
     onProgress() { werkVoortgangBij(); },
-    onKlaar() { werkVoortgangBij(); },
+    // Vuurt zodra ál het vuil weg is (los van de rommel). Het sparkle-feest
+    // doet het canvas zelf; wij werken alleen de voortgang bij.
+    onVuilKlaar() { werkVoortgangBij(); },
     onVerkeerdGereedschap() { toonVerkeerdHint(); },
   });
 
   // ---- Rommel opruimen ----
-  // We tellen hoeveel rommel-items er waren en hoeveel er nog liggen.
-  let rommelTotaal = 0;
-  let rommelOver = 0;
-
-  function maakRommel() {
-    rommelLaag.innerHTML = "";
-    const items = config.rommel || [];
-    rommelTotaal = items.length;
-    rommelOver = items.length;
-    items.forEach((emoji, i) => {
-      const item = el("div", "rommel", emoji);
-      // Verspreid de rommel over de vloer (onderste helft), weg van de hoek
-      // met de prullenbak en weg van de voortgangsbalk bovenaan.
-      const links = 12 + (i / Math.max(1, items.length - 1 || 1)) * 60 + rnd(-6, 6);
-      const top = 52 + rnd(0, 30);
-      item.style.left = Math.max(6, Math.min(78, links)) + "%";
-      item.style.top = Math.max(40, Math.min(82, top)) + "%";
-      maakSleepbaar(item);
-      rommelLaag.append(item);
-    });
-  }
-
-  // Sleeplogica met Pointer Events (werkt op iPad). Elk rommel-item vangt zijn
-  // eigen pointer; daardoor blokkeert het de veeg-vanger niet en andersom.
-  function maakSleepbaar(item) {
-    let sleept = false;
-    let dx = 0, dy = 0; // greep-offset
-
-    function omlaag(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      ontgrendelAudio();
-      sleept = true;
-      try { item.setPointerCapture?.(e.pointerId); } catch { /* negeren */ }
-      item.classList.add("sleept");
-      const r = item.getBoundingClientRect();
-      dx = e.clientX - (r.left + r.width / 2);
-      dy = e.clientY - (r.top + r.height / 2);
-    }
-    function beweeg(e) {
-      if (!sleept) return;
-      e.preventDefault();
-      const wrapR = wrap.getBoundingClientRect();
-      const x = e.clientX - dx - wrapR.left;
-      const y = e.clientY - dy - wrapR.top;
-      item.style.left = (x / wrapR.width) * 100 + "%";
-      item.style.top = (y / wrapR.height) * 100 + "%";
-      item.style.transform = "translate(-50%, -50%) scale(1.15)";
-    }
-    function omhoog(e) {
-      if (!sleept) return;
-      sleept = false;
-      item.classList.remove("sleept");
-      item.style.transform = "";
-      // Raakt het midden van het item de prullenbak?
-      const ir = item.getBoundingClientRect();
-      const pr = prullenbak.getBoundingClientRect();
-      const cx = ir.left + ir.width / 2;
-      const cy = ir.top + ir.height / 2;
-      const inBak = cx >= pr.left && cx <= pr.right && cy >= pr.top && cy <= pr.bottom;
-      if (inBak) {
-        gooieWeg(item, cx, cy);
-      }
-    }
-
-    item.addEventListener("pointerdown", omlaag);
-    item.addEventListener("pointermove", beweeg);
-    item.addEventListener("pointerup", omhoog);
-    item.addEventListener("pointercancel", omhoog);
-  }
-
-  function gooieWeg(item, cx, cy) {
-    item.classList.add("weg");
-    prullenbak.classList.add("hap");
-    setTimeout(() => prullenbak.classList.remove("hap"), 220);
-    spel.sparkleBij?.(cx, cy);
-    sparkleGeluid();
-    rommelOver = Math.max(0, rommelOver - 1);
-    werkVoortgangBij();
-    setTimeout(() => item.remove(), 220);
-  }
-
-  function rommelFractie() {
-    if (rommelTotaal === 0) return 1;
-    return (rommelTotaal - rommelOver) / rommelTotaal;
-  }
+  // De sleeplogica + prullenbak-hit-test zit in een apart module zodat het
+  // scherm netjes kan opruimen. Wij reageren alleen op een gebinde item.
+  const rommel = maakRommel({
+    wrap,
+    rommelLaag,
+    prullenbak,
+    items: config.rommel || [],
+    onWeg(cx, cy) {
+      spel.sparkleBij?.(cx, cy);
+      sparkleGeluid();
+      werkVoortgangBij();
+    },
+  });
 
   // ---- Gecombineerde voortgang (vuil + rommel) ----
   let klaarGevierd = false;
   function werkVoortgangBij() {
     const vuil = spel.vuilFractie ? spel.vuilFractie() : 0;
-    const rommel = rommelFractie();
-    const totaal = VUIL_GEWICHT * vuil + ROMMEL_GEWICHT * rommel;
+    const rommelF = rommel.fractie();
+    const totaal = VUIL_GEWICHT * vuil + ROMMEL_GEWICHT * rommelF;
     const p = Math.round(totaal * 100);
     vul.style.width = p + "%";
     lbl.textContent = p + "% schoon";
@@ -197,7 +127,7 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
       setKamerSchoon(huisId, kamerId, p);
     }
 
-    const helemaalKlaar = vuil >= 0.985 && rommelOver === 0;
+    const helemaalKlaar = vuil >= VUIL_KLAAR_DREMPEL && rommel.over() === 0;
     if (helemaalKlaar && !klaarGevierd) {
       klaarGevierd = true;
       vier();
@@ -211,7 +141,8 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
       const nieuw = voegMuntenToe(BELONING);
       updateMunten(nieuw, true);
     }
-    spel.feestSparkles?.();
+    // Het sparkle-feest doet het canvas zelf zodra ál het vuil weg is (in
+    // meet()). Hier niet nóg een keer vuren, anders krijg je een dubbel feest.
     vieringGeluid();
     setTimeout(() => muntGeluid(), 400);
     setTimeout(() => viering.classList.add("aan"), 500);
@@ -231,16 +162,14 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   }
 
   // ---- Logica: gereedschap kiezen ----
-  let actieveTool = TOOLS[0].id;
   function kiesTool(id) {
     ontgrendelAudio();
-    actieveTool = id;
     knoppen.forEach((k) => k.el.classList.toggle("actief", k.id === id));
     spel.setTool(toolById(id));
   }
 
-  kiesTool(actieveTool);
-  maakRommel();
+  const startTool = TOOLS[0].id;
+  kiesTool(startTool);
   werkVoortgangBij();
 
   viering.querySelector(".opnieuw").addEventListener("click", () => {
@@ -251,10 +180,12 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   });
 
   // Geef de router een opruim-functie terug zodat het canvas (RAF + listeners)
-  // wordt afgebroken zodra we weg-navigeren.
+  // én de rommel (pointer-listeners + elementen) worden afgebroken zodra we
+  // weg-navigeren. Zo lekt er niets bij heen-en-weer navigeren.
   return () => {
     clearTimeout(hintTimer);
     spel.destroy();
+    rommel.destroy();
   };
 }
 
@@ -265,4 +196,3 @@ function el(tag, klasse, tekst) {
   if (tekst != null) e.textContent = tekst;
   return e;
 }
-function rnd(a, b) { return a + Math.random() * (b - a); }

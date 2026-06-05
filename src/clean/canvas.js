@@ -8,11 +8,15 @@ import { schrobGeluid, sparkleGeluid } from "../audio/sfx.js";
 // Alle bekende vuilsoorten (sleutels gelijk aan tools.js `verwijdert`).
 export const VUIL_SOORTEN = ["stof", "vlek", "modder", "aangekoekt", "spinnenweb", "kruimel"];
 
+// Drempel waarboven we ál het vuil als "weg" beschouwen. Gedeeld met clean.js
+// zodat het sparkle-feest (hier) en de kamer-klaar-check (daar) gelijk lopen.
+export const VUIL_KLAAR_DREMPEL = 0.985;
+
 export function maakSchoonmaak({
   wrap,
   vuilSoorten = ["stof", "vlek", "modder"],
   onProgress,
-  onKlaar,
+  onVuilKlaar,
   onSchrob,
   onVerkeerdGereedschap,
 }) {
@@ -355,11 +359,12 @@ export function maakSchoonmaak({
     const pct = vuilFractie();
     onProgress?.(pct);
     // De viering/"klaar" wordt door clean.js bepaald (vuil + rommel samen),
-    // maar we vuren onKlaar als ALLE vuil weg is, voor het sparkle-feest.
-    if (pct >= 0.985 && !klaarGemeld) {
+    // maar we vuren onVuilKlaar zodra ALLE vuil weg is. Het sparkle-feest doen
+    // we hier intern (één keer), zodat clean.js het niet hoeft te herhalen.
+    if (pct >= VUIL_KLAAR_DREMPEL && !klaarGemeld) {
       klaarGemeld = true;
       feestSparkles();
-      onKlaar?.();
+      onVuilKlaar?.();
     }
   }
 

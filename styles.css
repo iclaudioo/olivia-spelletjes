@@ -141,6 +141,24 @@ html, body {
 }
 
 /* ===== Schoonmaak-scherm ===== */
+
+/* ----------------------------------------------------------------------------
+   z-index-stapel binnen .kamer-wrap (van onder naar boven):
+     1  .kamer-svg        — de getekende kamer (achtergrond)
+     2  .vuil-canvas      — vuil-lagen (gestapeld, vangen zelf geen aanrakingen)
+     3  .veeg-vanger      — onzichtbare aanraak-vanger voor het vegen
+     4  .rommel-laag      — sleepbare rommel-emoji (de laag zelf)
+     5  .prullenbak       — doel voor de rommel
+     6  .fx-canvas        — sparkles (en .voortgang deelt deze band)
+     7  .rommel.sleept    — een rommel-item terwijl je het sleept (boven alles)
+
+   GERESERVEERD voor M4 — inricht-overlay (decoreren):
+     8–9  .inricht-overlay e.d. — schuift hier netjes tussenin zonder de rest
+          te raken. Nog niet in gebruik; bewust vrijgehouden.
+
+   30 .viering — de "klaar!"-viering blijft altijd bovenop alles.
+   ---------------------------------------------------------------------------- */
+
 .clean-scherm { position: relative; flex: 1; display: flex; flex-direction: column; }
 
 .kamer-wrap {
