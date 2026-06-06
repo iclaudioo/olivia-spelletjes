@@ -4,8 +4,9 @@
   "description": "Olivia's schoonmaak-huizen spel",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
+    "dev": "vite homepage",
+    "dev:poetsen": "vite spelletjes/poetsen",
+    "build": "node build.mjs",
     "preview": "vite preview --host"
   },
   "devDependencies": {
