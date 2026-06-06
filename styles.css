@@ -145,50 +145,158 @@ html, body {
   background: var(--geel);
 }
 
-/* ===== Mama-knop (rommelmaker, op het huis-overzicht) ===== */
-/* Een grote, vrolijke roze knop boven het kamer-rooster met een subtiele idle-
-   wiebel die uitnodigt om te tikken. Maakt een willekeurige schone kamer vies. */
-.mama-knop {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 0 auto 18px;
-  max-width: 900px;
+/* ===== Mama de zangeres (rondlopende rommelmaker, op het huis-overzicht) =====
+   Mama wandelt continu heen en weer over de breedte van het overzicht, zingt
+   (zwevende noten) en kijkt altijd de loop-richting op. Het hele figuur is één
+   groot tikdoel dat een willekeurige schone kamer weer vies maakt.
+   Laag-structuur (van buiten naar binnen):
+     .mama-laan      vaste, volle-breedte laan (bewegingsgebied + z-index)
+       .mama-loper   knop die de translateX heen-en-weer doet (de wandeling)
+         .mama-flip  scaleX-flip zodat ze de loop-richting op kijkt
+           .mama-svg-wrap  op-en-neer "loop"-wiebel + het SVG-figuur
+   Z-index: boven het kamer-rooster, onder de toast/viering (z-index 30/100). */
+.mama-laan {
+  position: relative;
   width: 100%;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font);
-  color: var(--wit);
-  background: var(--roze);
-  border-radius: 26px;
-  padding: 16px 22px;
-  box-shadow: 0 8px 0 var(--schaduw);
-  transition: transform .1s ease, box-shadow .1s ease;
-  animation: mamaWiebel 2.2s ease-in-out infinite;
-}
-.mama-knop:active {
-  transform: translateY(3px) rotate(0deg);
-  box-shadow: 0 4px 0 var(--schaduw);
-  animation: none;
-}
-.mama-knop-emoji {
-  font-size: clamp(32px, 6vw, 48px);
-  line-height: 1;
-}
-.mama-knop-tekst {
-  font-weight: 900;
-  font-size: clamp(18px, 3vw, 26px);
-  text-shadow: 0 2px 0 rgba(43, 58, 85, .25);
+  max-width: 900px;
+  height: clamp(150px, 26vw, 210px);
+  margin: 0 auto 8px;
+  z-index: 25;
+  pointer-events: none; /* alleen de loper zelf vangt tikken */
+  overflow: visible;
 }
 
-/* Subtiele idle-wiebel die de Mama-knop levendig maakt (rust grotendeels, dan
-   een speels knikje). */
-@keyframes mamaWiebel {
-  0%, 70%, 100% { transform: rotate(0deg) scale(1); }
-  78% { transform: rotate(-3deg) scale(1.03); }
-  86% { transform: rotate(3deg) scale(1.03); }
-  94% { transform: rotate(-2deg) scale(1.01); }
+/* De wandelaar: loopt heen en weer over de laan. translateX-keyframe heen-en-
+   terug (rustig, ~10s). Een grote, kindvriendelijke knop zonder eigen opmaak. */
+.mama-loper {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(86px, 16vw, 120px);
+  height: clamp(140px, 24vw, 200px);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  animation: mamaLoop 10s ease-in-out infinite;
+}
+.mama-loper:active { filter: brightness(0.97); }
+
+/* Spiegelt het figuur mee met de loop-richting (gekoppeld aan dezelfde 10s). */
+.mama-flip {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+  animation: mamaKijk 10s steps(1, end) infinite;
+}
+
+/* Zachte op-en-neer wiebel terwijl ze loopt (de "stappen"). */
+.mama-svg-wrap {
+  width: 100%;
+  height: 100%;
+  animation: mamaStap 0.8s ease-in-out infinite;
+}
+.mama-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 4px rgba(43, 58, 85, .18));
+}
+
+/* Loop: van links naar rechts en weer terug over de laan. We gebruiken
+   calc met 100% (laan) min de figuur-breedte zodat ze netjes binnen blijft. */
+@keyframes mamaLoop {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(calc(900px - 100% - 16px)); }
+  100% { transform: translateX(0); }
+}
+/* Veiligheid op smalle schermen: laat de laan-breedte leidend zijn. */
+@media (max-width: 932px) {
+  @keyframes mamaLoop {
+    0%   { transform: translateX(0); }
+    50%  { transform: translateX(calc(100vw - 100% - 36px)); }
+    100% { transform: translateX(0); }
+  }
+}
+
+/* Kijk-richting: eerste helft loopt ze naar rechts (gespiegeld), tweede helft
+   terug naar links (normaal). steps(1) zodat de flip op het keerpunt gebeurt. */
+@keyframes mamaKijk {
+  0%, 49.9% { transform: scaleX(-1); }
+  50%, 100% { transform: scaleX(1); }
+}
+
+/* Stap-wiebel: subtiel op en neer + heel licht kantelen. */
+@keyframes mamaStap {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(-1.5deg); }
+  75% { transform: translateY(-4px) rotate(1.5deg); }
+}
+
+/* ----- Zwevende muzieknoten (ze zingt) ----- */
+.mama-noten {
+  position: absolute;
+  top: 18%;
+  left: 58%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.mama-noot {
+  position: absolute;
+  font-size: clamp(16px, 3vw, 22px);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: mamaNoot 2.4s ease-out infinite;
+}
+.mama-noot.a { animation-delay: 0s; }
+.mama-noot.b { animation-delay: 0.8s; left: 6px; }
+.mama-noot.c { animation-delay: 1.6s; left: -4px; }
+
+@keyframes mamaNoot {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.6) rotate(0deg); }
+  15%  { opacity: 1; }
+  70%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(14px, -54px) scale(1) rotate(18deg); }
+}
+
+/* ----- "Tik me!"-spraakwolkje (ontdekbaarheid) ----- */
+.mama-wolkje {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--wit);
+  color: var(--donker);
+  font-weight: 900;
+  font-size: clamp(11px, 2.2vw, 15px);
+  padding: 6px 12px;
+  border-radius: 14px;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 var(--schaduw);
+  opacity: 0;
+  pointer-events: none;
+  animation: mamaWolkje 9s ease-in-out infinite;
+}
+/* Klein staartje onderaan het wolkje. */
+.mama-wolkje::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: var(--wit);
+  border-bottom: 0;
+}
+/* Verschijnt af en toe, blijft even, en vervaagt weer (niet opdringerig). */
+@keyframes mamaWolkje {
+  0%, 8%   { opacity: 0; transform: translateX(-50%) translateY(4px) scale(0.9); }
+  14%, 26% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  34%, 100%{ opacity: 0; transform: translateX(-50%) translateY(4px) scale(0.9); }
 }
 
 /* Korte schud-animatie voor de zojuist-door-Mama-vies-gemaakte kamerkaart. */
@@ -933,10 +1041,24 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
    overgangen (viering, toast, schud, pop) blijven bewust werken: die zijn
    functioneel-vrolijk en stoppen vanzelf. */
 @media (prefers-reduced-motion: reduce) {
-  /* De eindeloze idle-wiebel van de Mama-knop uit (blijft verder gewoon werken). */
-  .mama-knop {
-    animation: none;
+  /* Mama de zangeres staat STIL maar blijft volledig zichtbaar én tikbaar. We
+     zetten ALLE animaties van haar lagen helemaal uit (animation: none) i.p.v.
+     ze op één iteratie te bevriezen — anders zou ze halverwege een translate
+     blijven hangen. Ze staat dan netjes links-onder in de laan, kijkt vooruit,
+     en is gewoon aan te tikken. De noten/wolkje verdwijnen rustig (geen
+     gezweef). */
+  .mama-loper,
+  .mama-flip,
+  .mama-svg-wrap,
+  .mama-noot,
+  .mama-wolkje {
+    animation: none !important;
   }
+  /* Zonder loop-animatie heeft de noot-keyframe opacity:0 als eindstand; expliciet
+     verbergen zodat de noten niet halverwege zichtbaar blijven hangen. */
+  .mama-noot { opacity: 0; }
+  /* Het wolkje één keer tonen zodat de "tik me"-hint zichtbaar blijft. */
+  .mama-wolkje { opacity: 1; transform: translateX(-50%); }
   /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
      ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit
      niet, want die hebben standaard al animation-iteration-count: 1. */
