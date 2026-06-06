@@ -772,7 +772,8 @@ export function toon(app, params = {}) {
       // Beide helpers ruimen zichzelf op en zijn reduced-motion-veilig. Even na
       // het verschijnen vuren zodat de kaart al in beeld is.
       if (sterren >= 2) {
-        setTimeout(() => {
+        const juiceTimer = setTimeout(() => {
+          sparkleTimers.delete(juiceTimer);
           vuurConfetti();
           if (verdiendMunten > 0) {
             vliegMunten({
@@ -781,6 +782,9 @@ export function toon(app, params = {}) {
             });
           }
         }, 120);
+        // Bijhouden zodat opruimRonde() → stopAlles() hem wist als de speler
+        // binnen 120ms wegnavigeert (geen late confetti op het volgende scherm).
+        sparkleTimers.add(juiceTimer);
       }
     }
 

@@ -68,7 +68,7 @@ function popTeller(coin) {
 
 // vliegMunten({ van, aantal }) — laat ★-muntjes naar de teller vliegen.
 //   van    : Element of {x, y} — het startpunt van de vlucht.
-//   aantal : hoeveel muntjes (geклемd tussen 1 en MAX_MUNTEN).
+//   aantal : hoeveel muntjes (geklemd tussen 1 en MAX_MUNTEN).
 export function vliegMunten({ van, aantal = 3 } = {}) {
   const munten = document.querySelector(".topbar .munten");
   const coin = munten ? munten.querySelector(".coin") : null;
