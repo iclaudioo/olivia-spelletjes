@@ -4,8 +4,8 @@
 // ze niet botsen met andere SVG's op de pagina.
 //
 // Stijlconventies sluiten aan op src/art/meubels.js (platte vormen, ronde hoeken,
-// vrolijke kleuren). Mama heeft expliciet BRUIN haar (#7a4a24 met lichter accent
-// #9c6b3f), een vrolijk gezicht met roze wangen en een OPEN ZINGENDE mond, een
+// vrolijke kleuren). Mama heeft expliciet DONKERBRUIN haar (#3a2310 met lichter
+// accent #6e4626), een vrolijk gezicht met roze wangen en een OPEN ZINGENDE mond, een
 // kleurrijke sterrenjurk (ze is een artiest), en ze houdt een microfoon vast bij
 // haar mond — één arm omhoog in een duidelijke zang-pose.
 
@@ -16,8 +16,8 @@ export const mamaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000
       <stop offset="1" stop-color="#8f5cff"/>
     </linearGradient>
     <linearGradient id="mamaHaar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9c6b3f"/>
-      <stop offset="1" stop-color="#7a4a24"/>
+      <stop offset="0" stop-color="#5e3a1e"/>
+      <stop offset="1" stop-color="#3a2310"/>
     </linearGradient>
   </defs>
 
@@ -59,7 +59,7 @@ export const mamaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000
   <path d="M34 46 C30 58 31 70 35 80 C38 70 36 58 38 50 Z" fill="url(#mamaHaar)"/>
   <path d="M86 46 C90 58 89 70 85 80 C82 70 84 58 82 50 Z" fill="url(#mamaHaar)"/>
   <!-- lichter haar-accent (glans) -->
-  <path d="M48 24 C54 19 66 19 72 24 C66 22 54 22 48 24 Z" fill="#9c6b3f"/>
+  <path d="M48 24 C54 19 66 19 72 24 C66 22 54 22 48 24 Z" fill="#6e4626"/>
 
   <!-- ogen -->
   <circle cx="51" cy="47" r="3.4" fill="#2b3a55"/>
@@ -67,8 +67,8 @@ export const mamaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000
   <circle cx="52.2" cy="45.8" r="1.1" fill="#ffffff"/>
   <circle cx="70.2" cy="45.8" r="1.1" fill="#ffffff"/>
   <!-- wenkbrauwen (vrolijk omhoog) -->
-  <path d="M46 40 q5 -3 10 0" stroke="#7a4a24" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M64 40 q5 -3 10 0" stroke="#7a4a24" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M46 40 q5 -3 10 0" stroke="#4a2d16" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M64 40 q5 -3 10 0" stroke="#4a2d16" stroke-width="2" fill="none" stroke-linecap="round"/>
   <!-- roze wangen -->
   <circle cx="44" cy="55" r="4.5" fill="#ff9ec2" opacity="0.7"/>
   <circle cx="76" cy="55" r="4.5" fill="#ff9ec2" opacity="0.7"/>
