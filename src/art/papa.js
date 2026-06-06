@@ -6,7 +6,8 @@
 // Stijlconventies sluiten aan op src/art/mama.js en src/art/olivia.js (platte
 // vormen, ronde hoeken, vrolijke kleuren). Papa is een vriendelijke volwassene
 // zoals Olivia's echte papa: KAAL (glad hoofd met een zachte glans, geen haar),
-// een DONKERBLAUWE BRIL, een WITTE POLO (met kraag + knoopjes) en een
+// een NETTE KORTE BAARD langs de kaaklijn (met klein snorretje), een
+// DONKERBLAUWE BRIL, een WITTE POLO (met kraag + knoopjes) en een
 // DONKERBLAUWE (lange) BROEK. Blije ogen met lichtjes, een vrolijke glimlach en
 // roze wangen. GEEN microfoon — hij staat er gewoon blij bij met zijn armen een
 // beetje open (klaar voor een knuffel). De viewBox blijft "0 0 120 200" net als
@@ -17,6 +18,10 @@ export const papaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000
     <linearGradient id="papaShirt" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="1" stop-color="#e7ecf3"/>
+    </linearGradient>
+    <linearGradient id="papaBaard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6e4a2c"/>
+      <stop offset="1" stop-color="#4e3119"/>
     </linearGradient>
   </defs>
 
@@ -60,6 +65,11 @@ export const papaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000
   <circle cx="60" cy="50" r="26" fill="#f7c39c"/>
   <!-- KAAL: zachte glans bovenop het gladde hoofd (geen haar) -->
   <ellipse cx="53" cy="33" rx="9" ry="5.5" fill="#ffffff" opacity="0.22"/>
+
+  <!-- nette korte baard langs de kaaklijn (de glimlach blijft vrij) -->
+  <path d="M38 53 C36 63 41 73 50 76.5 C56.5 79 63.5 79 70 76.5 C79 73 84 63 82 53 C79.5 61 73 66.5 66 67.5 C61 68.2 59 68.2 54 67.5 C47 66.5 40.5 61 38 53 Z" fill="url(#papaBaard)"/>
+  <!-- klein snorretje boven de glimlach, sluit aan op de baard -->
+  <path d="M50 58 Q60 56 70 58 Q60 61.5 50 58 Z" fill="url(#papaBaard)"/>
 
   <!-- blije ogen met lichtjes -->
   <circle cx="51" cy="49" r="3.6" fill="#2b3a55"/>
