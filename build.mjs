@@ -7,7 +7,12 @@ import { execSync } from "node:child_process";
 
 function bouw(label, cmd, cwd) {
   console.log(`\n▶ ${label}`);
-  execSync(cmd, { cwd, stdio: "inherit" });
+  try {
+    execSync(cmd, { cwd, stdio: "inherit" });
+  } catch {
+    console.error(`\n✗ ${label} build mislukt (cwd: ${cwd})`);
+    process.exit(1);
+  }
 }
 
 bouw("Homepage", "npx vite build --outDir ../dist --emptyOutDir", "homepage");

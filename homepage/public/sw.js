@@ -1,5 +1,7 @@
-// Eenvoudige service worker: app offline beschikbaar maken op de iPad.
-const CACHE = "olivia-poetsen-v1";
+// Eenvoudige service worker voor Olivia's homepage: app offline beschikbaar maken.
+// Eigen cache-naam (los van de spellen) zodat PWA's op hetzelfde domein elkaars
+// cache niet overschrijven.
+const CACHE = "olivia-home-v1";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
@@ -14,8 +16,6 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
-// Network-first met cache-fallback: altijd verse versie als er internet is,
-// anders de opgeslagen versie.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   e.respondWith(
