@@ -2018,6 +2018,8 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   position: relative;
   height: clamp(120px, 26vw, 200px);
 }
+/* Zachte op-en-neer wiebel, net als Mama/Olivia (eigen tempo). */
+.home-parade-figuur.papa .papa-figuur { animation: homeWiebelA 3.1s ease-in-out infinite; }
 .papa-figuur {
   position: relative;
   width: 100%;
@@ -2696,7 +2698,8 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
      hooguit een zacht ✨ / een directe teller-pop), dus die animeren sowieso niet. */
   .scherm-in,
   .home-parade-figuur.mama,
-  .home-parade-figuur.olivia {
+  .home-parade-figuur.olivia,
+  .home-parade-figuur.papa .papa-figuur {
     animation: none !important;
   }
   /* Papa staat STIL maar blijft volledig tikbaar (knuffel/kusje werken). De

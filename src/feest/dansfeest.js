@@ -40,7 +40,7 @@ export function startDansfeest({ opEinde } = {}) {
   const overlay = maak("div", "dansfeest-overlay");
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-label", "Dansfeestje met Mama en Olivia");
+  overlay.setAttribute("aria-label", "Dansfeestje met Mama, Olivia en Papa");
 
   // Zachte, langzaam draaiende discolicht-bundels (puur CSS, traag — géén strobe).
   const lichten = maak("div", "dansfeest-lichten");

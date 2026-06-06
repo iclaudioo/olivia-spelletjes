@@ -23,11 +23,7 @@
 // animatie (rustig), maar de interactie + munten + geluid + sticker werken gewoon.
 
 import { maak } from "./dom.js";
-import {
-  markeerPapaGeknuffeld,
-  meldQuestGebeurtenis,
-  voegMuntenToe,
-} from "../state.js";
+import { markeerPapaGeknuffeld, voegMuntenToe } from "../state.js";
 import { papaSVG } from "../art/papa.js";
 import { knuffelGeluid, kusGeluid, ontgrendelAudio } from "../audio/sfx.js";
 import { vliegMunten } from "./muntvlieg.js";
@@ -124,7 +120,7 @@ export function maakPapaFiguur({ opMunten } = {}) {
     // getoonde waarde bij via opMunten (zo blijft de teller in sync).
     const nieuwTotaal = voegMuntenToe(munten);
     if (typeof opMunten === "function") opMunten(nieuwTotaal);
-    vliegMunten({ van: papa, aantal: munten });
+    vliegMunten({ van: papa, aantal: Math.max(1, Math.round(munten / 5)) });
 
     // Geluid: warm voor de knuffel, mwah voor de kus.
     if (isKus) kusGeluid();
@@ -141,9 +137,8 @@ export function maakPapaFiguur({ opMunten } = {}) {
     // Eerste keer: staat markeren + sticker toekennen (idempotent).
     markeerPapaGeknuffeld();
     vierVerdiendeStickers();
-    // Telt mee als een lieve gebeurtenis voor eventuele opdrachten (no-op als er
-    // geen aai-quest actief is — meldQuestGebeurtenis is veilig/idempotent).
-    meldQuestGebeurtenis("aai");
+    // (Bewust GEEN quest-gebeurtenis: een knuffel/kusje aan Papa hoort niet mee te
+    // tellen voor de huisdier-aai-opdracht — dat is voor het huisdier.)
 
     // Cooldown starten: knoppen werken even niet, toon "Papa geniet na!".
     startCooldown();
