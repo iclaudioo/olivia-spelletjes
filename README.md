@@ -49,6 +49,16 @@ Open daarna het adres dat verschijnt (bv. http://localhost:5173) in de browser.
 
 ## Op Olivia's iPad zetten
 
+**Optie 0 — al online (aanrader): https://schoonmaak-spel.vercel.app**
+1. Open https://schoonmaak-spel.vercel.app in Safari op de iPad.
+2. Tik op het deel-icoon → **Zet op beginscherm**. Klaar — schermvullend,
+   altijd bereikbaar (je Mac hoeft niet aan te staan), en Olivia's voortgang
+   blijft op de iPad bewaard.
+
+> Opnieuw uitrollen na wijzigingen: `vercel --prod` in de map `schoonmaak-spel/`
+> (vereist een ingelogde Vercel CLI: `vercel login`). De config staat in
+> `vercel.json`.
+
 **Optie A — snel, via wifi (zelfde netwerk):**
 1. Start `npm run dev` op je Mac.
 2. Er verschijnt ook een "Network"-adres (bv. http://192.168.0.206:5173).
