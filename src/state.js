@@ -22,8 +22,13 @@ import { STICKERS } from "./data/stickers.js";
 const SLEUTEL = "olivia-schoonmaak-v4";
 
 // Verse voortgang voor één kamer.
+//   ooitKlaar — of de kamer OOIT (een keer) helemaal schoon is geweest. Bepaalt
+//   de beloning: de allereerste keer levert de volle beloning op, elke latere
+//   keer (via "Nog een keer" óf nadat Mama de kamer vies maakte) de kleinere
+//   herhaal-beloning. `klaar` zegt alleen iets over de HUIDIGE staat (en wordt
+//   door Mama weer op false gezet); `ooitKlaar` blijft daarna staan.
 function nieuweKamer() {
-  return { schoonPct: 0, klaar: false, decor: nieuwDecor() };
+  return { schoonPct: 0, klaar: false, ooitKlaar: false, decor: nieuwDecor() };
 }
 
 // Verse, lege decor voor één kamer.
@@ -61,6 +66,10 @@ function maakStandaard() {
     stickers: [],
     // Of er ooit een foto van een kamer is gemaakt (voor de "fotograaf"-sticker).
     fotoGemaakt: false,
+    // Of Mama ooit langs is geweest om een kamer vies te maken (voor de "mama"-
+    // sticker). Bestaande v4-saves krijgen dit veld vanzelf via diepSamenvoegen,
+    // dus er is GEEN key-bump nodig.
+    mamaGeweest: false,
   };
 }
 
@@ -85,6 +94,10 @@ function laden() {
 // Zorgt dat élk BEZETEN huis voor iedere kamer uit de catalogus een voortgangs-
 // entry heeft. Zo blijven later-toegevoegde kamers ook in bestaande saves
 // speelbaar (anders zou getKamerStaat undefined geven en de kamer onmaakbaar).
+// Migreert tegelijk het nieuwe `ooitKlaar`-veld: een kamer die al `klaar` was
+// (uit een oudere save) is per definitie ooit schoon geweest, dus krijgt die
+// `ooitKlaar=true`. Zo betaalt een bestaande save bij herhaald poetsen meteen de
+// juiste (herhaal-)beloning i.p.v. opnieuw de volle eerste-keer-beloning.
 function zaaiOntbrekendeKamers(s) {
   if (!isObject(s.huizen)) return;
   for (const huisId of Object.keys(s.huizen)) {
@@ -95,6 +108,12 @@ function zaaiOntbrekendeKamers(s) {
     if (!isObject(huis.kamers)) huis.kamers = {};
     for (const k of def.kamers) {
       if (!huis.kamers[k.id]) huis.kamers[k.id] = nieuweKamer();
+      const kamer = huis.kamers[k.id];
+      // Migratie/invariant: een kamer die NU schoon is (`klaar`), is per definitie
+      // ooit schoon geweest. Oudere saves misten `ooitKlaar` (diepSamenvoegen vult
+      // die met de standaard `false`), dus leiden we hem hier af uit `klaar`. Voor
+      // verse/nieuwe staat is dit een no-op (klaar:false → blijft false).
+      if (kamer.klaar === true) kamer.ooitKlaar = true;
     }
   }
 }
@@ -239,12 +258,38 @@ export function setKamerSchoon(huisId, kamerId, pct) {
   bewaren();
 }
 
-// Een kamer als helemaal schoon markeren.
+// Een kamer als helemaal schoon markeren. Naast de huidige `klaar`-vlag zetten
+// we ook `ooitKlaar` (blijft daarna voorgoed true), zodat de beloning bij latere
+// poetsbeurten klopt — ook nadat Mama de kamer weer vies heeft gemaakt.
 export function markeerKamerKlaar(huisId, kamerId) {
   const k = getKamerStaat(huisId, kamerId);
   if (!k) return;
   k.schoonPct = 100;
   k.klaar = true;
+  k.ooitKlaar = true;
+  bewaren();
+}
+
+// Een kamer weer vies maken (voor de "Mama"-feature, herspeelbaarheid). Zet de
+// voortgang terug naar vuil (klaar=false, schoonPct=0) zodat de kamer opnieuw
+// schoon te maken is. Het DECOR (meubels/behang/vloer) blijft bewust bewaard, en
+// `ooitKlaar` blijft true — zo levert de volgende poetsbeurt de herhaal-beloning
+// op (niet opnieuw de volle eerste-keer-beloning).
+// Geeft true terug als de kamer bestond (en is aangepast), anders false.
+export function maakKamerVies(huisId, kamerId) {
+  const k = getKamerStaat(huisId, kamerId);
+  if (!k) return false;
+  k.klaar = false;
+  k.schoonPct = 0;
+  bewaren();
+  return true;
+}
+
+// Markeert dat Mama langs is geweest (ontgrendelt de "mama"-sticker). Idempotent:
+// nogmaals aanroepen verandert niets.
+export function markeerMama() {
+  if (staat.mamaGeweest === true) return;
+  staat.mamaGeweest = true;
   bewaren();
 }
 

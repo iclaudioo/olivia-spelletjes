@@ -157,6 +157,13 @@ export const STICKERS = [
     // Verdiend zodra je minstens één NIET-gratis skin bezit.
     verdiend: (s) => (s?.inventaris?.skins?.length || 0) > GRATIS_SKINS.length,
   },
+  {
+    id: "mama",
+    naam: "Mama kwam langs!",
+    emoji: "👩",
+    beschrijving: "Laat Mama een kamer vies maken",
+    verdiend: (s) => !!s?.mamaGeweest,
+  },
 ];
 
 // Het totaal aantal stickers — handig voor "X / N" tellingen.

@@ -145,6 +145,65 @@ html, body {
   background: var(--geel);
 }
 
+/* ===== Mama-knop (rommelmaker, op het huis-overzicht) ===== */
+/* Een grote, vrolijke roze knop boven het kamer-rooster met een subtiele idle-
+   wiebel die uitnodigt om te tikken. Maakt een willekeurige schone kamer vies. */
+.mama-knop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 auto 18px;
+  max-width: 900px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--wit);
+  background: var(--roze);
+  border-radius: 26px;
+  padding: 16px 22px;
+  box-shadow: 0 8px 0 var(--schaduw);
+  transition: transform .1s ease, box-shadow .1s ease;
+  animation: mamaWiebel 2.2s ease-in-out infinite;
+}
+.mama-knop:active {
+  transform: translateY(3px) rotate(0deg);
+  box-shadow: 0 4px 0 var(--schaduw);
+  animation: none;
+}
+.mama-knop-emoji {
+  font-size: clamp(32px, 6vw, 48px);
+  line-height: 1;
+}
+.mama-knop-tekst {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  text-shadow: 0 2px 0 rgba(43, 58, 85, .25);
+}
+
+/* Subtiele idle-wiebel die de Mama-knop levendig maakt (rust grotendeels, dan
+   een speels knikje). */
+@keyframes mamaWiebel {
+  0%, 70%, 100% { transform: rotate(0deg) scale(1); }
+  78% { transform: rotate(-3deg) scale(1.03); }
+  86% { transform: rotate(3deg) scale(1.03); }
+  94% { transform: rotate(-2deg) scale(1.01); }
+}
+
+/* Korte schud-animatie voor de zojuist-door-Mama-vies-gemaakte kamerkaart. */
+@keyframes schud {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px) rotate(-2deg); }
+  30% { transform: translateX(7px) rotate(2deg); }
+  45% { transform: translateX(-6px) rotate(-1.5deg); }
+  60% { transform: translateX(6px) rotate(1.5deg); }
+  75% { transform: translateX(-3px); }
+}
+.kamer-kaart.schud {
+  animation: schud .55s ease;
+}
+
 /* ===== Winkel ===== */
 .winkel-scherm {
   flex: 1;
@@ -845,6 +904,19 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   color: var(--donker);
 }
 
+/* Generieke bericht-toast (bv. de Mama-meldingen): roze rand i.p.v. geel, met
+   een korte, leesbare tekst naast de emoji. */
+.sticker-toast.toast-bericht {
+  border-color: var(--roze);
+  max-width: min(90vw, 460px);
+}
+.sticker-toast-tekst {
+  font-weight: 900;
+  font-size: clamp(15px, 2.4vw, 20px);
+  color: var(--donker);
+  text-align: center;
+}
+
 @keyframes stickerToastIn {
   from { opacity: 0; transform: translateY(-24px) scale(.85); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -852,4 +924,25 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
 @keyframes stickerToastUit {
   from { opacity: 1; transform: translateY(0) scale(1); }
   to   { opacity: 0; transform: translateY(-24px) scale(.9); }
+}
+
+/* ===== Minder beweging (toegankelijkheid) =====
+   Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
+   doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
+   knop uit en neutraliseren alle andere INFINITE-loops. Korte, eenmalige
+   overgangen (viering, toast, schud, pop) blijven bewust werken: die zijn
+   functioneel-vrolijk en stoppen vanzelf. */
+@media (prefers-reduced-motion: reduce) {
+  /* De eindeloze idle-wiebel van de Mama-knop uit (blijft verder gewoon werken). */
+  .mama-knop {
+    animation: none;
+  }
+  /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
+     ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit
+     niet, want die hebben standaard al animation-iteration-count: 1. */
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+  }
 }

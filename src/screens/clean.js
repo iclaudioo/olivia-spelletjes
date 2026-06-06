@@ -156,12 +156,18 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
   }
 
   function vier() {
-    const alKlaar = getKamerStaat(huisId, kamerId)?.klaar;
+    // Of dit de ALLEREERSTE keer is dat deze kamer schoon wordt. We kijken naar
+    // `ooitKlaar` (niet `klaar`!) zodat een kamer die Mama weer vies maakte —
+    // waarbij `klaar` op false gaat maar `ooitKlaar` true blijft — bij opnieuw poetsen
+    // de herhaal-beloning oplevert, niet opnieuw de volle eerste-keer-beloning.
+    // Berekenen vóór markeerKamerKlaar, want die zet `ooitKlaar` meteen op true.
+    const eersteKeer = !getKamerStaat(huisId, kamerId)?.ooitKlaar;
     markeerKamerKlaar(huisId, kamerId);
-    // Eerste keer schoon → volle beloning; al-schone kamer opnieuw poetsen →
-    // kleinere herhaal-beloning. Zo blijft inkomen herhaalbaar (alle huizen,
-    // meubels en skins zijn uiteindelijk bereikbaar door te blijven spelen).
-    const beloning = alKlaar ? HERHAAL_BELONING : BELONING;
+    // Eerste keer schoon → volle beloning; daarna (via "Nog een keer" óf nadat
+    // Mama de kamer vies maakte) → kleinere herhaal-beloning. Zo blijft inkomen
+    // herhaalbaar (alle huizen, meubels en skins zijn uiteindelijk bereikbaar
+    // door te blijven spelen).
+    const beloning = eersteKeer ? BELONING : HERHAAL_BELONING;
     const nieuw = voegMuntenToe(beloning);
     updateMunten(nieuw, true);
     // De viering-kaart toont het bedrag dat ook echt is uitgekeerd.
