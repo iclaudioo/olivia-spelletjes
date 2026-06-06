@@ -22,7 +22,8 @@ import { maak } from "../ui/dom.js";
 import { startDansMuziek, stopDansMuziek } from "../audio/muziek.js";
 import { mamaSVG as MAMA_SVG } from "../art/mama.js";
 import { oliviaSVG } from "../art/olivia.js";
-import { getOliviaLook } from "../state.js";
+import { getOliviaLook, getGekozenHuisdier } from "../state.js";
+import { huisdierById, huisdierSVG } from "../data/huisdieren.js";
 
 // Hoe lang het feest automatisch duurt voor het vanzelf eindigt (ms).
 const FEEST_DUUR_MS = 8000;
@@ -78,6 +79,25 @@ export function startDansfeest({ opEinde } = {}) {
   const oliviaWrap = maak("div", "dansfeest-danser-wrap");
   oliviaWrap.append(olivia, maak("div", "dansfeest-naam", "Olivia"));
   podium.append(mamaWrap, oliviaWrap);
+
+  // Als er een gekozen huisdier is, danst het mee op het podium (niet aaibaar —
+  // het danst gewoon). Het zit in de overlay-DOM, dus het verdwijnt automatisch
+  // mee met de overlay bij sluiten/afbreken (geen aparte opruim nodig).
+  const huisdierId = getGekozenHuisdier();
+  if (huisdierId) {
+    const def = huisdierById(huisdierId);
+    const dier = maak("div", "dansfeest-danser huisdier");
+    const svg = huisdierSVG(huisdierId);
+    if (svg) {
+      dier.innerHTML = svg;
+    } else if (def) {
+      dier.classList.add("dansfeest-huisdier-emoji");
+      dier.textContent = def.emoji;
+    }
+    const dierWrap = maak("div", "dansfeest-danser-wrap");
+    dierWrap.append(dier, maak("div", "dansfeest-naam", def ? def.naam : "Huisdier"));
+    podium.append(dierWrap);
+  }
 
   const knop = maak("button", "dansfeest-klaar", "Klaar ✨");
   knop.type = "button";

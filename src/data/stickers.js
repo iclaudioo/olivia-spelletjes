@@ -195,6 +195,13 @@ export const STICKERS = [
     verdiend: (s) => !!s?.driesterDans,
   },
   {
+    id: "dierenvriend",
+    naam: "Dierenvriend",
+    emoji: "🐾",
+    beschrijving: "Adopteer een huisdier",
+    verdiend: (s) => (s?.huisdieren?.length || 0) > 0,
+  },
+  {
     id: "fashionista",
     naam: "Fashionista",
     emoji: "💇‍♀️",

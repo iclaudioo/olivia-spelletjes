@@ -396,6 +396,13 @@ html, body {
   box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .55), 0 5px 0 var(--schaduw);
 }
 
+/* Huisdier-sprite op een te-koop-kaart (zelfde plek als de huis-emoji) */
+.winkel-huisdier-sprite {
+  width: clamp(72px, 13vw, 104px);
+  height: clamp(72px, 13vw, 104px);
+}
+.winkel-huisdier-sprite svg { width: 100%; height: 100%; display: block; }
+
 /* ===== Instellingen-scherm ===== */
 .instellingen-scherm {
   flex: 1;
@@ -478,6 +485,17 @@ html, body {
   place-items: center;
   font-size: clamp(28px, 5vw, 40px);
   box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .55);
+}
+/* Huisdier-tegel in de instellingen-picker: het dier-SVG i.p.v. een emoji op
+   een lichte achtergrond (rond, net als de skin-vlag). */
+.huisdier-tegel-vlag {
+  background: #f4f7fc;
+  overflow: hidden;
+}
+.huisdier-tegel-vlag svg {
+  width: 84%;
+  height: 84%;
+  display: block;
 }
 .skin-tegel-naam {
   font-weight: 900;
@@ -1182,6 +1200,95 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   to   { opacity: 0; transform: translateY(-24px) scale(.9); }
 }
 
+/* ===== Huisdier-vriendje (Feature G3) =====
+   Het gekozen huisdier verschijnt op het beginscherm onder de kaarten: een
+   rustig zittend/stuiterend dier dat je kunt aaien (hartjes 💕 + geluidje).
+   Groot tikdoel voor de iPad; geen page-scroll/zoom bij het aaien. */
+.huisdier-figuur {
+  position: relative;
+  display: block;
+  margin: 18px auto 4px;
+  width: clamp(120px, 30vw, 200px);
+  height: clamp(120px, 30vw, 200px);
+  -webkit-tap-highlight-color: transparent;
+}
+.huisdier-figuur.aaibaar {
+  cursor: pointer;
+  touch-action: manipulation; /* geen dubbel-tik-zoom op de iPad */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.huisdier-dier {
+  width: 100%;
+  height: 100%;
+  /* rustige zit-stuiter (zacht op-en-neer wiegen) */
+  animation: huisdierWieg 2.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+.huisdier-dier svg { width: 100%; height: 100%; display: block; }
+.huisdier-emoji {
+  display: grid;
+  place-items: center;
+  font-size: clamp(72px, 18vw, 120px);
+}
+/* Knuffel-knik wanneer je aait (eenmalige squash-stretch, voegt JS toe/verwijdert). */
+.huisdier-dier.knuffel { animation: huisdierKnuffel .42s ease; }
+
+@keyframes huisdierWieg {
+  0%   { transform: translateY(0)    rotate(-2deg) scale(1); }
+  50%  { transform: translateY(-8px) rotate(2deg)  scale(1.02); }
+  100% { transform: translateY(0)    rotate(-2deg) scale(1); }
+}
+@keyframes huisdierKnuffel {
+  0%   { transform: scale(1, 1); }
+  35%  { transform: scale(1.12, .9); }
+  70%  { transform: scale(.96, 1.06); }
+  100% { transform: scale(1, 1); }
+}
+
+/* De hartjes-laag (boven het dier, vangt geen tikken) + de zwevende hartjes. */
+.huisdier-hartjes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.huisdier-hartje {
+  position: absolute;
+  top: 30%;
+  font-size: clamp(22px, 5vw, 38px);
+  will-change: transform, opacity;
+  animation: huisdierHartje 1.1s ease-out forwards;
+}
+@keyframes huisdierHartje {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(.5) rotate(0deg); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -90px) scale(1.1) rotate(12deg); }
+}
+
+/* Huisdier dat meedanst op het dansfeest-podium (dezelfde dans-stuiter als de
+   andere dansers, met een eigen ritme zodat het levendig oogt). */
+.dansfeest-danser.huisdier {
+  width: clamp(70px, 16vw, 120px);
+  height: clamp(110px, 26vw, 190px);
+  display: grid;
+  place-items: end center;
+  animation: dansStuiterC 0.56s ease-in-out infinite;
+}
+.dansfeest-danser.huisdier svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .3));
+}
+.dansfeest-huisdier-emoji { font-size: clamp(54px, 14vw, 96px); }
+@keyframes dansStuiterC {
+  0%   { transform: translateY(0)    rotate(3deg)  scale(1); }
+  25%  { transform: translateY(-16px) rotate(-4deg) scale(1.04); }
+  50%  { transform: translateY(0)    rotate(5deg)  scale(1); }
+  75%  { transform: translateY(-9px)  rotate(-2deg) scale(1.02); }
+  100% { transform: translateY(0)    rotate(3deg)  scale(1); }
+}
+
 /* ===== Dansfeestje-overlay (Mama + Olivia dansen K-pop) =====
    Een modal boven alles (z-index 90: boven de viering-band 30, ONDER de toast-
    laag 100 zodat de dans-toast na afloop bovenop verschijnt). Bevat een podium
@@ -1768,7 +1875,16 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   .dansfeest-bundel,
   .dansfeest-danser.mama,
   .dansfeest-danser.olivia,
+  .dansfeest-danser.huisdier,
   .dansfeest-zwever {
+    animation: none !important;
+  }
+
+  /* Het huisdier-figuur staat STIL maar blijft volledig zichtbaar én aaibaar
+     (de zit-wieg + de knuffel-knik staan uit). De hartjes worden onder
+     reduced-motion in JS al overgeslagen, dus die animeren sowieso niet. */
+  .huisdier-dier,
+  .huisdier-dier.knuffel {
     animation: none !important;
   }
   /* De discolichten zacht en stilstaand tonen (niet weg — het blijft een feestje). */

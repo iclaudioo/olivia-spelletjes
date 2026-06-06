@@ -7,6 +7,7 @@ import { HUIS_CATALOGUS } from "../data/huizen.js";
 import { navigeer } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
+import { maakHuisdierFiguur } from "../ui/huisdier.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
 
 export function toon(app, _params = {}) {
@@ -97,5 +98,18 @@ export function toon(app, _params = {}) {
   rooster.append(instellingenKaart);
 
   scherm.append(rooster);
+
+  // ---- Huisdier-vriendje (Feature G3) ----
+  // Toon (indien geadopteerd) het gekozen huisdier onder de kaarten, aaibaar.
+  // Geen gekozen dier → maakHuisdierFiguur geeft null en we tonen niets.
+  const huisdier = maakHuisdierFiguur({ aaibaar: true });
+  if (huisdier) scherm.append(huisdier.el);
+
   app.append(top, scherm);
+
+  // Opruimen bij weg-navigeren: de huisdier-listener + hartjes-timers wegruimen
+  // zodat er niets lekt (de router roept deze functie aan).
+  return () => {
+    if (huisdier) huisdier.opruim();
+  };
 }
