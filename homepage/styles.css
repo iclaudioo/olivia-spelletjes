@@ -1,0 +1,50 @@
+:root { --tegel-kleur: #bfe9ff; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: "Baloo 2", "Comic Sans MS", system-ui, sans-serif;
+  background: linear-gradient(160deg, #bfe9ff 0%, #e7d4ff 100%);
+  color: #2b3a55;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+#app { position: relative; min-height: 100%; padding: 24px 18px 48px; }
+
+.ambiance { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.zwever {
+  position: absolute; bottom: -40px; font-size: 26px; opacity: .55;
+  animation: drijf linear infinite;
+}
+@keyframes drijf {
+  0% { transform: translateY(0) rotate(0); }
+  100% { transform: translateY(-115vh) rotate(40deg); }
+}
+
+.hero { position: relative; z-index: 1; text-align: center; margin: 6px 0 26px; }
+.hero-olivia { width: 130px; margin: 0 auto; animation: wieb 3s ease-in-out infinite; }
+.hero-olivia svg { width: 100%; height: auto; display: block; }
+@keyframes wieb { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+.hero-titel { font-size: clamp(28px, 7vw, 46px); margin: 8px 0 4px; color: #3a4a7a; }
+.hero-sub { font-size: clamp(15px, 4vw, 20px); margin: 0; opacity: .8; }
+
+.rooster {
+  position: relative; z-index: 1; display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  max-width: 680px; margin: 0 auto;
+}
+.tegel {
+  background: var(--tegel-kleur);
+  border-radius: 22px; padding: 22px 14px; min-height: 150px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  text-decoration: none; color: #2b3a55;
+  box-shadow: 0 6px 0 rgba(0,0,0,.10); cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.tegel:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.10); }
+.tegel.uit { opacity: .5; filter: grayscale(.3); cursor: default; box-shadow: 0 6px 0 rgba(0,0,0,.06); }
+.tegel-emoji { font-size: 54px; line-height: 1; }
+.tegel-naam { font-size: 20px; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .zwever, .hero-olivia { animation: none !important; }
+}

@@ -1,16 +1,16 @@
-// Eenvoudige service worker: app offline beschikbaar maken op de iPad.
-// Eigen cache-naam met eigen prefix zodat meerdere PWA's op hetzelfde domein
-// (homepage + spellen) elkaars cache niet opruimen.
-const CACHE = "olivia-poetsen-v1";
-const CACHE_PREFIX = "olivia-poetsen-";
+// Eenvoudige service worker voor Olivia's homepage: app offline beschikbaar maken.
+// Eigen cache-naam met eigen prefix (los van de spellen) zodat PWA's op hetzelfde
+// domein elkaars cache niet overschrijven of opruimen.
+const CACHE = "olivia-home-v1";
+const CACHE_PREFIX = "olivia-home-";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {
-  // Ruim alleen ONZE eigen oude caches op (zelfde prefix), niet die van de homepage
-  // of andere spellen.
+  // Ruim alleen ONZE eigen oude caches op (zelfde prefix). Caches van een spel
+  // (bv. olivia-poetsen-*) laten we met rust — die beheert het spel zelf.
   e.waitUntil(
     caches.keys().then((sleutels) =>
       Promise.all(
@@ -27,6 +27,10 @@ self.addEventListener("activate", (e) => {
 // anders de opgeslagen versie.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  // Laat verzoeken voor een spel met rust: elk spel (bv. /spelletjes/poetsen/) heeft
+  // zijn eigen service worker + cache. Zo cachet de homepage-SW de spel-caches niet,
+  // ook niet offline.
+  if (new URL(e.request.url).pathname.startsWith("/spelletjes/")) return;
   e.respondWith(
     fetch(e.request)
       .then((resp) => {
