@@ -1048,6 +1048,188 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   to   { opacity: 0; transform: translateY(-24px) scale(.9); }
 }
 
+/* ===== Dansfeestje-overlay (Mama + Olivia dansen K-pop) =====
+   Een modal boven alles (z-index 90: boven de viering-band 30, ONDER de toast-
+   laag 100 zodat de dans-toast na afloop bovenop verschijnt). Bevat een podium
+   met ZACHTE, LANGZAAM bewegende discolicht-bundels (kleurrijk maar NOOIT fel/
+   snel geflikker i.v.m. fotosensitiviteit), Mama én Olivia die dansen, en
+   zwevende hartjes/sterren/noten. Alle bewegingen staan stil onder
+   prefers-reduced-motion (zie het reduced-motion-blok onderaan). */
+.dansfeest-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  /* Warme, donkere "discotheek"-achtergrond zodat de lichten goed opvallen. */
+  background: radial-gradient(circle at 50% 40%, #3a2a5e 0%, #221a3a 70%, #161028 100%);
+  overflow: hidden;
+  animation: fade .3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ----- Discolicht-bundels: traag draaiende, zachte kleurige kegels ----- */
+.dansfeest-lichten {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dansfeest-bundel {
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  width: 40%;
+  height: 160%;
+  /* Zachte gekleurde bundel die geleidelijk uitvloeit (geen harde rand). */
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: .35;
+  transform-origin: 50% 0;
+  mix-blend-mode: screen;
+  /* TRAAG draaiend (12s) en zacht pulserend — bewust geen snelle strobe. */
+  animation: dansLicht 12s ease-in-out infinite;
+}
+.dansfeest-bundel.a { background: var(--roze);  animation-delay: 0s;   }
+.dansfeest-bundel.b { background: var(--blauw); animation-delay: -3s;  }
+.dansfeest-bundel.c { background: var(--paars); animation-delay: -6s;  }
+.dansfeest-bundel.d { background: var(--groen); animation-delay: -9s;  }
+
+/* Langzame, brede zwaai + zachte helderheids-pulse. Niets snels/fel. */
+@keyframes dansLicht {
+  0%   { transform: translateX(-50%) rotate(-26deg); opacity: .25; }
+  50%  { transform: translateX(-50%) rotate( 26deg); opacity: .45; }
+  100% { transform: translateX(-50%) rotate(-26deg); opacity: .25; }
+}
+
+/* ----- De kaart met podium + dansers ----- */
+.dansfeest-kaart {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px 24px;
+  max-width: min(92vw, 560px);
+  animation: spring .5s cubic-bezier(.2, 1.4, .4, 1);
+}
+.dansfeest-titel {
+  font-weight: 900;
+  font-size: clamp(26px, 5vw, 44px);
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(43, 58, 85, .4);
+}
+
+/* Het podium: een vrolijke balk waarop de dansers staan. */
+.dansfeest-podium {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(8px, 4vw, 40px);
+  padding: 0 18px 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.14) 100%);
+  box-shadow: inset 0 -8px 0 rgba(255, 210, 74, .35);
+}
+.dansfeest-danser-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dansfeest-danser {
+  width: clamp(90px, 22vw, 150px);
+  height: clamp(150px, 36vw, 250px);
+}
+.dansfeest-danser svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .3));
+}
+.dansfeest-naam {
+  font-weight: 900;
+  font-size: clamp(13px, 2.4vw, 18px);
+  color: #fff;
+  margin-top: 2px;
+  text-shadow: 0 2px 0 rgba(43, 58, 85, .4);
+}
+
+/* De dans-bewegingen: stuiteren + lichte spin/wiebel, met armzwaai-gevoel. Mama
+   en Olivia krijgen een net iets ander ritme zodat het levendig oogt. */
+.dansfeest-danser.mama   { animation: dansStuiter 0.56s ease-in-out infinite; }
+.dansfeest-danser.olivia { animation: dansStuiterB 0.56s ease-in-out infinite; }
+
+@keyframes dansStuiter {
+  0%   { transform: translateY(0)    rotate(-4deg) scale(1); }
+  25%  { transform: translateY(-18px) rotate(0deg)  scale(1.04); }
+  50%  { transform: translateY(0)    rotate(4deg)  scale(1); }
+  75%  { transform: translateY(-10px) rotate(0deg)  scale(1.02); }
+  100% { transform: translateY(0)    rotate(-4deg) scale(1); }
+}
+/* Olivia springt iets hoger en spint mee — zij is dé danser. */
+@keyframes dansStuiterB {
+  0%   { transform: translateY(0)    rotate(5deg)  scale(1); }
+  25%  { transform: translateY(-22px) rotate(-3deg) scale(1.05); }
+  50%  { transform: translateY(0)    rotate(-6deg) scale(1); }
+  75%  { transform: translateY(-12px) rotate(3deg)  scale(1.03); }
+  100% { transform: translateY(0)    rotate(5deg)  scale(1); }
+}
+
+/* ----- Zwevende hartjes/sterren/noten ----- */
+.dansfeest-zwevers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dansfeest-zwever {
+  position: absolute;
+  bottom: -10%;
+  font-size: clamp(20px, 4vw, 34px);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: dansZweef 4.5s ease-in infinite;
+}
+/* Verspreide startposities + tempo's zodat het natuurlijk oogt (geen rij). */
+.dansfeest-zwever.z0 { left: 8%;  animation-delay: 0s;    }
+.dansfeest-zwever.z1 { left: 22%; animation-delay: 0.6s;  }
+.dansfeest-zwever.z2 { left: 36%; animation-delay: 1.4s;  }
+.dansfeest-zwever.z3 { left: 50%; animation-delay: 0.3s;  }
+.dansfeest-zwever.z4 { left: 64%; animation-delay: 1.1s;  }
+.dansfeest-zwever.z5 { left: 78%; animation-delay: 0.9s;  }
+.dansfeest-zwever.z6 { left: 90%; animation-delay: 1.8s;  }
+.dansfeest-zwever.z7 { left: 15%; animation-delay: 2.2s;  }
+
+@keyframes dansZweef {
+  0%   { opacity: 0; transform: translateY(0) scale(.6) rotate(0deg); }
+  15%  { opacity: .95; }
+  80%  { opacity: .9; }
+  100% { opacity: 0; transform: translateY(-90vh) scale(1.1) rotate(20deg); }
+}
+
+/* ----- De grote "Klaar"-knop ----- */
+.dansfeest-klaar {
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 900;
+  color: var(--donker);
+  background: var(--geel);
+  border-radius: 999px;
+  padding: 14px 36px;
+  font-size: clamp(18px, 3vw, 26px);
+  box-shadow: 0 6px 0 var(--schaduw);
+  transition: transform .08s ease, box-shadow .08s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.dansfeest-klaar:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 var(--schaduw);
+}
+
 /* ===== Minder beweging (toegankelijkheid) =====
    Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
    doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
@@ -1073,6 +1255,22 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   .mama-noot { opacity: 0; }
   /* Het wolkje één keer tonen zodat de "tik me"-hint zichtbaar blijft. */
   .mama-wolkje { opacity: 1; transform: translateX(-50%); }
+
+  /* Dansfeest blijft VOLLEDIG zichtbaar (Mama + Olivia + lichten + zwevers) en de
+     Klaar-knop werkt, maar de bewegingen staan STIL/heel rustig: geen stuiter,
+     geen draaiende lichten, geen omhoog-zwevende emoji. We zetten de animaties
+     uit i.p.v. ze te bevriezen, zodat niets halverwege een transform blijft hangen. */
+  .dansfeest-bundel,
+  .dansfeest-danser.mama,
+  .dansfeest-danser.olivia,
+  .dansfeest-zwever {
+    animation: none !important;
+  }
+  /* De discolichten zacht en stilstaand tonen (niet weg — het blijft een feestje). */
+  .dansfeest-bundel { opacity: .3; transform: translateX(-50%) rotate(0deg); }
+  /* De zwevers stil onderaan tonen i.p.v. omhoog te animeren (rustig, zichtbaar). */
+  .dansfeest-zwever { opacity: .85; bottom: 8%; }
+
   /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
      ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit
      niet, want die hebben standaard al animation-iteration-count: 1. */

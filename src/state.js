@@ -70,6 +70,10 @@ function maakStandaard() {
     // sticker). Bestaande v4-saves krijgen dit veld vanzelf via diepSamenvoegen,
     // dus er is GEEN key-bump nodig.
     mamaGeweest: false,
+    // Of er ooit een dansfeestje met Mama & Olivia is gehouden (voor de
+    // "dansfeest"-sticker). Bestaande v4-saves krijgen dit veld vanzelf via
+    // diepSamenvoegen — GEEN key-bump nodig.
+    dansGeweest: false,
   };
 }
 
@@ -290,6 +294,14 @@ export function maakKamerVies(huisId, kamerId) {
 export function markeerMama() {
   if (staat.mamaGeweest === true) return;
   staat.mamaGeweest = true;
+  bewaren();
+}
+
+// Markeert dat er een dansfeestje is gehouden (ontgrendelt de "dansfeest"-
+// sticker). Idempotent: nogmaals aanroepen verandert niets.
+export function markeerDans() {
+  if (staat.dansGeweest === true) return;
+  staat.dansGeweest = true;
   bewaren();
 }
 

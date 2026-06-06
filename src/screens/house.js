@@ -3,17 +3,22 @@
 // Kamers + metadata komen uit de catalogus; de status uit de staat.
 //
 // Over het rooster wandelt continu het zingende Mama-figuur (een SVG-zangeres
-// met bruin haar en een microfoon). Tik op Mama en ze maakt een willekeurige
-// schone kamer weer vies, zodat je hem opnieuw kunt poetsen (en opnieuw munten
-// verdient). Het decor van die kamer blijft bewaard. De loop-, flip-, wiebel- en
-// muzieknoot-animaties zijn puur CSS (zie styles.css) — er lopen dus geen JS-
-// timers/listeners die kunnen lekken na navigeren.
+// met bruin haar en een microfoon). Tik op Mama en er start een DANSFEESTJE:
+// Mama én Olivia (K-pop-fan) dansen samen op een podium met zachte discolichten
+// en zwevende hartjes/sterren/noten. Aan het EINDE van het feest danst Mama zó
+// wild dat een willekeurige schone kamer weer vies wordt (de bestaande
+// rommelmaker), zodat je hem opnieuw kunt poetsen (en opnieuw munten verdient).
+// Het decor van die kamer blijft bewaard. De loop-, flip-, wiebel- en
+// muzieknoot-animaties zijn puur CSS (zie styles.css). Het dansfeest gebruikt
+// JS-timers/audio die NETJES worden opgeruimd bij sluiten én bij weg-navigeren
+// (de opruim-functie hieronder breekt een lopend feest af).
 
 import {
   getStaat,
   getKamerStaat,
   maakKamerVies,
   markeerMama,
+  markeerDans,
 } from "../state.js";
 import { getHuisDef } from "../data/huizen.js";
 import { navigeer, terug } from "../router.js";
@@ -23,11 +28,18 @@ import { ontgrendelAudio, mamaGeluid } from "../audio/sfx.js";
 import { toonToast, vierVerdiendeStickers } from "../ui/toast.js";
 import { kamerEmoji } from "../art/kamers.js";
 import { mamaSVG } from "../art/mama.js";
+import { startDansfeest } from "../feest/dansfeest.js";
 
 export function toon(app, { huisId } = {}) {
   const staat = getStaat();
   const huisDef = getHuisDef(huisId);
   app.innerHTML = "";
+
+  // Opruim-functie van een lopend dansfeest (of null). De router roept de
+  // teruggegeven opruim-functie aan bij weg-navigeren; zo breken we een nog
+  // draaiend feest netjes af (muziek stop, timers clear, overlay weg) ZONDER de
+  // rommelmaker te triggeren.
+  let stopFeest = null;
 
   // ---- Topbalk met terug-knop naar het beginscherm ----
   const { el: top, updateMunten } = maakTopbar({
@@ -43,10 +55,16 @@ export function toon(app, { huisId } = {}) {
 
   // Het rondlopende Mama-figuur alleen tonen als er kamers zijn (dus een geldig,
   // bezeten huis). Mama wandelt continu heen en weer over de breedte van het
-  // overzicht; tikken op haar maakt een willekeurige schone kamer weer vies.
+  // overzicht; tikken op haar start het dansfeestje.
   const kamers = huisDef ? huisDef.kamers : [];
   if (kamers.length > 0) {
-    scherm.append(maakMamaFiguur(huisId, rooster));
+    // De Mama-knop start het feest; we onthouden de opruim-functie zodat
+    // weg-navigeren een lopend feest afbreekt.
+    scherm.append(
+      maakMamaFiguur(huisId, rooster, (opruim) => {
+        stopFeest = opruim;
+      }),
+    );
   }
 
   // Het rooster wordt door tekenRooster gevuld; zo kan roepMama het opnieuw
@@ -55,6 +73,15 @@ export function toon(app, { huisId } = {}) {
 
   scherm.append(rooster);
   app.append(top, scherm);
+
+  // Opruimen bij weg-navigeren: een eventueel lopend dansfeest afbreken (geen
+  // achterblijvende dans-audio/timers/overlay).
+  return () => {
+    if (stopFeest) {
+      stopFeest();
+      stopFeest = null;
+    }
+  };
 }
 
 // Bouwt het rondlopende, zingende Mama-figuur. De structuur is met opzet in
@@ -64,16 +91,19 @@ export function toon(app, { huisId } = {}) {
 //       .mama-flip  → scaleX-flip zodat Mama altijd de loop-richting op kijkt
 //         .mama-svg-wrap → zachte op-en-neer "loop"-wiebel + het SVG-figuur
 //         .mama-noot*    → zwevende muzieknoten die omhoog faden (puur CSS)
-//       .mama-wolkje → af-en-toe "Tik me!"-spraakwolkje (ontdekbaarheid). Zit
-//                      BUITEN .mama-flip zodat de hint-tekst nooit gespiegeld
+//       .mama-wolkje → af-en-toe "Dans met mij!"-spraakwolkje (ontdekbaarheid).
+//                      Zit BUITEN .mama-flip zodat de hint-tekst nooit gespiegeld
 //                      rendert (alleen .mama-loper transleert, flipt nooit).
-// Het HELE figuur is één groot, kindvriendelijk tikdoel (roept roepMama aan).
-function maakMamaFiguur(huisId, rooster) {
+// Het HELE figuur is één groot, kindvriendelijk tikdoel. Tikken START HET
+// DANSFEEST (de rommelmaker gebeurt aan het eind van het feest). `onFeest` krijgt
+// de opruim-functie van het feest mee zodat de aanroeper een lopend feest kan
+// afbreken bij weg-navigeren.
+function maakMamaFiguur(huisId, rooster, onFeest) {
   const laan = maak("div", "mama-laan");
 
   const loper = maak("button", "mama-loper");
   loper.type = "button";
-  loper.setAttribute("aria-label", "Tik op Mama om een kamer vies te maken");
+  loper.setAttribute("aria-label", "Tik op Mama om te dansen");
 
   const flip = maak("div", "mama-flip");
 
@@ -93,7 +123,7 @@ function maakMamaFiguur(huisId, rooster) {
   }
 
   // Subtiel, af-en-toe spraakwolkje zodat duidelijk is dat je kunt tikken.
-  const wolkje = maak("div", "mama-wolkje", "🎶 Tik me! 🎶");
+  const wolkje = maak("div", "mama-wolkje", "🎶 Dans met mij! 🎶");
   wolkje.setAttribute("aria-hidden", "true");
 
   // De noten mogen mee-flippen (cosmetisch onschuldig), maar het tekstwolkje
@@ -102,7 +132,15 @@ function maakMamaFiguur(huisId, rooster) {
   // naar-rechts-lopen.
   flip.append(svgWrap, noten);
   loper.append(flip, wolkje);
-  loper.addEventListener("click", () => roepMama(huisId, rooster));
+  loper.addEventListener("click", () => {
+    ontgrendelAudio();
+    // Start het dansfeest. Aan het EINDE (Klaar/tik-buiten/auto-stop) draait de
+    // bestaande rommelmaker (roepMama) — niet meteen bij het tikken.
+    const opruim = startDansfeest({
+      opEinde: () => roepMama(huisId, rooster),
+    });
+    if (typeof onFeest === "function") onFeest(opruim);
+  });
 
   laan.append(loper);
   return laan;
@@ -142,12 +180,24 @@ function tekenRooster(rooster, huisId) {
   }
 }
 
-// Mama roepen: kies een willekeurige SCHONE kamer van dít huis en maak die weer
-// vies. Geen schone kamer? Dan een vriendelijke melding en niets destructiefs.
+// De rommelmaker — draait aan het EINDE van het dansfeest: Mama danste zó wild
+// dat een willekeurige SCHONE kamer van dít huis weer vies wordt. Geen schone
+// kamer? Dan een vriendelijke dans-melding en niets destructiefs.
+//
+// Naast de "dansfeest"-sticker (via markeerDans) houden we ook markeerMama aan,
+// zodat het vies-maken-gedrag identiek blijft aan de oorspronkelijke Mama-feature
+// (decor blijft bewaard, herhaal-beloning 25/10). Markeert ALTIJD dat er gedanst
+// is — ook als er geen kamer vies te maken viel.
 function roepMama(huisId, rooster) {
   ontgrendelAudio();
+  // Het feest is hoe dan ook gehouden → "dansfeest"-sticker ontgrendelen.
+  markeerDans();
+
   const huisDef = getHuisDef(huisId);
-  if (!huisDef) return;
+  if (!huisDef) {
+    vierVerdiendeStickers();
+    return;
+  }
 
   // De schoongemaakte (klaar) kamers van dit huis.
   const schone = huisDef.kamers.filter(
@@ -155,7 +205,9 @@ function roepMama(huisId, rooster) {
   );
 
   if (schone.length === 0) {
-    toonToast({ emoji: "😄", tekst: "Alles is al lekker vies! Maak eerst schoon." });
+    toonToast({ emoji: "💃", tekst: "Wat een dansfeest! 💃🎶" });
+    // Toch de net-verdiende dans-sticker vieren.
+    vierVerdiendeStickers();
     return;
   }
 
@@ -164,11 +216,11 @@ function roepMama(huisId, rooster) {
   maakKamerVies(huisId, keuze.id);
   markeerMama();
 
-  // Plagerig geluidje + toast met de kamernaam.
+  // Plagerig geluidje + dans-toast met de kamernaam.
   mamaGeluid();
   toonToast({
-    emoji: "🙈",
-    tekst: `Oei! Mama heeft de ${keuze.naam} weer vies gemaakt!`,
+    emoji: "💃",
+    tekst: `Mama & Olivia dansten zo wild dat de ${keuze.naam} weer vies werd! 💃🙈`,
   });
 
   // Opnieuw tekenen zodat die kamer weer "vuil"/"🧹 Schoonmaken" toont, en de
@@ -177,7 +229,7 @@ function roepMama(huisId, rooster) {
   const kaart = rooster.querySelector(`[data-kamer-id="${keuze.id}"]`);
   if (kaart) kaart.classList.add("schud");
 
-  // Eventueel verdiende "mama"-sticker toekennen en vieren.
+  // Eventueel verdiende stickers ("mama" + "dansfeest") toekennen en vieren.
   vierVerdiendeStickers();
 }
 
