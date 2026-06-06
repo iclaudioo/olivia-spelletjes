@@ -52,6 +52,6 @@ navigeer("home");
 // Service worker registreren (voor offline / op beginscherm) — alleen in productie.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
