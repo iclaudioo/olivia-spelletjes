@@ -11,6 +11,10 @@
   --wit: #ffffff;
   --schaduw: rgba(43, 58, 85, 0.22);
   --font: "Baloo 2", "Comic Sans MS", "Segoe UI Rounded", system-ui, sans-serif;
+  /* Maximale breedte van het rooster én de Mama-laan: één bron van waarheid
+     zodat de mamaLoop-keyframe (zie onder) niet apart bijgewerkt hoeft te
+     worden als deze breedte ooit verandert. */
+  --laan-max: 900px;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -101,7 +105,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: clamp(14px, 2.5vw, 24px);
-  max-width: 900px;
+  max-width: var(--laan-max);
   margin: 0 auto;
 }
 
@@ -158,7 +162,7 @@ html, body {
 .mama-laan {
   position: relative;
   width: 100%;
-  max-width: 900px;
+  max-width: var(--laan-max);
   height: clamp(150px, 26vw, 210px);
   margin: 0 auto 8px;
   z-index: 25;
@@ -206,18 +210,21 @@ html, body {
   filter: drop-shadow(0 6px 4px rgba(43, 58, 85, .18));
 }
 
-/* Loop: van links naar rechts en weer terug over de laan. We gebruiken
-   calc met 100% (laan) min de figuur-breedte zodat ze netjes binnen blijft. */
+/* Loop: van links naar rechts en weer terug over de laan. De afstand is de
+   laan-breedte (--laan-max, dezelfde bron van waarheid als .mama-laan) min de
+   figuur-breedte (100%) en een kleine marge, zodat ze netjes binnen blijft. */
 @keyframes mamaLoop {
   0%   { transform: translateX(0); }
-  50%  { transform: translateX(calc(900px - 100% - 16px)); }
+  50%  { transform: translateX(calc(var(--laan-max) - 100% - 16px)); }
   100% { transform: translateX(0); }
 }
-/* Veiligheid op smalle schermen: laat de laan-breedte leidend zijn. */
+/* Veiligheid op smalle schermen: laat de werkelijke laan-breedte leidend zijn.
+   min(100vw, --laan-max) zorgt voor een naadloze overgang rond de breedte van
+   de laan — Mama schuift nooit voorbij de laan, ongeacht de breakpoint. */
 @media (max-width: 932px) {
   @keyframes mamaLoop {
     0%   { transform: translateX(0); }
-    50%  { transform: translateX(calc(100vw - 100% - 36px)); }
+    50%  { transform: translateX(calc(min(100vw, var(--laan-max)) - 100% - 36px)); }
     100% { transform: translateX(0); }
   }
 }

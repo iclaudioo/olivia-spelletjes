@@ -64,7 +64,9 @@ export function toon(app, { huisId } = {}) {
 //       .mama-flip  → scaleX-flip zodat Mama altijd de loop-richting op kijkt
 //         .mama-svg-wrap → zachte op-en-neer "loop"-wiebel + het SVG-figuur
 //         .mama-noot*    → zwevende muzieknoten die omhoog faden (puur CSS)
-//         .mama-wolkje   → af-en-toe "Tik me!"-spraakwolkje (ontdekbaarheid)
+//       .mama-wolkje → af-en-toe "Tik me!"-spraakwolkje (ontdekbaarheid). Zit
+//                      BUITEN .mama-flip zodat de hint-tekst nooit gespiegeld
+//                      rendert (alleen .mama-loper transleert, flipt nooit).
 // Het HELE figuur is één groot, kindvriendelijk tikdoel (roept roepMama aan).
 function maakMamaFiguur(huisId, rooster) {
   const laan = maak("div", "mama-laan");
@@ -94,8 +96,12 @@ function maakMamaFiguur(huisId, rooster) {
   const wolkje = maak("div", "mama-wolkje", "🎶 Tik me! 🎶");
   wolkje.setAttribute("aria-hidden", "true");
 
-  flip.append(svgWrap, noten, wolkje);
-  loper.append(flip);
+  // De noten mogen mee-flippen (cosmetisch onschuldig), maar het tekstwolkje
+  // NIET: het hoort in .mama-loper (alleen translateX, nooit scaleX) zodat de
+  // "Tik me!"-hint altijd leesbaar blijft i.p.v. spiegelbeeldig tijdens het
+  // naar-rechts-lopen.
+  flip.append(svgWrap, noten);
+  loper.append(flip, wolkje);
   loper.addEventListener("click", () => roepMama(huisId, rooster));
 
   laan.append(loper);
