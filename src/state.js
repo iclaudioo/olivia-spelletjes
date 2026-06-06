@@ -85,6 +85,18 @@ function maakStandaard() {
     // v4-saves krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump.
     dansGespeeld: false,
     dansTopScore: 0,
+    // Dans-minigame v2: beste score per (lied, niveau), gekeyd op
+    // `${liedId}:${niveau}` (bv. "sterrendans:gewoon"). Vervangt het enkele
+    // dansTopScore-getal (dat we voor de bestaande danskampioen-sticker behouden).
+    // Bestaande v4-saves krijgen dit lege object vanzelf via diepSamenvoegen —
+    // GEEN key-bump nodig. De catalogus (src/data/liedjes.js) is de bron van
+    // waarheid voor liedjes; de staat bewaart hier alleen de scores.
+    dansScores: {},
+    // Of er ooit een ronde met 3 sterren is gehaald (voor de "sterdanser"-
+    // sticker). Een aparte, defensieve vlag i.p.v. een afgeleid predicaat zodat
+    // de sticker crash-vrij is. Bestaande saves krijgen dit veld via
+    // diepSamenvoegen — GEEN key-bump nodig.
+    driesterDans: false,
     // Olivia's gekozen look (Styling Studio, Feature G1). Bewaart ALLEEN de
     // keuze-id's per categorie; alle kleuren/SVG komen uit src/data/styling.js.
     // De standaard-look is de KLASSIEKE Olivia (geen visuele regressie).
@@ -384,9 +396,52 @@ export function markeerDansGespeeld(score) {
   bewaren();
 }
 
-// De hoogste dans-minigame-score (of 0 als er nog niet is gespeeld).
+// De hoogste dans-minigame-score (of 0 als er nog niet is gespeeld). Behouden
+// voor terugwaartse compatibiliteit; v2 gebruikt getDansScore(lied, niveau).
 export function getDansTopScore() {
   return staat.dansTopScore || 0;
+}
+
+// ---- Dans-minigame v2: scores per (lied, niveau) ----
+
+// Bouwt de samengestelde sleutel `${liedId}:${niveau}` (defensief: lege strings
+// als er iets ontbreekt, zodat we nooit "undefined:undefined" krijgen).
+function dansSleutel(liedId, niveau) {
+  return `${liedId || ""}:${niveau || ""}`;
+}
+
+// De beste score voor een lied+niveau (of 0 als er nog niet op is gespeeld).
+export function getDansScore(liedId, niveau) {
+  const scores = staat.dansScores;
+  if (!isObject(scores)) return 0;
+  const w = scores[dansSleutel(liedId, niveau)];
+  return Number.isFinite(w) ? w : 0;
+}
+
+// Een nieuwe score voor lied+niveau bewaren (alleen omhoog). Werkt tegelijk de
+// algemene topscore + de "gespeeld"-vlag bij (voor de danskampioen-sticker), en
+// geeft de (mogelijk bijgewerkte) beste score voor dit lied+niveau terug.
+export function markeerDansScore(liedId, niveau, score) {
+  if (!isObject(staat.dansScores)) staat.dansScores = {};
+  const sleutel = dansSleutel(liedId, niveau);
+  const huidig = Number.isFinite(staat.dansScores[sleutel]) ? staat.dansScores[sleutel] : 0;
+  const nieuw = Number.isFinite(score) ? score : 0;
+  const beste = Math.max(huidig, nieuw);
+  staat.dansScores[sleutel] = beste;
+  // Algemene "gespeeld"-vlag + topscore bijwerken (voor de bestaande sticker).
+  staat.dansGespeeld = true;
+  const topNu = staat.dansTopScore || 0;
+  if (nieuw > topNu) staat.dansTopScore = nieuw;
+  bewaren();
+  return beste;
+}
+
+// Markeert dat er ooit een ronde met 3 sterren is gehaald (ontgrendelt de
+// "sterdanser"-sticker). Idempotent: nogmaals aanroepen verandert niets.
+export function markeerDriesterDans() {
+  if (staat.driesterDans === true) return;
+  staat.driesterDans = true;
+  bewaren();
 }
 
 // ---- Inrichten (decor) ----

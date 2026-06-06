@@ -15,6 +15,7 @@
 
 import { audio } from "./sfx.js";
 import { getStaat } from "../state.js";
+import { degreeRatio } from "../data/liedjes.js";
 
 // Zacht grondvolume voor de hele muzieklaag.
 const MUZIEK_VOLUME = 0.06;
@@ -177,19 +178,59 @@ export function startMuziekIndienAan() {
 // ===========================================================================
 
 const DANS_VOLUME = 0.16; // grondvolume van de hele danslaag (vrolijk, niet hard)
-const DANS_STAP = 0.14; // seconden per zestiende-stap (~107 BPM in kwartnoten)
+const DANS_STANDAARD_STAP = 0.14; // seconden per zestiende-stap (~107 BPM) — standaard-deuntje
 const DANS_VOORUIT = 4; // hoeveel stappen we vooruit inplannen per scheduler-tik
 
 // Een pakkende synth-melodie in C-majeur (16 stappen, één maat). null = stilte
-// op die stap. Frequenties in Hz (C5–E5–G5-sfeer, vrolijk en simpel).
-const DANS_MELODIE = [
+// op die stap. Frequenties in Hz (C5–E5–G5-sfeer, vrolijk en simpel). Dit is de
+// STANDAARD-melodie van het dansfeest (startDansMuziek() zonder argument).
+const DANS_STANDAARD_MELODIE = [
   523.25, null, 659.25, null, 783.99, null, 659.25, null,
   587.33, null, 698.46, 587.33, 523.25, null, null, null,
 ];
 
 // Eenvoudige baslijn (één bas-noot per tel = elke 4 stappen) over een vrolijke
-// I–vi–IV–V-achtige beweging (lage octaaf).
-const DANS_BAS = [130.81, 110.0, 174.61, 196.0]; // C2, A2, F2, G2
+// I–vi–IV–V-achtige beweging (lage octaaf). Standaard-deuntje.
+const DANS_STANDAARD_BAS = [130.81, 110.0, 174.61, 196.0]; // C2, A2, F2, G2
+
+// De ACTIEVE dans-parameters (worden door startDansMuziek(lied) ingesteld; zonder
+// argument vallen ze terug op het standaard-deuntje hierboven). `dansStap`
+// (seconden per zestiende-stap) bepaalt het tempo; `dansMelodieHz` is de melodie
+// als Hz-array (16 stappen, null = stilte); `dansBasHz` is de baslijn per tel.
+let DANS_STAP = DANS_STANDAARD_STAP;
+let DANS_MELODIE = DANS_STANDAARD_MELODIE;
+let DANS_BAS = DANS_STANDAARD_BAS;
+
+// De dans-parameters instellen vanuit een lied-definitie ({ bpm, grond, melodie }),
+// of terugvallen op het standaard-deuntje als er geen (geldig) lied is meegegeven.
+// De melodie van een lied is in scale-DEGREES; die rekenen we hier om naar Hz
+// t.o.v. de grondtoon. Het bpm bepaalt de stap-duur: er zijn 2 stappen per beat
+// (achtste noten), dus stap = 60 / bpm / 2 seconden. De baslijn leiden we af uit
+// de grondtoon (I–vi–IV–V, twee octaven onder de melodie-grond) zodat hij bij het
+// lied past zonder dat de catalogus een aparte baslijn hoeft te leveren.
+function stelLiedIn(lied) {
+  if (!lied || typeof lied !== "object" || !Number.isFinite(lied.bpm)) {
+    DANS_STAP = DANS_STANDAARD_STAP;
+    DANS_MELODIE = DANS_STANDAARD_MELODIE;
+    DANS_BAS = DANS_STANDAARD_BAS;
+    return;
+  }
+  // 2 stappen per beat (achtste noten). Begrens voor de zekerheid.
+  DANS_STAP = Math.max(0.06, Math.min(0.3, 60 / lied.bpm / 2));
+  const grond = Number.isFinite(lied.grond) ? lied.grond : 440;
+  const mel = Array.isArray(lied.melodie) ? lied.melodie : [];
+  // Naar 16 stappen (één maat) brengen: melodieën zijn 32 stappen; we plannen per
+  // stap modulo de melodie-lengte (zie dansScheduler), dus laat hem op volle lengte.
+  DANS_MELODIE = mel.map((d) => (d == null ? null : grond * degreeRatio(d)));
+  // Baslijn: I–vi–IV–V twee octaven onder de grondtoon (vrolijke beweging).
+  const basGrond = grond / 4;
+  DANS_BAS = [
+    basGrond * degreeRatio(0), // I
+    basGrond * degreeRatio(5), // vi (la)
+    basGrond * degreeRatio(3), // IV (fa)
+    basGrond * degreeRatio(4), // V  (sol)
+  ];
+}
 
 function aanGeluid() {
   return getStaat().instellingen?.geluid !== false;
@@ -302,36 +343,42 @@ function getRuisBuffer(a) {
   return buffer;
 }
 
-// Eén zestiende-stap inplannen op tijdstip t (alle lagen samen).
+// Eén stap inplannen op tijdstip t (alle lagen samen). `stap` loopt over de hele
+// melodie-lengte; de RITME-lagen (kick/clap/hihat/bas) gebruiken de positie
+// binnen de maat (stap % 16), zodat songs van 32 stappen netjes twee four-on-the-
+// floor-maten vormen.
 function plantDansStap(a, stap, t) {
+  const inMaat = stap % 16; // positie binnen de maat (0..15)
   // Kick op elke tel (stap 0, 4, 8, 12) → four-on-the-floor.
-  if (stap % 4 === 0) plantKick(a, t);
+  if (inMaat % 4 === 0) plantKick(a, t);
   // Clap/snare op tel 2 en 4 (stap 4 en 12).
-  if (stap === 4 || stap === 12) {
+  if (inMaat === 4 || inMaat === 12) {
     plantRuis(a, t, { freq: 1800, q: 0.6, piek: 0.5, dur: 0.18 });
   }
   // Hihat op de off-beats (oneven stappen) → energie, zacht.
-  if (stap % 2 === 1) {
+  if (inMaat % 2 === 1) {
     plantRuis(a, t, { freq: 8000, q: 1.2, piek: 0.12, dur: 0.05 });
   }
   // Bas: één noot per tel (op stap 0, 4, 8, 12), volgt de maat-progressie.
-  if (stap % 4 === 0) {
-    const basFreq = DANS_BAS[(dansMaat + Math.floor(stap / 4)) % DANS_BAS.length];
+  if (inMaat % 4 === 0) {
+    const basFreq = DANS_BAS[(dansMaat + Math.floor(inMaat / 4)) % DANS_BAS.length];
     plantBas(a, basFreq, t);
   }
-  // Melodie volgens het patroon.
-  const m = DANS_MELODIE[stap];
+  // Melodie volgens het patroon (over de volle melodie-lengte).
+  const m = DANS_MELODIE[stap % DANS_MELODIE.length];
   if (m != null) plantMelodie(a, m, t);
 }
 
 // De dans-scheduler: plant steeds een paar stappen vooruit en schuift de tijd op.
+// De stap-teller loopt rond over de volle melodie-lengte (16 of 32 stappen).
 function dansScheduler() {
   const a = audio();
+  const lengte = DANS_MELODIE.length || 16;
   while (dansVolgende < a.currentTime + DANS_VOORUIT * DANS_STAP) {
     plantDansStap(a, dansStap, dansVolgende);
     dansVolgende += DANS_STAP;
     dansStap += 1;
-    if (dansStap >= 16) {
+    if (dansStap >= lengte) {
       dansStap = 0;
       dansMaat = (dansMaat + 1) % DANS_BAS.length;
     }
@@ -343,7 +390,7 @@ function dansScheduler() {
 // maar negeert bewust de ambient-muziekinstelling (het feest mag altijd klinken).
 // Suspended-safe: bij een suspended context komt er gewoon nog geen geluid tot
 // een gebaar — geen crash.
-export function startDansMuziek() {
+export function startDansMuziek(lied) {
   if (dansSpeelt) return;
   if (!aanGeluid()) return; // geluid uit → geen dansmuziek
   let a;
@@ -352,6 +399,9 @@ export function startDansMuziek() {
   } catch {
     return; // geen Web Audio beschikbaar — stil falen
   }
+  // Tempo + melodie + bas instellen op het gekozen lied (of het standaard-deuntje
+  // bij een aanroep zonder argument, zoals het dansfeest doet).
+  stelLiedIn(lied);
   dansSpeelt = true;
   // Gain terug op grondvolume (na een eerdere uitvloei-stop).
   const g = getDansGain(a);
