@@ -158,6 +158,9 @@ html, body {
        .mama-loper   knop die de translateX heen-en-weer doet (de wandeling)
          .mama-flip  scaleX-flip zodat ze de loop-richting op kijkt
            .mama-svg-wrap  op-en-neer "loop"-wiebel + het SVG-figuur
+           .mama-noten     zwevende muzieknoten (zit IN de flip → flipt mee)
+         .mama-wolkje  "tik me!"-spraakwolkje (zit BUITEN de flip, alleen in de
+                       loper → nooit gespiegeld, dus altijd leesbaar)
    Z-index: boven het kamer-rooster, onder de toast/viering (z-index 30/100). */
 .mama-laan {
   position: relative;
@@ -220,7 +223,10 @@ html, body {
 }
 /* Veiligheid op smalle schermen: laat de werkelijke laan-breedte leidend zijn.
    min(100vw, --laan-max) zorgt voor een naadloze overgang rond de breedte van
-   de laan — Mama schuift nooit voorbij de laan, ongeacht de breakpoint. */
+   de laan — Mama schuift nooit voorbij de laan, ongeacht de breakpoint.
+   LET OP (koppelpunt): de breakpoint 932px is met de hand afgestemd op
+   --laan-max (900px) plus de extra marge; verandert --laan-max, pas dan ook
+   deze 932px aan zodat de overgang naadloos blijft. */
 @media (max-width: 932px) {
   @keyframes mamaLoop {
     0%   { transform: translateX(0); }
@@ -229,11 +235,12 @@ html, body {
   }
 }
 
-/* Kijk-richting: eerste helft loopt ze naar rechts (gespiegeld), tweede helft
-   terug naar links (normaal). steps(1) zodat de flip op het keerpunt gebeurt. */
+/* Kijk-richting: eerste helft loopt ze naar rechts (ongespiegeld — microfoon en
+   opgeheven arm wijzen al naar rechts), tweede helft terug naar links
+   (gespiegeld). steps(1) zodat de flip precies op het keerpunt gebeurt. */
 @keyframes mamaKijk {
-  0%, 49.9% { transform: scaleX(-1); }
-  50%, 100% { transform: scaleX(1); }
+  0%, 49.9% { transform: scaleX(1); }
+  50%, 100% { transform: scaleX(-1); }
 }
 
 /* Stap-wiebel: subtiel op en neer + heel licht kantelen. */
