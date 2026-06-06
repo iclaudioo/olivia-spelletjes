@@ -2738,3 +2738,15 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Terug-naar-homepage-knopje op het beginscherm */
+.home-terug {
+  display: inline-flex; align-items: center; gap: 6px;
+  align-self: flex-start;
+  margin: 0 0 6px 2px; padding: 8px 14px;
+  background: rgba(255,255,255,.85); color: #3a4a7a;
+  border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 15px;
+  box-shadow: 0 3px 0 rgba(0,0,0,.08);
+  -webkit-tap-highlight-color: transparent;
+}
+.home-terug:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.08); }

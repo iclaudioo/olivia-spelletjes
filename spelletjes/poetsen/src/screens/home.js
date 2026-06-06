@@ -63,6 +63,14 @@ export function toon(app, _params = {}) {
   }
   scherm.append(ambiance);
 
+  // ---- Terug naar Olivia's homepage (de "wereld" boven dit spel) ----
+  // Linkt naar de site-root ("/"); in de gecombineerde site is dat Olivia's
+  // Speeltuin. Bewust een gewone link zodat het ook werkt als losse PWA.
+  const terug = maak("a", "home-terug", "← Olivia's wereld");
+  terug.href = "/";
+  terug.setAttribute("aria-label", "Terug naar Olivia's homepage");
+  scherm.append(terug);
+
   // ---- Klein welkom (vrolijke binnenkomst-animatie) ----
   const welkom = maak("div", "home-welkom", "Hoi! Wat wil je doen? ✨");
   scherm.append(welkom);
