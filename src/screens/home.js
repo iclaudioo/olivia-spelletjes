@@ -60,6 +60,18 @@ export function toon(app, _params = {}) {
   });
   rooster.append(dansenKaart);
 
+  // ---- Styling-kaart (Styling Studio — Olivia aankleden) ----
+  const stylingKaart = maakHuisKaart({
+    emoji: "💇‍♀️",
+    naam: "Styling",
+    extraKlasse: "styling-kaart",
+  });
+  stylingKaart.addEventListener("click", () => {
+    ontgrendelAudio();
+    navigeer("styling");
+  });
+  rooster.append(stylingKaart);
+
   // ---- Verzamelboek-kaart (sticker-album) ----
   const verzamelKaart = maakHuisKaart({
     emoji: "📖",

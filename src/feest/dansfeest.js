@@ -21,7 +21,8 @@
 import { maak } from "../ui/dom.js";
 import { startDansMuziek, stopDansMuziek } from "../audio/muziek.js";
 import { mamaSVG as MAMA_SVG } from "../art/mama.js";
-import { oliviaSVG as OLIVIA_SVG } from "../art/olivia.js";
+import { oliviaSVG } from "../art/olivia.js";
+import { getOliviaLook } from "../state.js";
 
 // Hoe lang het feest automatisch duurt voor het vanzelf eindigt (ms).
 const FEEST_DUUR_MS = 8000;
@@ -69,7 +70,8 @@ export function startDansfeest({ opEinde } = {}) {
   const mama = maak("div", "dansfeest-danser mama");
   mama.innerHTML = MAMA_SVG;
   const olivia = maak("div", "dansfeest-danser olivia");
-  olivia.innerHTML = OLIVIA_SVG;
+  // Olivia danst in haar GEKOZEN look (Styling Studio).
+  olivia.innerHTML = oliviaSVG(getOliviaLook());
   // Namlabels onder de dansers zodat duidelijk is wie wie is.
   const mamaWrap = maak("div", "dansfeest-danser-wrap");
   mamaWrap.append(mama, maak("div", "dansfeest-naam", "Mama"));
