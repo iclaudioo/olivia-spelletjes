@@ -1,14 +1,23 @@
 // Eenvoudige service worker: app offline beschikbaar maken op de iPad.
+// Eigen cache-naam met eigen prefix zodat meerdere PWA's op hetzelfde domein
+// (homepage + spellen) elkaars cache niet opruimen.
 const CACHE = "olivia-poetsen-v1";
+const CACHE_PREFIX = "olivia-poetsen-";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {
+  // Ruim alleen ONZE eigen oude caches op (zelfde prefix), niet die van de homepage
+  // of andere spellen.
   e.waitUntil(
     caches.keys().then((sleutels) =>
-      Promise.all(sleutels.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(
+        sleutels
+          .filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE)
+          .map((k) => caches.delete(k))
+      )
     )
   );
   self.clients.claim();
