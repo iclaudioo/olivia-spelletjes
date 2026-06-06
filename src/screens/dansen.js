@@ -157,23 +157,6 @@ function bouwChart(lied, niveauKey) {
   return noten;
 }
 
-// Een grove schatting van de maximaal haalbare score voor een lied+niveau, puur
-// om op het KEUZE-scherm de sterren bij een bewaarde beste score te benaderen. We
-// bouwen dezelfde deterministische chart en sommeren basispunten met een
-// gemiddelde multiplier (alsof je een nette combo houdt). De ronde zelf bepaalt
-// 3-sterren-voor-de-sticker via een aparte vlag, dus dit hoeft niet exact te zijn.
-function schatMaxScore(lied, niveauKey) {
-  let max = 0;
-  let comboHint = 0;
-  for (const n of bouwChart(lied, niveauKey)) {
-    comboHint += 1;
-    const m = comboHint >= 10 ? 3 : comboHint >= 5 ? 2 : 1;
-    max += 10 * m; // basispunt per geslaagde noot
-    if (n.soort === "hold") max += 15 * m; // hold-bonus
-  }
-  return max;
-}
-
 export function toon(app, params = {}) {
   app.innerHTML = "";
   const rustig = minderBeweging();
@@ -257,12 +240,15 @@ export function toon(app, params = {}) {
 
     function tekenLiedScores() {
       for (const lied of LIEDJES) {
-        const beste = getDansScore(lied.id, gekozenNiveau);
-        const sterren = beste > 0 ? sterrenVoorScore(lied.id, gekozenNiveau, beste) : 0;
+        // We tonen exact het OPGESLAGEN resultaat: dezelfde score én sterren die
+        // de ronde berekende en bewaarde — zo komt de kaart altijd overeen met wat
+        // het kind in de ronde zag. Sterren zijn 0–3; ongespeeld = 0 (leeg).
+        const { score, sterren } = getDansScore(lied.id, gekozenNiveau);
+        const veiligeSterren = Math.max(0, Math.min(3, sterren));
         const el = scoreEls[lied.id];
         if (!el) continue;
-        if (beste > 0) {
-          el.textContent = `Beste: ${beste}  ${"⭐".repeat(sterren)}${"☆".repeat(3 - sterren)}`;
+        if (score > 0) {
+          el.textContent = `Beste: ${score}  ${"⭐".repeat(veiligeSterren)}${"☆".repeat(3 - veiligeSterren)}`;
         } else {
           el.textContent = "Nog niet gespeeld";
         }
@@ -277,26 +263,6 @@ export function toon(app, params = {}) {
     // (de router wist #app sowieso). We registreren toch een no-op fase zodat de
     // teardown-keten consistent is.
     wisselFase(() => {});
-  }
-
-  // Reken op het keuze-scherm de sterren voor een bewaarde beste score uit. We
-  // benaderen de geslaagd-ratio met (score / maxScoreGrof) zodat de getoonde
-  // sterren ongeveer overeenkomen met wat in de ronde behaald is. De ronde zelf
-  // bewaart 3-sterren los (driesterDans-vlag) voor de sticker, dus dit is puur
-  // cosmetisch op het keuze-scherm.
-  function sterrenVoorScore(liedId, niveauKey, score) {
-    const niveau = NIVEAUS[niveauKey];
-    const lied = liedById(liedId);
-    if (!niveau || !lied) return 1;
-    // Grove max: elke noot ~ basispunt * gemiddelde multiplier. We gebruiken
-    // dezelfde drempels als in de ronde maar op een geschatte max.
-    const grofMax = schatMaxScore(lied, niveauKey);
-    const ratio = grofMax > 0 ? Math.min(1, score / grofMax) : 0;
-    const [d1, d2, d3] = niveau.sterDrempels;
-    if (ratio >= d3) return 3;
-    if (ratio >= d2) return 2;
-    if (ratio >= d1) return 1;
-    return 1;
   }
 
   // =========================================================================
@@ -359,7 +325,7 @@ export function toon(app, params = {}) {
     const besteEl = maak(
       "div",
       "dansen-beste",
-      `Beste: ${getDansScore(lied.id, niveauKey)}`
+      `Beste: ${getDansScore(lied.id, niveauKey).score}`
     );
     scorebalk.append(scoreEl, comboEl, besteEl);
 
@@ -734,13 +700,16 @@ export function toon(app, params = {}) {
       const nieuwTotaal = voegMuntenToe(verdiend);
       updateMunten(nieuwTotaal, true);
 
-      // Score per lied+niveau bewaren (alleen omhoog) + topscore/gespeeld-vlag.
-      const beste = markeerDansScore(lied.id, niveauKey, score);
+      // Score ÉN behaalde sterren per lied+niveau bewaren (elk alleen omhoog) +
+      // topscore/gespeeld-vlag. Zo toont het keuze-scherm later exact deze sterren.
+      const beste = markeerDansScore(lied.id, niveauKey, score, sterren);
       // 3 sterren? Zet de defensieve vlag voor de "sterdanser"-sticker.
       if (sterren >= 3) markeerDriesterDans();
       vierVerdiendeStickers();
 
-      toonResultaat(sterren, verdiend, beste);
+      // Het resultaat-overlay toont de ZOJUIST behaalde sterren (de in-ronde-meting)
+      // en de beste score ooit op dit lied+niveau.
+      toonResultaat(sterren, verdiend, beste.score);
     }
 
     function toonResultaat(sterren, verdiendMunten, besteScore) {

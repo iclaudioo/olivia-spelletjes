@@ -85,8 +85,12 @@ function maakStandaard() {
     // v4-saves krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump.
     dansGespeeld: false,
     dansTopScore: 0,
-    // Dans-minigame v2: beste score per (lied, niveau), gekeyd op
-    // `${liedId}:${niveau}` (bv. "sterrendans:gewoon"). Vervangt het enkele
+    // Dans-minigame v2: beste resultaat per (lied, niveau), gekeyd op
+    // `${liedId}:${niveau}` (bv. "sterrendans:gewoon"). Elke entry is een object
+    // `{ score, sterren }`: de hoogste behaalde score én het hoogste aantal sterren
+    // (0–3) dat ooit op dit lied+niveau is gehaald. We bewaren de ECHT behaalde
+    // sterren (de in-ronde-meting) zodat het keuze-scherm exact dezelfde sterren
+    // toont als de ronde — geen schatting meer. Vervangt het enkele
     // dansTopScore-getal (dat we voor de bestaande danskampioen-sticker behouden).
     // Bestaande v4-saves krijgen dit lege object vanzelf via diepSamenvoegen —
     // GEEN key-bump nodig. De catalogus (src/data/liedjes.js) is de bron van
@@ -410,28 +414,42 @@ function dansSleutel(liedId, niveau) {
   return `${liedId || ""}:${niveau || ""}`;
 }
 
-// De beste score voor een lied+niveau (of 0 als er nog niet op is gespeeld).
+// Het beste resultaat voor een lied+niveau als `{ score, sterren }` (of
+// `{ score: 0, sterren: 0 }` als er nog niet op is gespeeld). Defensief: een oude/
+// vreemde bare-number-waarde wordt als `{ score: dat, sterren: 0 }` behandeld zodat
+// een raar gevormde save het keuze-scherm nooit breekt.
 export function getDansScore(liedId, niveau) {
   const scores = staat.dansScores;
-  if (!isObject(scores)) return 0;
+  if (!isObject(scores)) return { score: 0, sterren: 0 };
   const w = scores[dansSleutel(liedId, niveau)];
-  return Number.isFinite(w) ? w : 0;
+  if (Number.isFinite(w)) return { score: w, sterren: 0 }; // oude bare-number-vorm
+  if (!isObject(w)) return { score: 0, sterren: 0 };
+  const score = Number.isFinite(w.score) ? w.score : 0;
+  const sterren = Number.isFinite(w.sterren) ? Math.max(0, Math.min(3, w.sterren)) : 0;
+  return { score, sterren };
 }
 
-// Een nieuwe score voor lied+niveau bewaren (alleen omhoog). Werkt tegelijk de
+// Een nieuw resultaat (score + behaalde sterren) voor lied+niveau bewaren. Score
+// én sterren gaan elk ALLEEN omhoog (we houden de hoogste score ooit én de hoogste
+// sterren ooit, ook als die in verschillende rondes zijn behaald). Werkt tegelijk de
 // algemene topscore + de "gespeeld"-vlag bij (voor de danskampioen-sticker), en
-// geeft de (mogelijk bijgewerkte) beste score voor dit lied+niveau terug.
-export function markeerDansScore(liedId, niveau, score) {
+// geeft het (mogelijk bijgewerkte) beste resultaat `{ score, sterren }` terug.
+export function markeerDansScore(liedId, niveau, score, sterren) {
   if (!isObject(staat.dansScores)) staat.dansScores = {};
   const sleutel = dansSleutel(liedId, niveau);
-  const huidig = Number.isFinite(staat.dansScores[sleutel]) ? staat.dansScores[sleutel] : 0;
-  const nieuw = Number.isFinite(score) ? score : 0;
-  const beste = Math.max(huidig, nieuw);
+  // Bestaande entry defensief uitlezen (object, oude bare-number, of niets).
+  const vorig = getDansScore(liedId, niveau);
+  const nieuwScore = Number.isFinite(score) ? score : 0;
+  const nieuwSterren = Number.isFinite(sterren) ? Math.max(0, Math.min(3, sterren)) : 0;
+  const beste = {
+    score: Math.max(vorig.score, nieuwScore),
+    sterren: Math.max(vorig.sterren, nieuwSterren),
+  };
   staat.dansScores[sleutel] = beste;
   // Algemene "gespeeld"-vlag + topscore bijwerken (voor de bestaande sticker).
   staat.dansGespeeld = true;
   const topNu = staat.dansTopScore || 0;
-  if (nieuw > topNu) staat.dansTopScore = nieuw;
+  if (nieuwScore > topNu) staat.dansTopScore = nieuwScore;
   bewaren();
   return beste;
 }
