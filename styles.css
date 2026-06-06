@@ -2182,6 +2182,288 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
 .quest-ophaal:disabled { opacity: .45; }
 .quest-ophaal.opgehaald { background: var(--groen); color: #fff; opacity: .9; }
 
+/* ===== Concert-entree-knop (op het Popster Studio-huisoverzicht) =====
+   Een opvallende, brede knop boven het kamer-rooster die naar de concert-show
+   navigeert. Alleen zichtbaar op het Popster-huis (zie house.js). */
+.concert-entree-knop {
+  display: block;
+  margin: 4px auto 18px;
+  max-width: min(92vw, 520px);
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 900;
+  color: #fff;
+  font-size: clamp(20px, 3.6vw, 30px);
+  padding: 18px 28px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #ff5fa2 0%, #b98cff 50%, #6ec8ff 100%);
+  box-shadow: 0 7px 0 var(--schaduw);
+  text-shadow: 0 2px 0 rgba(43, 58, 85, .3);
+  transition: transform .1s ease, box-shadow .1s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  animation: concertEntreePuls 2.4s ease-in-out infinite;
+}
+.concert-entree-knop:active {
+  transform: translateY(3px);
+  box-shadow: 0 4px 0 var(--schaduw);
+}
+@keyframes concertEntreePuls {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.03); }
+}
+
+/* ===== Concert-show op het podium (de grote finale, Feature G6) =====
+   Een schermvullend toneel: het podium (hergebruikte podium-SVG) als achtergrond,
+   met Olivia centraal (in haar look) + Mama backup + (optioneel) het huisdier die
+   dansen, TRAAG bewegende zachte spotlights, een meedeinend publiek, zwevende
+   lichtjes/noten/hartjes en periodieke confetti. De achtergrond is donker zodat de
+   lichten goed opvallen. Alle bewegingen staan stil onder prefers-reduced-motion
+   (zie het reduced-motion-blok onderaan); geen snelle flikkering/strobe. */
+.concert-scherm {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding: 0;
+  /* Voorkom page-scroll/zoom tijdens de show op de iPad. */
+  touch-action: none;
+  background: radial-gradient(circle at 50% 30%, #3a2a5e 0%, #221a3a 70%, #161028 100%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Het podium als toneel-achtergrond (de SVG vult het hele scherm via .kamer-svg). */
+.concert-toneel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.concert-toneel .kamer-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ----- SPOTLIGHTS: 3 zachte, TRAAG bewegende gekleurde lichtbundels van boven.
+   Lage opacity + flinke blur + langzame zwaai (10–14s) → kleurrijk maar NOOIT fel/
+   snel geflikker (fotosensitiviteit). ----- */
+.concert-spots {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.concert-spot {
+  position: absolute;
+  top: -22%;
+  width: 46%;
+  height: 150%;
+  border-radius: 50%;
+  filter: blur(34px);
+  opacity: .22;
+  transform-origin: 50% 0;
+  mix-blend-mode: screen;
+}
+.concert-spot.a {
+  left: 6%;
+  background: var(--roze);
+  animation: concertSpot 11s ease-in-out infinite;
+}
+.concert-spot.b {
+  left: 50%;
+  margin-left: -23%;
+  background: var(--geel);
+  animation: concertSpot 13s ease-in-out infinite reverse;
+  animation-delay: -4s;
+}
+.concert-spot.c {
+  right: 6%;
+  background: var(--blauw);
+  animation: concertSpot 14s ease-in-out infinite;
+  animation-delay: -7s;
+}
+/* Langzame, brede zwaai + zachte helderheids-pulse. Niets snels/fel. */
+@keyframes concertSpot {
+  0%   { transform: rotate(-20deg); opacity: .16; }
+  50%  { transform: rotate( 20deg); opacity: .30; }
+  100% { transform: rotate(-20deg); opacity: .16; }
+}
+
+/* ----- Zwevende lichtjes/noten/hartjes (puur CSS, langzaam omhoog drijvend). ----- */
+.concert-zwevers {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.concert-zwever {
+  position: absolute;
+  bottom: -8%;
+  font-size: clamp(18px, 3.6vw, 30px);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: concertZweef 5s ease-in infinite;
+}
+.concert-zwever.z0 { left: 8%;  animation-delay: 0s;   }
+.concert-zwever.z1 { left: 22%; animation-delay: 0.7s; }
+.concert-zwever.z2 { left: 36%; animation-delay: 1.6s; }
+.concert-zwever.z3 { left: 50%; animation-delay: 0.4s; }
+.concert-zwever.z4 { left: 64%; animation-delay: 1.2s; }
+.concert-zwever.z5 { left: 78%; animation-delay: 0.9s; }
+.concert-zwever.z6 { left: 90%; animation-delay: 2s;   }
+.concert-zwever.z7 { left: 15%; animation-delay: 2.4s; }
+@keyframes concertZweef {
+  0%   { opacity: 0; transform: translateY(0) scale(.6) rotate(0deg); }
+  15%  { opacity: .9; }
+  80%  { opacity: .85; }
+  100% { opacity: 0; transform: translateY(-86vh) scale(1.1) rotate(18deg); }
+}
+
+/* ----- De dansers op het podium (Mama backup, Olivia centraal, huisdier). ----- */
+.concert-dansers {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(60px, 16vh, 130px);
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(6px, 4vw, 44px);
+  pointer-events: none;
+}
+.concert-danser-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.concert-danser {
+  width: clamp(80px, 20vw, 140px);
+  height: clamp(140px, 34vw, 240px);
+}
+/* De ster (Olivia) is iets groter dan de backup. */
+.concert-danser-wrap.ster .concert-danser {
+  width: clamp(100px, 24vw, 168px);
+  height: clamp(170px, 40vw, 280px);
+}
+.concert-danser svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .4));
+}
+.concert-naam {
+  font-weight: 900;
+  font-size: clamp(13px, 2.4vw, 18px);
+  color: #fff;
+  margin-top: 2px;
+  text-shadow: 0 2px 0 rgba(43, 58, 85, .5);
+}
+/* Hergebruik de bestaande dans-stuiter-keyframes (uit het dansfeest), elk met een
+   eigen ritme zodat het podium levendig oogt. */
+.concert-danser.mama   { animation: dansStuiter 0.56s ease-in-out infinite; }
+.concert-danser.olivia { animation: dansStuiterB 0.56s ease-in-out infinite; }
+.concert-danser.huisdier {
+  width: clamp(64px, 15vw, 110px);
+  height: clamp(100px, 24vw, 180px);
+  display: grid;
+  place-items: end center;
+  animation: dansStuiterC 0.56s ease-in-out infinite;
+}
+.concert-huisdier-emoji { font-size: clamp(48px, 12vw, 88px); }
+/* Tik-pose: Olivia springt kort extra hoog + spint (eenmalig, herstart per tik). */
+.concert-danser.olivia.pose { animation: concertPose 0.7s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes concertPose {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  35%  { transform: translateY(-46px) rotate(-12deg) scale(1.14); }
+  70%  { transform: translateY(-10px) rotate(10deg) scale(1.06); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+/* ----- Juichend publiek onderaan (silhouet-hoofdjes die meedeinen). ----- */
+.concert-publiek {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 0 3% 6px;
+  pointer-events: none;
+  /* Donkere silhouet-band zodat het publiek vóór het podium oogt. */
+  background: linear-gradient(180deg, rgba(22, 16, 40, 0) 0%, rgba(22, 16, 40, .75) 70%);
+  padding-top: clamp(20px, 5vh, 50px);
+}
+.concert-hoofd {
+  font-size: clamp(22px, 5vw, 38px);
+  line-height: 1;
+  animation: concertDein 0.66s ease-in-out infinite;
+}
+.concert-hoofd.h0 { animation-delay: 0s;    }
+.concert-hoofd.h1 { animation-delay: 0.13s; }
+.concert-hoofd.h2 { animation-delay: 0.26s; }
+.concert-hoofd.h3 { animation-delay: 0.39s; }
+.concert-hoofd.h4 { animation-delay: 0.19s; }
+.concert-hoofd.h5 { animation-delay: 0.32s; }
+.concert-hoofd.h6 { animation-delay: 0.07s; }
+.concert-hoofd.h7 { animation-delay: 0.45s; }
+@keyframes concertDein {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50%      { transform: translateY(-10px) rotate(5deg); }
+}
+/* Het juich-tekstje boven het publiek. */
+.concert-roep {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(50px, 12vh, 96px);
+  transform: translateX(-50%);
+  z-index: 4;
+  font-weight: 900;
+  font-size: clamp(18px, 3.4vw, 28px);
+  color: #fff;
+  background: rgba(255, 95, 162, .85);
+  padding: 6px 18px;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 rgba(43, 58, 85, .35);
+  pointer-events: none;
+  animation: concertRoep 2.2s ease-in-out infinite;
+}
+@keyframes concertRoep {
+  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+  50%      { transform: translateX(-50%) translateY(-6px) scale(1.05); }
+}
+
+/* ----- De grote "Klaar"-knop (eindigt de show + beloont). ----- */
+.concert-klaar {
+  position: absolute;
+  top: clamp(10px, 2.5vh, 24px);
+  right: clamp(10px, 3vw, 28px);
+  z-index: 6;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 900;
+  color: var(--donker);
+  background: var(--geel);
+  border-radius: 999px;
+  padding: 14px 30px;
+  font-size: clamp(18px, 3vw, 26px);
+  box-shadow: 0 6px 0 var(--schaduw);
+  transition: transform .08s ease, box-shadow .08s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.concert-klaar:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 var(--schaduw);
+}
+
 /* ===== Minder beweging (toegankelijkheid) =====
    Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
    doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
@@ -2246,6 +2528,30 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   }
   /* De concert-lichten zacht en stilstaand tonen (blijft een feestje, geen draai). */
   .dansen-licht { transform: translateX(-50%) rotate(0deg); }
+
+  /* Concert-show (Feature G6): blijft VOLLEDIG zichtbaar (podium + Olivia + Mama +
+     huisdier + publiek + spotlights) en de Klaar-knop werkt, maar alle bewegingen
+     staan STIL — geen draaiende/pulserende spotlights, geen dans-stuiter, geen
+     omhoog-zwevende emoji, geen deinend publiek, geen pulserende entree-knop. We
+     zetten de animaties uit i.p.v. ze te bevriezen, zodat niets halverwege een
+     transform blijft hangen. De periodieke confetti wordt in JS al overgeslagen. */
+  .concert-spot,
+  .concert-zwever,
+  .concert-danser.mama,
+  .concert-danser.olivia,
+  .concert-danser.olivia.pose,
+  .concert-danser.huisdier,
+  .concert-hoofd,
+  .concert-roep,
+  .concert-entree-knop {
+    animation: none !important;
+  }
+  /* De spotlights zacht en stilstaand tonen (blijft een show, geen draai). */
+  .concert-spot { opacity: .2; transform: rotate(0deg); }
+  /* De zwevers stil onderaan tonen i.p.v. omhoog te animeren (rustig, zichtbaar). */
+  .concert-zwever { opacity: .8; bottom: 10%; }
+  /* Het juich-tekstje op zijn eindstand (de keyframe transleert, dus expliciet). */
+  .concert-roep { transform: translateX(-50%); }
 
   /* Juice (Feature G4): geen scherm-zoom-overgang en geen idle-bewegingen. De
      confetti-regen en de munten-vlucht worden in JS al overgeslagen (dan komt er

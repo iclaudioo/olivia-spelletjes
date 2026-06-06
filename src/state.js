@@ -130,6 +130,10 @@ function maakStandaard() {
     // key-bump nodig.
     quests: { dag: null, taken: [] },
     laatsteRadDag: null,
+    // Of Olivia ooit een concert op het Popster-podium heeft gegeven (de grote
+    // finale, Feature G6). Ontgrendelt de "superster"-sticker. Bestaande v4-saves
+    // krijgen dit veld vanzelf via diepSamenvoegen — GEEN key-bump nodig.
+    concertGegeven: false,
   };
 }
 
@@ -530,6 +534,15 @@ export function markeerDansScore(liedId, niveau, score, sterren) {
 export function markeerDriesterDans() {
   if (staat.driesterDans === true) return;
   staat.driesterDans = true;
+  bewaren();
+}
+
+// Markeert dat Olivia ooit een concert op het podium heeft gegeven (ontgrendelt
+// de "superster"-sticker, Feature G6). Idempotent: nogmaals aanroepen verandert
+// niets.
+export function markeerConcert() {
+  if (staat.concertGegeven === true) return;
+  staat.concertGegeven = true;
   bewaren();
 }
 

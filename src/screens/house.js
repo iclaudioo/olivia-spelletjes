@@ -68,6 +68,21 @@ export function toon(app, { huisId } = {}) {
     );
   }
 
+  // Concert-entree (Feature G6): ALLEEN op het Popster Studio-overzicht (thema
+  // "popster") een opvallende knop die naar de concert-show navigeert. Zo is de
+  // grote finale gekoppeld aan het bezit van de Popster Studio; andere huizen
+  // tonen de knop niet.
+  if (huisDef && huisDef.thema === "popster") {
+    const concertKnop = maak("button", "concert-entree-knop", "🎤 Geef een concert!");
+    concertKnop.type = "button";
+    concertKnop.setAttribute("aria-label", "Geef een concert op het podium");
+    concertKnop.addEventListener("click", () => {
+      ontgrendelAudio();
+      navigeer("concert");
+    });
+    scherm.append(concertKnop);
+  }
+
   // Het rooster wordt door tekenRooster gevuld; zo kan roepMama het opnieuw
   // tekenen nadat Mama een kamer vies heeft gemaakt.
   tekenRooster(rooster, huisId);

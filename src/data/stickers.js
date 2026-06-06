@@ -232,6 +232,13 @@ export const STICKERS = [
       return t.some((x) => x.beloond);
     },
   },
+  {
+    id: "superster",
+    naam: "Superster",
+    emoji: "🌟",
+    beschrijving: "Geef een concert op het podium",
+    verdiend: (s) => !!s?.concertGegeven,
+  },
 ];
 
 // Het totaal aantal stickers — handig voor "X / N" tellingen.
