@@ -48,6 +48,18 @@ export function toon(app, _params = {}) {
   });
   rooster.append(winkelKaart);
 
+  // ---- Dansen-kaart (dans-minigame "Volg de moves!") ----
+  const dansenKaart = maakHuisKaart({
+    emoji: "💃",
+    naam: "Dansen",
+    extraKlasse: "dansen-kaart",
+  });
+  dansenKaart.addEventListener("click", () => {
+    ontgrendelAudio();
+    navigeer("dansen");
+  });
+  rooster.append(dansenKaart);
+
   // ---- Verzamelboek-kaart (sticker-album) ----
   const verzamelKaart = maakHuisKaart({
     emoji: "📖",

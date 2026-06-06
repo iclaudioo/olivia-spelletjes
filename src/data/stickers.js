@@ -178,6 +178,13 @@ export const STICKERS = [
     beschrijving: "Hou een dansfeestje met Mama",
     verdiend: (s) => !!s?.dansGeweest,
   },
+  {
+    id: "danskampioen",
+    naam: "Danskampioen",
+    emoji: "🏆",
+    beschrijving: "Speel de dans-minigame",
+    verdiend: (s) => !!s?.dansGespeeld,
+  },
 ];
 
 // Het totaal aantal stickers — handig voor "X / N" tellingen.

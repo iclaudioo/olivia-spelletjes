@@ -74,6 +74,11 @@ function maakStandaard() {
     // "dansfeest"-sticker). Bestaande v4-saves krijgen dit veld vanzelf via
     // diepSamenvoegen — GEEN key-bump nodig.
     dansGeweest: false,
+    // Of de dans-minigame ("Volg de moves!") ooit is gespeeld (voor de
+    // "danskampioen"-sticker), plus de hoogste behaalde score. Bestaande
+    // v4-saves krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump.
+    dansGespeeld: false,
+    dansTopScore: 0,
   };
 }
 
@@ -303,6 +308,21 @@ export function markeerDans() {
   if (staat.dansGeweest === true) return;
   staat.dansGeweest = true;
   bewaren();
+}
+
+// Markeert dat de dans-minigame is gespeeld (ontgrendelt de "danskampioen"-
+// sticker) en werkt de topscore bij (alleen omhoog). Bewaart altijd.
+export function markeerDansGespeeld(score) {
+  staat.dansGespeeld = true;
+  const huidig = staat.dansTopScore || 0;
+  const nieuw = Number.isFinite(score) ? score : 0;
+  if (nieuw > huidig) staat.dansTopScore = nieuw;
+  bewaren();
+}
+
+// De hoogste dans-minigame-score (of 0 als er nog niet is gespeeld).
+export function getDansTopScore() {
+  return staat.dansTopScore || 0;
 }
 
 // ---- Inrichten (decor) ----

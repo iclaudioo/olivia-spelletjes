@@ -8,6 +8,7 @@ import { toon as toonInrichten } from "./screens/decorate.js";
 import { toon as toonWinkel } from "./screens/shop.js";
 import { toon as toonVerzamelboek } from "./screens/collection.js";
 import { toon as toonInstellingen } from "./screens/settings.js";
+import { toon as toonDansen } from "./screens/dansen.js";
 import { ontgrendelAudio } from "./audio/sfx.js";
 import { startMuziekIndienAan } from "./audio/muziek.js";
 
@@ -19,6 +20,7 @@ registreer("inrichten", toonInrichten);
 registreer("winkel", toonWinkel);
 registreer("verzamelboek", toonVerzamelboek);
 registreer("instellingen", toonInstellingen);
+registreer("dansen", toonDansen);
 
 // Audio ontgrendelen bij de allereerste aanraking (vereist door iOS Safari).
 // Datzelfde gebaar telt ook om de achtergrondmuziek te mogen starten — dus als
