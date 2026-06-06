@@ -18,6 +18,12 @@ import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
 import { MEUBEL_GRATIS, meubelPrijs } from "./art/meubels.js";
 import { GRATIS_SKINS, STANDAARD_SKIN, skinPrijs } from "./data/skins.js";
 import { STICKERS } from "./data/stickers.js";
+import {
+  GRATIS_STYLING,
+  STANDAARD_LOOK,
+  stylingById,
+  stylingPrijs,
+} from "./data/styling.js";
 
 const SLEUTEL = "olivia-schoonmaak-v4";
 
@@ -79,6 +85,15 @@ function maakStandaard() {
     // v4-saves krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump.
     dansGespeeld: false,
     dansTopScore: 0,
+    // Olivia's gekozen look (Styling Studio, Feature G1). Bewaart ALLEEN de
+    // keuze-id's per categorie; alle kleuren/SVG komen uit src/data/styling.js.
+    // De standaard-look is de KLASSIEKE Olivia (geen visuele regressie).
+    // Bestaande v4-saves krijgen dit veld vanzelf via diepSamenvoegen — GEEN
+    // key-bump nodig.
+    oliviaLook: { ...STANDAARD_LOOK },
+    // De gekochte styling-items. De gratis items (prijs 0) bezit je vanaf het
+    // begin; betaalde K-pop-looks koop je in de Styling Studio.
+    gekochteStyling: [...GRATIS_STYLING],
   };
 }
 
@@ -250,6 +265,55 @@ export function kiesSkin(id) {
 export function getGekozenSkin() {
   const id = staat.gekozenSkin;
   return id && bezitSkin(id) ? id : STANDAARD_SKIN;
+}
+
+// ---- Styling Studio (Olivia's look) ----
+
+// De gekozen look { haar, outfit, accessoire }. Valt per categorie veilig terug
+// op de standaard-look als een sleutel ontbreekt (corrupte/bewerkte save), zodat
+// de Olivia-SVG nooit een onbekende keuze hoeft te tekenen.
+export function getOliviaLook() {
+  const l = staat.oliviaLook || {};
+  return {
+    haar: l.haar || STANDAARD_LOOK.haar,
+    outfit: l.outfit || STANDAARD_LOOK.outfit,
+    accessoire: l.accessoire || STANDAARD_LOOK.accessoire,
+  };
+}
+
+// Of een styling-item beschikbaar is: gratis items (prijs 0) bezit je altijd;
+// gekochte items staan in gekochteStyling.
+export function bezitStyling(id) {
+  if (stylingPrijs(id) === 0) return true;
+  return staat.gekochteStyling?.includes(id) === true;
+}
+
+// Een look-keuze aantrekken (alleen als je het item bezit én het bij de gegeven
+// categorie hoort). Zet de juiste look-sleutel + bewaart. Geeft true bij succes,
+// anders false (onbekend item, verkeerde categorie of niet in bezit).
+export function setOliviaLook(categorie, id) {
+  const def = stylingById(id);
+  if (!def || def.categorie !== categorie) return false;
+  if (!bezitStyling(id)) return false;
+  if (!isObject(staat.oliviaLook)) staat.oliviaLook = { ...STANDAARD_LOOK };
+  staat.oliviaLook[categorie] = id;
+  bewaren();
+  return true;
+}
+
+// Een styling-item kopen: kijkt naar de prijs in de catalogus. Lukt alleen als je
+// het nog niet hebt én genoeg munten hebt. Trekt dan munten af, zet het in
+// gekochteStyling en bewaart. Geeft true terug bij succes, anders false.
+export function koopStyling(id) {
+  if (bezitStyling(id)) return false;
+  const prijs = stylingPrijs(id);
+  if (staat.munten < prijs) return false;
+
+  staat.munten -= prijs;
+  if (!Array.isArray(staat.gekochteStyling)) staat.gekochteStyling = [];
+  staat.gekochteStyling.push(id);
+  bewaren();
+  return true;
 }
 
 // ---- Kamer-voortgang ----

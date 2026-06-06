@@ -18,7 +18,7 @@
 import { maak } from "../ui/dom.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { terug, vervang } from "../router.js";
-import { getStaat, voegMuntenToe, markeerDansGespeeld, getDansTopScore } from "../state.js";
+import { getStaat, voegMuntenToe, markeerDansGespeeld, getDansTopScore, getOliviaLook } from "../state.js";
 import { startDansMuziek, stopDansMuziek } from "../audio/muziek.js";
 import { sparkleGeluid } from "../audio/sfx.js";
 import { vierVerdiendeStickers } from "../ui/toast.js";
@@ -72,7 +72,8 @@ export function toon(app, _params = {}) {
   const mama = maak("div", "dansen-danser mama");
   mama.innerHTML = mamaSVG;
   const olivia = maak("div", "dansen-danser olivia");
-  olivia.innerHTML = oliviaSVG;
+  // Olivia danst in haar GEKOZEN look (Styling Studio).
+  olivia.innerHTML = oliviaSVG(getOliviaLook());
   dansers.append(mama, olivia);
 
   // Live score + combo.

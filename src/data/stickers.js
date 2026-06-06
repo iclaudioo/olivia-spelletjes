@@ -185,6 +185,20 @@ export const STICKERS = [
     beschrijving: "Speel de dans-minigame",
     verdiend: (s) => !!s?.dansGespeeld,
   },
+  {
+    id: "fashionista",
+    naam: "Fashionista",
+    emoji: "💇‍♀️",
+    beschrijving: "Geef Olivia een nieuwe look",
+    verdiend: (s) => {
+      const l = s?.oliviaLook || {};
+      return (
+        (l.haar && l.haar !== "donkerblond") ||
+        (l.outfit && l.outfit !== "neonroze") ||
+        (l.accessoire && l.accessoire !== "geen")
+      );
+    },
+  },
 ];
 
 // Het totaal aantal stickers — handig voor "X / N" tellingen.
