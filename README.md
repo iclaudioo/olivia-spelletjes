@@ -1,7 +1,8 @@
 # Olivia's Schoonmaak Huizen 🧹🏠
 
-Een vrolijk spel waarin Olivia vuile huizen helemaal schoon mag maken — met een
-toolbar vol borstels en schoonmaakproducten. Gemaakt om op de iPad te spelen.
+Een vrolijk spel waarin Olivia vuile huizen helemaal schoon mag maken én een
+K-popster wordt — met schoonmaken, inrichten, aankleden, dansen en optreden.
+Gemaakt om op de iPad te spelen.
 
 ## Wat het spel kan (compleet)
 - **Schoonmaken** — veeg met je vinger het vuil weg. Verschillend vuil (stof,
@@ -9,16 +10,33 @@ toolbar vol borstels en schoonmaakproducten. Gemaakt om op de iPad te spelen.
   nodig: 🧽 spons, 🪥 borstel, 🧴 spray, 🧹 bezem, 🪶 plumeau. Ruim ook het
   rondslingerende speelgoed op door het naar de 🗑️ prullenbak te slepen. Met
   sparkles ✨, geluidjes, een voortgangsbalk en een "Helemaal schoon!"-feestje.
-- **Vier huizen** met elk meerdere kamers in eigen stijl: 🏡 Mijn Huis, 🏖️
-  Strandhuis, 🏰 Kasteel en 🚀 Ruimteraket.
-- **Winkel** — verdien munten met schoonmaken en koop nieuwe huizen, meubels en
-  gereedschap-uiterlijken (skins).
+- **Vijf huizen** met elk meerdere kamers in eigen stijl: 🏡 Mijn Huis, 🏖️
+  Strandhuis, 🏰 Kasteel, 🚀 Ruimteraket en 🎤 Popster Studio (podium/kleedkamer/
+  oefenstudio).
+- **Winkel** — verdien munten met schoonmaken en koop nieuwe huizen, meubels,
+  gereedschap-uiterlijken (skins) en huisdieren.
 - **Inrichten** — zet meubels neer en sleep ze op hun plek, en kies behang- en
   vloerkleuren. Alles wordt bewaard.
 - **Foto-modus** 📸 — maak een kiekje van je ingerichte kamer om te bewaren.
-- **Verzamelboek** 📖 — verdien stickers door te spelen.
-- **Instellingen** ⚙️ — geluid en achtergrondmuziek aan/uit, en je skin kiezen
+- **Styling Studio** 💇‍♀️ — kleed Olivia aan: haarkleur (incl. roze/paars/blauw/
+  regenboog), outfits en accessoires (strik/zonnebril/koptelefoon/kroon). Haar look
+  komt overal terug waar ze danst en optreedt.
+- **Dans-minigame** 💃 — volg de pijltjes op de beat: 4 K-pop-liedjes, 3 niveaus,
+  hold-noten, combo's en sterren/highscores, met publiek.
+- **Mama de zangeres** 👩 loopt rond op het huis-overzicht; tik haar voor een
+  **dansfeestje** (Mama + Olivia + huisdier dansen) — daarna maakt ze plagerig een
+  kamer weer vies (herspeelbaar!).
+- **Huisdier** 🐶🐱🐰 — adopteer een puppy/poesje/konijn, aai het (hartjes) en het
+  danst overal mee.
+- **Concert-show** 🎤 — geef vanuit de Popster Studio een optreden met spotlights,
+  juichend publiek, muziek en confetti.
+- **Opdrachten + Rad van Fortuin** 🎯🎡 — dagelijkse opdrachten met beloningen en
+  één gratis draai per dag.
+- **Verzamelboek** 📖 — verdien tientallen stickers door te spelen.
+- **Instellingen** ⚙️ — geluid en achtergrondmuziek aan/uit, skin en huisdier kiezen
   (muziek snel dempen kan ook met de 🔊-knop bovenin).
+- Veel "juice": confetti, naar-de-teller-vliegende munten, een levend beginscherm
+  met parade. Alle bewegingen respecteren `prefers-reduced-motion` (geen geflikker).
 - Alle voortgang wordt op de iPad bewaard (localStorage).
 
 ## Spelen op de computer
