@@ -916,6 +916,12 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   background: var(--groen);
 }
 
+/* Dansen-kaart op het beginscherm (start de dans-minigame) — eigen vrolijke
+   roze tint zodat hij zich onderscheidt van de andere kaarten. */
+.dansen-kaart {
+  background: var(--roze);
+}
+
 .verzamel-scherm {
   flex: 1;
   overflow-y: auto;
@@ -1230,6 +1236,199 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   box-shadow: 0 3px 0 var(--schaduw);
 }
 
+/* ===== Dans-minigame "Volg de moves!" ===== */
+.dansen-scherm {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding: 6px 12px 16px;
+  /* Voorkom page-scroll/zoom tijdens het spelen op de iPad. */
+  touch-action: none;
+  background: radial-gradient(circle at 50% 30%, #4a3a6e 0%, #2a2148 70%, #1a1530 100%);
+}
+
+/* De dansende achtergrond-figuren (Mama links, Olivia rechts), achter het veld. */
+.dansen-dansers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.dansen-danser {
+  position: absolute;
+  bottom: 6%;
+  width: clamp(70px, 16vw, 130px);
+  height: clamp(120px, 26vw, 220px);
+  opacity: .55;
+}
+.dansen-danser svg { display: block; width: 100%; height: 100%; }
+.dansen-danser.mama   { left: 1%;  animation: dansStuiter 0.56s ease-in-out infinite; }
+.dansen-danser.olivia { right: 1%; animation: dansStuiterB 0.56s ease-in-out infinite; }
+
+/* Live score + combo + beste-score balk. */
+.dansen-scorebalk {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 4vw, 30px);
+  width: 100%;
+  max-width: 520px;
+  margin: 2px 0 8px;
+  color: #fff;
+  font-weight: 900;
+}
+.dansen-score { font-size: clamp(18px, 3.4vw, 26px); }
+.dansen-combo {
+  font-size: clamp(15px, 2.8vw, 22px);
+  color: var(--geel);
+  min-height: 1.2em;
+}
+.dansen-beste { font-size: clamp(13px, 2.4vw, 18px); opacity: .8; }
+
+/* Het speelveld: vallaag boven, knoppen onder. */
+.dansen-veld {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* De vallaag: hier vallen de pijlen in (van top 0% naar onderaan). */
+.dansen-vallaag {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  background: rgba(255, 255, 255, .06);
+}
+
+/* De doelzone-band net boven de knoppen (overeenkomstig ZONE_MIN..ZONE_MAX). */
+.dansen-doelzone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 66%;
+  height: 26%;
+  border-top: 3px dashed rgba(255, 255, 255, .55);
+  border-bottom: 3px dashed rgba(255, 255, 255, .55);
+  background: linear-gradient(180deg, rgba(255, 210, 74, .10), rgba(255, 143, 182, .18));
+}
+
+/* Een vallende pijl-cue: gecentreerd op zijn baan-kolom, valt via top%. */
+.dansen-pijl {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(34px, 8vw, 54px);
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4));
+  will-change: top;
+}
+.dansen-pijl.in-zone {
+  filter: drop-shadow(0 0 10px rgba(255, 210, 74, .95));
+}
+
+/* De vier grote baan-knoppen onderaan (iPad-vriendelijk). */
+.dansen-knoppen {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(6px, 1.8vw, 14px);
+  padding: 10px 0 4px;
+}
+.dansen-knop {
+  position: relative;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: clamp(34px, 8vw, 54px);
+  line-height: 1;
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 20px;
+  padding: 16px 0;
+  min-height: 72px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: transform .07s ease, box-shadow .07s ease;
+}
+.dansen-knop.baan-links  { background: #ffd9e6; }
+.dansen-knop.baan-onder  { background: #d9f0ff; }
+.dansen-knop.baan-boven  { background: #e6ffd9; }
+.dansen-knop.baan-rechts { background: #f0e0ff; }
+.dansen-knop.druk {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--schaduw);
+}
+
+/* Sparkle/hartje dat bij een raak even boven de knop opstijgt. */
+.dansen-vonk {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: clamp(20px, 4vw, 30px);
+  pointer-events: none;
+  animation: dansenVonk .7s ease-out forwards;
+}
+@keyframes dansenVonk {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(.6); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -60px) scale(1.2); }
+}
+
+/* ----- Resultaat-overlay aan het einde van een ronde ----- */
+.dansen-resultaat-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: rgba(26, 21, 48, .72);
+  animation: fade .3s ease;
+}
+.dansen-resultaat-kaart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: var(--wit);
+  color: var(--donker);
+  border-radius: 26px;
+  padding: 24px 28px;
+  max-width: min(90vw, 420px);
+  text-align: center;
+  box-shadow: 0 10px 0 var(--schaduw);
+  animation: spring .5s cubic-bezier(.2, 1.4, .4, 1);
+}
+.dansen-resultaat-kop {
+  font-weight: 900;
+  font-size: clamp(24px, 5vw, 36px);
+}
+.dansen-sterren { font-size: clamp(34px, 7vw, 50px); line-height: 1; }
+.dansen-resultaat-score { font-weight: 800; font-size: clamp(16px, 3vw, 22px); }
+.dansen-resultaat-munten {
+  font-weight: 900;
+  font-size: clamp(18px, 3.4vw, 26px);
+  color: var(--blauw-diep);
+}
+.dansen-resultaat-knoppen {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
 /* ===== Minder beweging (toegankelijkheid) =====
    Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
    doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
@@ -1270,6 +1469,15 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   .dansfeest-bundel { opacity: .3; transform: translateX(-50%) rotate(0deg); }
   /* De zwevers stil onderaan tonen i.p.v. omhoog te animeren (rustig, zichtbaar). */
   .dansfeest-zwever { opacity: .85; bottom: 8%; }
+
+  /* Dans-minigame: de DECORATIEVE dansers staan stil (geen eindeloze stuiter),
+     maar het SPEL blijft volledig speelbaar — de vallende pijlen worden door JS
+     gestuurd (top%), niet door een CSS-animatie, dus die blijven gewoon vallen.
+     De raak-vonkjes worden in JS sowieso al uitgezet onder reduced-motion. */
+  .dansen-danser.mama,
+  .dansen-danser.olivia {
+    animation: none !important;
+  }
 
   /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
      ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit
