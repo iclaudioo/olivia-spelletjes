@@ -2007,6 +2007,181 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   50%      { transform: translateY(-9px) rotate(-1.5deg); }
 }
 
+/* ===== Opdrachten-kaart op het beginscherm (met badge/stipje) ===== */
+.opdrachten-kaart { background: var(--paars); position: relative; }
+/* Klein vrolijk badge/stipje rechtsboven als er vandaag nog iets te doen is. */
+.kaart-badge {
+  position: absolute;
+  top: 10px; right: 12px;
+  min-width: 20px; height: 20px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--roze);
+  color: #fff;
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 16px;
+  display: grid; place-items: center;
+  box-shadow: 0 3px 0 var(--schaduw);
+  animation: badgePuls 1.6s ease-in-out infinite;
+}
+@keyframes badgePuls {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.25); }
+}
+
+/* ===== Opdrachten-scherm (Rad van Fortuin + dagelijkse opdrachten) ===== */
+.quests-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 18px 28px;
+  max-width: var(--laan-max);
+  width: 100%;
+  margin: 0 auto;
+}
+.quests-sectie-titel {
+  font-weight: 900;
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--donker);
+  text-shadow: 0 2px 0 #fff;
+  margin: 8px 0 12px;
+  text-align: center;
+}
+
+/* ---- Rad van Fortuin ---- */
+.rad-sectie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.rad-wrap {
+  position: relative;
+  width: clamp(220px, 60vw, 320px);
+  height: clamp(220px, 60vw, 320px);
+  display: grid;
+  place-items: center;
+}
+/* De wijzer (pijl) bovenaan, wijst omlaag naar het winnende segment. */
+.rad-wijzer {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(30px, 7vw, 42px);
+  color: var(--donker);
+  z-index: 3;
+  filter: drop-shadow(0 2px 0 #fff);
+}
+/* De draaier: een ronde conic-gradient-schijf die roteert. De transition wordt
+   in JS gezet (alleen tijdens een draai), zodat hij anders direct staat. */
+.rad-draaier {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 8px solid #fff;
+  box-shadow: 0 8px 0 var(--schaduw), inset 0 0 0 4px rgba(43, 58, 85, .12);
+  transform: rotate(0deg);
+  will-change: transform;
+}
+/* Segment-labels langs de straal, gecentreerd in elk part. */
+.rad-segment-label {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 50%;
+  height: 50%;
+  transform-origin: 0% 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 14px;
+  font-weight: 900;
+  font-size: clamp(15px, 3vw, 22px);
+  color: var(--donker);
+  pointer-events: none;
+}
+.rad-segment-label.ster { color: #8a5a00; }
+/* De naaf (middenknop) — decoratief cadeautje boven het midden. */
+.rad-naaf {
+  position: absolute;
+  width: clamp(48px, 13vw, 70px);
+  height: clamp(48px, 13vw, 70px);
+  border-radius: 50%;
+  background: #fff;
+  display: grid; place-items: center;
+  font-size: clamp(24px, 6vw, 36px);
+  box-shadow: 0 4px 0 var(--schaduw);
+  z-index: 2;
+}
+.rad-knop { min-width: 180px; font-size: clamp(18px, 3vw, 24px); }
+.rad-knop:disabled { opacity: .5; }
+.rad-status {
+  font-weight: 800;
+  font-size: clamp(14px, 2.4vw, 19px);
+  color: var(--donker);
+  text-align: center;
+  min-height: 1.2em;
+}
+
+/* ---- Opdrachten-lijst ---- */
+.quest-sectie { margin-top: 6px; }
+.quest-lijst {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.quest-kaart {
+  background: var(--wit);
+  border-radius: 22px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quest-kaart.voltooid { box-shadow: 0 6px 0 var(--schaduw), inset 0 0 0 3px var(--groen); }
+.quest-kaart.klaar { opacity: .8; }
+.quest-kop { display: flex; align-items: center; gap: 12px; }
+.quest-emoji { font-size: clamp(30px, 6vw, 44px); line-height: 1; }
+.quest-naam {
+  font-weight: 900;
+  font-size: clamp(16px, 2.6vw, 22px);
+  color: var(--donker);
+}
+.quest-balk {
+  position: relative;
+  height: 24px;
+  background: rgba(43, 58, 85, .12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.quest-vul {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--groen), #58c46f);
+  border-radius: 999px;
+  transition: width .3s ease;
+}
+.quest-balk-label {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-weight: 900; font-size: 14px; color: var(--donker);
+}
+.quest-onder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.quest-beloning {
+  font-weight: 900;
+  font-size: clamp(16px, 2.6vw, 22px);
+  color: #b8860b;
+}
+.quest-ophaal { min-width: 130px; }
+.quest-ophaal:disabled { opacity: .45; }
+.quest-ophaal.opgehaald { background: var(--groen); color: #fff; opacity: .9; }
+
 /* ===== Minder beweging (toegankelijkheid) =====
    Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
    doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
@@ -2082,6 +2257,12 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   }
   /* Het welkom blijft zichtbaar (eenmalig, maar zet het zeker op zijn eindstand). */
   .home-welkom { animation: none !important; opacity: 1; transform: none; }
+
+  /* Opdrachten-badge: stil maar zichtbaar (geen pulserende loop). Het Rad zelf
+     draait onder reduced-motion al NIET visueel rond (de JS zet de schijf direct
+     op het segment en levert meteen de beloning), dus daar is geen extra CSS-
+     neutralisatie nodig. */
+  .kaart-badge { animation: none !important; transform: none; }
   /* De ambiance-zwevers stil en zacht zichtbaar tonen i.p.v. omhoog te drijven
      (hun keyframe eindigt op opacity:0, dus expliciet zichtbaar maken). */
   .home-zwever {

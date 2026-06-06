@@ -19,6 +19,7 @@ import {
   maakKamerVies,
   markeerMama,
   markeerDans,
+  meldQuestGebeurtenis,
 } from "../state.js";
 import { getHuisDef } from "../data/huizen.js";
 import { navigeer, terug } from "../router.js";
@@ -215,6 +216,8 @@ function roepMama(huisId, rooster) {
   const keuze = schone[Math.floor(Math.random() * schone.length)];
   maakKamerVies(huisId, keuze.id);
   markeerMama();
+  // Dagelijkse opdrachten (G5): Mama maakte een kamer vies → telt mee.
+  meldQuestGebeurtenis("rommel");
 
   // Plagerig geluidje + dans-toast met de kamernaam.
   mamaGeluid();

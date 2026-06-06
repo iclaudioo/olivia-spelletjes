@@ -11,7 +11,7 @@
 // regelen we via CSS én door hier de hartjes onder reduced-motion over te slaan.
 
 import { maak } from "./dom.js";
-import { getGekozenHuisdier } from "../state.js";
+import { getGekozenHuisdier, meldQuestGebeurtenis } from "../state.js";
 import { huisdierById, huisdierSVG } from "../data/huisdieren.js";
 import { aaiGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
@@ -69,6 +69,8 @@ export function maakHuisdierFiguur({ aaibaar = true } = {}) {
     aaiHandler = () => {
       ontgrendelAudio();
       aaiGeluid();
+      // Dagelijkse opdrachten (G5): elke aai telt mee.
+      meldQuestGebeurtenis("aai");
       // Onder reduced-motion geen zwevende hartjes (rustig), maar wel het geluid.
       if (!rustigeBeweging()) toonHartjes();
       // Kleine knuffel-knik op het dier zelf (CSS class, zelf-opruimend).

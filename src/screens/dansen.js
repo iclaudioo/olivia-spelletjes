@@ -33,6 +33,7 @@ import {
   getDansScore,
   markeerDansScore,
   markeerDriesterDans,
+  meldQuestGebeurtenis,
 } from "../state.js";
 import { startDansMuziek, stopDansMuziek } from "../audio/muziek.js";
 import { sparkleGeluid } from "../audio/sfx.js";
@@ -705,6 +706,8 @@ export function toon(app, params = {}) {
       // Score ÉN behaalde sterren per lied+niveau bewaren (elk alleen omhoog) +
       // topscore/gespeeld-vlag. Zo toont het keuze-scherm later exact deze sterren.
       const beste = markeerDansScore(lied.id, niveauKey, score, sterren);
+      // Dagelijkse opdrachten (G5): een afgeronde dans-ronde telt mee.
+      meldQuestGebeurtenis("dansen");
       // 3 sterren? Zet de defensieve vlag voor de "sterdanser"-sticker.
       if (sterren >= 3) markeerDriesterDans();
       vierVerdiendeStickers();

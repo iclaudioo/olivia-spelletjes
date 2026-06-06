@@ -19,6 +19,7 @@ import { MEUBEL_GRATIS, meubelPrijs } from "./art/meubels.js";
 import { GRATIS_SKINS, STANDAARD_SKIN, skinPrijs } from "./data/skins.js";
 import { huisdierById, huisdierPrijs } from "./data/huisdieren.js";
 import { STICKERS } from "./data/stickers.js";
+import { QUESTS_POOL, questById } from "./data/quests.js";
 import {
   GRATIS_STYLING,
   STANDAARD_LOOK,
@@ -119,6 +120,16 @@ function maakStandaard() {
     // krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump nodig.
     huisdieren: [],
     gekozenHuisdier: null,
+    // Dagelijkse opdrachten (Feature G5). `quests.dag` is de datum ('YYYY-MM-DD')
+    // waarvoor de opdrachten gelden; `quests.taken` is de 3 actieve opdrachten van
+    // die dag, elk `{ id, voortgang, doel, beloond }`. De catalogus
+    // (src/data/quests.js) is de bron van waarheid voor naam/emoji/type/beloning;
+    // de staat bewaart hier alleen de datum + voortgang. `laatsteRadDag` is de
+    // datum waarop het Rad van Fortuin het laatst is gedraaid (null = nog nooit).
+    // Bestaande v4-saves krijgen deze velden vanzelf via diepSamenvoegen — GEEN
+    // key-bump nodig.
+    quests: { dag: null, taken: [] },
+    laatsteRadDag: null,
   };
 }
 
@@ -572,6 +583,110 @@ export function verdienStickers() {
   }
   if (nieuw.length) bewaren();
   return nieuw;
+}
+
+// ---- Dagelijkse opdrachten (quests) + Rad van Fortuin (Feature G5) ----
+
+// De datum van vandaag als 'YYYY-MM-DD' (lokale tijd). Gebruikt om quests/rad per
+// kalenderdag te resetten. De datum-API mag in app-code (zie de feature-eisen).
+function vandaagStr() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+// Kiest `n` willekeurige, UNIEKE opdrachten uit de pool (Fisher-Yates-achtig).
+// Valt veilig terug op zo veel als de pool toelaat als de pool kleiner is dan n.
+function kiesDagQuests(n) {
+  const ids = QUESTS_POOL.map((q) => q.id);
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  return ids.slice(0, Math.min(n, ids.length));
+}
+
+// Zorgt dat er voor VANDAAG 3 opdrachten klaarstaan. Is de bewaarde quest-dag niet
+// vandaag (of ontbreekt hij), dan kiezen we 3 nieuwe opdrachten uit de pool, zetten
+// hun voortgang op 0 (met het doel uit de catalogus) en bewaren. Roep dit aan bij
+// het openen van het opdrachten-scherm. No-op (geen save) als de opdrachten al voor
+// vandaag gelden, zodat de voortgang van vandaag niet wordt gewist.
+export function zorgVoorQuestsVandaag() {
+  if (!isObject(staat.quests)) staat.quests = { dag: null, taken: [] };
+  const vandaag = vandaagStr();
+  if (staat.quests.dag === vandaag && Array.isArray(staat.quests.taken)) {
+    return staat.quests.taken;
+  }
+  const gekozen = kiesDagQuests(3);
+  staat.quests = {
+    dag: vandaag,
+    taken: gekozen.map((id) => ({
+      id,
+      voortgang: 0,
+      doel: questById(id)?.doel || 1,
+      beloond: false,
+    })),
+  };
+  bewaren();
+  return staat.quests.taken;
+}
+
+// De opdrachten van vandaag (zoals bewaard). Defensief: lege array als er nog
+// niets is. Roept NIET vanzelf zorgVoorQuestsVandaag aan (dat doet het scherm).
+export function getQuestsVandaag() {
+  return Array.isArray(staat.quests?.taken) ? staat.quests.taken : [];
+}
+
+// Verhoogt de voortgang van álle ACTIEVE (niet-beloonde, nog-niet-voltooide)
+// opdrachten van het gegeven type met `aantal` (geklemd op het doel) en bewaart.
+// Veilig/no-op als er nog geen opdrachten voor vandaag zijn (bv. als het scherm
+// nog nooit is geopend) — zo kunnen de event-hooks in de bestaande schermen altijd
+// veilig melden zonder eerst de quests te initialiseren.
+export function meldQuestGebeurtenis(type, aantal = 1) {
+  const taken = staat.quests?.taken;
+  if (!Array.isArray(taken) || taken.length === 0) return;
+  let ietsVeranderd = false;
+  for (const taak of taken) {
+    if (taak.beloond) continue;
+    const def = questById(taak.id);
+    if (!def || def.type !== type) continue;
+    if (taak.voortgang >= taak.doel) continue;
+    taak.voortgang = Math.max(0, Math.min(taak.doel, taak.voortgang + aantal));
+    ietsVeranderd = true;
+  }
+  if (ietsVeranderd) bewaren();
+}
+
+// Haalt de beloning van een VOLTOOIDE, nog-niet-opgehaalde opdracht op: telt de
+// munten erbij, zet beloond=true, bewaart en geeft het uitgekeerde bedrag terug.
+// Geeft 0 terug als de opdracht onbekend, nog niet voltooid, of al opgehaald is.
+export function claimQuest(id) {
+  const taken = staat.quests?.taken;
+  if (!Array.isArray(taken)) return 0;
+  const taak = taken.find((t) => t.id === id);
+  if (!taak) return 0;
+  if (taak.beloond) return 0;
+  if (taak.voortgang < taak.doel) return 0;
+  const beloning = questById(id)?.beloning || 0;
+  taak.beloond = true;
+  // voegMuntenToe bewaart al; we hebben de beloond-vlag hierboven gezet zodat die
+  // in dezelfde save meegaat.
+  voegMuntenToe(beloning);
+  return beloning;
+}
+
+// Of het Rad van Fortuin vandaag nog gedraaid mag worden (één keer per dag).
+export function kanRadDraaien() {
+  return staat.laatsteRadDag !== vandaagStr();
+}
+
+// Markeert dat het Rad vandaag is gedraaid (zodat kanRadDraaien() daarna false
+// geeft) en bewaart. De munten-uitkering doet het scherm zelf (via voegMuntenToe)
+// op basis van het gelande segment.
+export function markeerRadGedraaid() {
+  staat.laatsteRadDag = vandaagStr();
+  bewaren();
 }
 
 export function resetAlles() {
