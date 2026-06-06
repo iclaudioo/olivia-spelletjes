@@ -74,7 +74,7 @@ export const KAMER_VUIL = {
   },
   oefenstudio: {
     vuil: ["modder", "vlek", "spinnenweb"],
-    rommel: ["🩰", "🧴", "💧"],
+    rommel: ["🩰", "🧦", "🥤"],
   },
 };
 
