@@ -1,4 +1,4 @@
-# Olivia's Schoonmaak Huizen 🧹🏠
+# Olivia Poetsen 🧹🏠
 
 Een vrolijk spel waarin Olivia vuile huizen helemaal schoon mag maken én een
 K-popster wordt — met schoonmaken, inrichten, aankleden, dansen en optreden.

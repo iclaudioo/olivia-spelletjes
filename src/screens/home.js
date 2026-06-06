@@ -42,7 +42,7 @@ export function toon(app, _params = {}) {
 
   // ---- Topbalk (geen terug-knop op het beginscherm) ----
   const { el: top, updateMunten } = maakTopbar({
-    titel: "🏠 Olivia's Huizen",
+    titel: "🧹 Olivia Poetsen",
     toonMunten: true,
   });
   updateMunten(staat.munten);
