@@ -1401,6 +1401,8 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
    en Olivia krijgen een net iets ander ritme zodat het levendig oogt. */
 .dansfeest-danser.mama   { animation: dansStuiter 0.56s ease-in-out infinite; }
 .dansfeest-danser.olivia { animation: dansStuiterB 0.56s ease-in-out infinite; }
+/* Papa danst mee met zijn eigen ritme (hergebruikt de bestaande dans-stuiter-stijl). */
+.dansfeest-danser.papa   { animation: dansStuiterC 0.56s ease-in-out infinite; }
 
 @keyframes dansStuiter {
   0%   { transform: translateY(0)    rotate(-4deg) scale(1); }
@@ -2007,6 +2009,141 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   50%      { transform: translateY(-9px) rotate(-1.5deg); }
 }
 
+/* ===== Papa in de parade (Feature H1): tikbaar, met keuze-bubbeltje + hartjes =====
+   Papa staat als figuur in de parade-rij. Tik op Papa → een keuze-bubbeltje met
+   Knuffel (+5) en Kusje (+10). Na een knuffel/kusje "geniet Papa na" (cooldown):
+   dan tonen we i.p.v. de knoppen een klein "Papa geniet na!"-tekstje. Grote
+   tikdoelen voor de iPad; geen page-zoom (touch-action). */
+.home-parade-figuur.papa {
+  position: relative;
+  height: clamp(120px, 26vw, 200px);
+}
+.papa-figuur {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: end center;
+  -webkit-tap-highlight-color: transparent;
+}
+.papa-man {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: end center;
+  cursor: pointer;
+  touch-action: manipulation; /* geen dubbel-tik-zoom op de iPad */
+  user-select: none;
+  -webkit-user-select: none;
+  transform-origin: 50% 90%;
+}
+.papa-man svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 4px rgba(43, 58, 85, .18));
+}
+/* Blije knuffel-knik (eenmalig, JS voegt class toe/verwijdert) + grotere straal
+   bij een kusje. */
+.papa-man.knuffel-blij { animation: papaKnuffel .5s ease; }
+.papa-man.kus-straal   { animation: papaStraal .7s ease; }
+@keyframes papaKnuffel {
+  0%   { transform: scale(1, 1) rotate(0deg); }
+  35%  { transform: scale(1.06, .96) rotate(-3deg); }
+  70%  { transform: scale(.98, 1.04) rotate(3deg); }
+  100% { transform: scale(1, 1) rotate(0deg); }
+}
+@keyframes papaStraal {
+  0%   { transform: scale(1) rotate(0deg); filter: drop-shadow(0 6px 4px rgba(43,58,85,.18)); }
+  30%  { transform: scale(1.12) rotate(-4deg); filter: drop-shadow(0 0 14px rgba(255, 210, 74, .9)); }
+  60%  { transform: scale(1.08) rotate(4deg);  filter: drop-shadow(0 0 18px rgba(255, 180, 60, .8)); }
+  100% { transform: scale(1) rotate(0deg);     filter: drop-shadow(0 6px 4px rgba(43,58,85,.18)); }
+}
+
+/* De hartjes-laag (boven Papa, vangt geen tikken) + de zwevende hartjes. */
+.papa-hartjes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 3;
+}
+.papa-hartje {
+  position: absolute;
+  top: 22%;
+  font-size: clamp(22px, 5vw, 36px);
+  will-change: transform, opacity;
+  animation: papaHartje 1.2s ease-out forwards;
+}
+.papa-hartje.groot { font-size: clamp(30px, 7vw, 50px); }
+@keyframes papaHartje {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(.5) rotate(0deg); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -100px) scale(1.15) rotate(14deg); }
+}
+
+/* Het keuze-bubbeltje (verschijnt boven Papa bij een tik). */
+.papa-bubbel {
+  position: absolute;
+  bottom: calc(100% - 8px);
+  left: 50%;
+  transform: translateX(-50%) scale(.6);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 0 var(--schaduw), 0 12px 22px rgba(43, 58, 85, .25);
+  z-index: 4;
+  white-space: nowrap;
+}
+.papa-bubbel::after {
+  /* klein driehoekje onderaan het bubbeltje (wijst naar Papa) */
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 9px solid transparent;
+  border-top-color: #fff;
+}
+.papa-figuur.bubbel-open .papa-bubbel {
+  display: flex;
+  animation: papaBubbelIn .25s cubic-bezier(.2, 1.5, .5, 1) both;
+}
+@keyframes papaBubbelIn {
+  from { opacity: 0; transform: translateX(-50%) scale(.6); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+.papa-keuze-knop {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-weight: 900;
+  font-size: clamp(15px, 2.8vw, 20px);
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+  min-width: 130px;
+  min-height: 52px; /* groot tikdoel voor de iPad */
+  box-shadow: 0 4px 0 var(--schaduw);
+}
+.papa-keuze-knop.knuffel { background: var(--roze, #ff5fa2); }
+.papa-keuze-knop.kus     { background: var(--paars, #9a5cff); }
+.papa-keuze-knop:active  { transform: translateY(2px); box-shadow: 0 2px 0 var(--schaduw); }
+/* Tijdens de cooldown: knoppen verbergen, "Papa geniet na!"-tekstje tonen. */
+.papa-geniet {
+  display: none;
+  text-align: center;
+  font-weight: 900;
+  font-size: clamp(14px, 2.6vw, 18px);
+  color: var(--donker, #2b3a55);
+  padding: 10px 14px;
+}
+.papa-figuur.cooldown .papa-keuze-knop { display: none; }
+.papa-figuur.cooldown .papa-geniet { display: block; }
+
 /* ===== Opdrachten-kaart op het beginscherm (met badge/stipje) ===== */
 .opdrachten-kaart { background: var(--paars); position: relative; }
 /* Klein vrolijk badge/stipje rechtsboven als er vandaag nog iets te doen is. */
@@ -2497,6 +2634,7 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   .dansfeest-bundel,
   .dansfeest-danser.mama,
   .dansfeest-danser.olivia,
+  .dansfeest-danser.papa,
   .dansfeest-danser.huisdier,
   .dansfeest-zwever {
     animation: none !important;
@@ -2559,6 +2697,16 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   .scherm-in,
   .home-parade-figuur.mama,
   .home-parade-figuur.olivia {
+    animation: none !important;
+  }
+  /* Papa staat STIL maar blijft volledig tikbaar (knuffel/kusje werken). De
+     blije-knik/straal-animatie + de zwevende hartjes staan uit (de hartjes worden
+     in JS al overgeslagen onder reduced-motion). Het keuze-bubbeltje verschijnt
+     zonder pop-animatie. */
+  .papa-man,
+  .papa-man.knuffel-blij,
+  .papa-man.kus-straal,
+  .papa-figuur.bubbel-open .papa-bubbel {
     animation: none !important;
   }
   /* Het welkom blijft zichtbaar (eenmalig, maar zet het zeker op zijn eindstand). */

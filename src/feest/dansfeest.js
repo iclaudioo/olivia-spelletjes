@@ -21,6 +21,7 @@
 import { maak } from "../ui/dom.js";
 import { startDansMuziek, stopDansMuziek } from "../audio/muziek.js";
 import { mamaSVG as MAMA_SVG } from "../art/mama.js";
+import { papaSVG as PAPA_SVG } from "../art/papa.js";
 import { oliviaSVG } from "../art/olivia.js";
 import { getOliviaLook, getGekozenHuisdier } from "../state.js";
 import { huisdierById, huisdierSVG } from "../data/huisdieren.js";
@@ -70,15 +71,20 @@ export function startDansfeest({ opEinde } = {}) {
   // met niets; daarom statische import via een losse helper hieronder.
   const mama = maak("div", "dansfeest-danser mama");
   mama.innerHTML = MAMA_SVG;
+  const papa = maak("div", "dansfeest-danser papa");
+  papa.innerHTML = PAPA_SVG;
   const olivia = maak("div", "dansfeest-danser olivia");
   // Olivia danst in haar GEKOZEN look (Styling Studio).
   olivia.innerHTML = oliviaSVG(getOliviaLook());
   // Namlabels onder de dansers zodat duidelijk is wie wie is.
   const mamaWrap = maak("div", "dansfeest-danser-wrap");
   mamaWrap.append(mama, maak("div", "dansfeest-naam", "Mama"));
+  const papaWrap = maak("div", "dansfeest-danser-wrap");
+  papaWrap.append(papa, maak("div", "dansfeest-naam", "Papa"));
   const oliviaWrap = maak("div", "dansfeest-danser-wrap");
   oliviaWrap.append(olivia, maak("div", "dansfeest-naam", "Olivia"));
-  podium.append(mamaWrap, oliviaWrap);
+  // Papa danst tussen Mama en Olivia in (de hele familie samen).
+  podium.append(mamaWrap, papaWrap, oliviaWrap);
 
   // Als er een gekozen huisdier is, danst het mee op het podium (niet aaibaar —
   // het danst gewoon). Het zit in de overlay-DOM, dus het verdwijnt automatisch

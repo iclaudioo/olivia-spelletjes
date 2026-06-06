@@ -57,6 +57,18 @@ const OUTFIT = [
   { id: "denim", naam: "Denim", categorie: "outfit", prijs: 30, emoji: "👖",
     topTop: "#8fb8e6", topBottom: "#5a86c0", rokTop: "#4f78b0", rokBottom: "#365a8c",
     stip1: "#ffffff", stip2: "#cfe0f4", ster: "#ffffff" },
+  { id: "zeemeermin", naam: "Zeemeermin", categorie: "outfit", prijs: 40, emoji: "🧜‍♀️",
+    topTop: "#5fe6c8", topBottom: "#2fb8a0", rokTop: "#4fb0ff", rokBottom: "#2f7fd6",
+    stip1: "#d8fff4", stip2: "#aee6ff", ster: "#d8fff4" },
+  { id: "vuurvlinder", naam: "Vuurvlinder", categorie: "outfit", prijs: 40, emoji: "🦋",
+    topTop: "#ff9a4f", topBottom: "#ff5f3a", rokTop: "#ff7a5f", rokBottom: "#e03a2f",
+    stip1: "#ffe066", stip2: "#fff4c2", ster: "#ffe066" },
+  { id: "pasteldroom", naam: "Pasteldroom", categorie: "outfit", prijs: 30, emoji: "🌷",
+    topTop: "#ffd6ec", topBottom: "#ffb3d9", rokTop: "#cfd6ff", rokBottom: "#b0bcff",
+    stip1: "#fff4c2", stip2: "#d8fff4", ster: "#ffffff" },
+  { id: "discobal", naam: "Discobal", categorie: "outfit", prijs: 60, emoji: "🪩",
+    topTop: "#dfe6f0", topBottom: "#9aa8c0", rokTop: "#c79bff", rokBottom: "#8f5cff",
+    stip1: "#ffffff", stip2: "#e6d8ff", ster: "#ffffff" },
 ];
 
 // ---- ACCESSOIRE ----------------------------------------------------------

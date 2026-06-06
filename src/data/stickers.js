@@ -239,6 +239,13 @@ export const STICKERS = [
     beschrijving: "Geef een concert op het podium",
     verdiend: (s) => !!s?.concertGegeven,
   },
+  {
+    id: "papas-lieveling",
+    naam: "Papa's lieveling",
+    emoji: "💛",
+    beschrijving: "Geef Papa een knuffel of kusje",
+    verdiend: (s) => !!s?.papaGeknuffeld,
+  },
 ];
 
 // Het totaal aantal stickers — handig voor "X / N" tellingen.

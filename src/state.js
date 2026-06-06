@@ -134,6 +134,10 @@ function maakStandaard() {
     // finale, Feature G6). Ontgrendelt de "superster"-sticker. Bestaande v4-saves
     // krijgen dit veld vanzelf via diepSamenvoegen — GEEN key-bump nodig.
     concertGegeven: false,
+    // Of Papa ooit een knuffel of kusje heeft gekregen op het beginscherm
+    // (Feature H1). Ontgrendelt de "papas-lieveling"-sticker. Bestaande v4-saves
+    // krijgen dit veld vanzelf via diepSamenvoegen — GEEN key-bump nodig.
+    papaGeknuffeld: false,
   };
 }
 
@@ -543,6 +547,15 @@ export function markeerDriesterDans() {
 export function markeerConcert() {
   if (staat.concertGegeven === true) return;
   staat.concertGegeven = true;
+  bewaren();
+}
+
+// Markeert dat Papa ooit een knuffel of kusje heeft gekregen (ontgrendelt de
+// "papas-lieveling"-sticker, Feature H1). Idempotent: nogmaals aanroepen
+// verandert niets.
+export function markeerPapaGeknuffeld() {
+  if (staat.papaGeknuffeld === true) return;
+  staat.papaGeknuffeld = true;
   bewaren();
 }
 
