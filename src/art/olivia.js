@@ -6,8 +6,8 @@
 // Stijlconventies sluiten aan op src/art/mama.js en src/art/meubels.js (platte
 // vormen, ronde hoeken, vrolijke kleuren). Olivia is duidelijk een KIND en geen
 // volwassene: kleiner postuur, ronder gezicht, GEEN microfoon. Ze is herkenbaar
-// als K-pop-fan: DONKER haar in twee hoge knotjes/staartjes met kleurige
-// elastiekjes, grote blije ogen, roze wangen, en een vrolijke neon/pastel
+// als K-pop-fan: LICHTBRUIN/DONKERBLOND haar in twee hoge knotjes/staartjes met
+// kleurige elastiekjes, grote blije ogen, roze wangen, en een vrolijke neon/pastel
 // K-pop-outfit (kort topje + rokje + beenwarmers).
 //
 // AANPASBAAR: haar uiterlijk is makkelijk te wijzigen — pas de kleuren in de
@@ -26,8 +26,8 @@ export const oliviaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/20
       <stop offset="1" stop-color="#37c0ff"/>
     </linearGradient>
     <linearGradient id="oliviaHaar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3a2a4a"/>
-      <stop offset="1" stop-color="#221733"/>
+      <stop offset="0" stop-color="#cda66c"/>
+      <stop offset="1" stop-color="#b1854a"/>
     </linearGradient>
   </defs>
 
@@ -77,7 +77,7 @@ export const oliviaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/20
   <rect x="33" y="34" width="10" height="6" rx="3" fill="#ff4fb0"/>
   <rect x="77" y="34" width="10" height="6" rx="3" fill="#37c0ff"/>
 
-  <!-- DONKER haar: pony + bol bovenop het hoofd -->
+  <!-- haar (lichtbruin/donkerblond): pony + bol bovenop het hoofd -->
   <path d="M35 54 C33 30 48 22 60 22 C72 22 87 30 85 54 C81 46 77 42 77 42 C75 36 64 34 60 34 C56 34 45 36 43 42 C43 42 39 46 35 54 Z" fill="url(#oliviaHaar)"/>
   <!-- losse haarlokken langs het gezicht -->
   <path d="M35 52 C31 62 32 72 35 80 C38 72 37 62 39 56 Z" fill="url(#oliviaHaar)"/>
@@ -89,8 +89,8 @@ export const oliviaSVG = `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/20
   <circle cx="52.4" cy="53.4" r="1.5" fill="#ffffff"/>
   <circle cx="70.4" cy="53.4" r="1.5" fill="#ffffff"/>
   <!-- vrolijke wenkbrauwen -->
-  <path d="M46 47 q5 -3 10 0" stroke="#221733" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M64 47 q5 -3 10 0" stroke="#221733" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M46 47 q5 -3 10 0" stroke="#9c7338" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M64 47 q5 -3 10 0" stroke="#9c7338" stroke-width="2" fill="none" stroke-linecap="round"/>
   <!-- roze wangen -->
   <circle cx="44" cy="63" r="4.5" fill="#ff9ec2" opacity="0.75"/>
   <circle cx="76" cy="63" r="4.5" fill="#ff9ec2" opacity="0.75"/>
