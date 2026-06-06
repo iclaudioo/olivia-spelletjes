@@ -37,6 +37,8 @@ import {
 import { startDansMuziek, stopDansMuziek } from "../audio/muziek.js";
 import { sparkleGeluid } from "../audio/sfx.js";
 import { vierVerdiendeStickers } from "../ui/toast.js";
+import { vuurConfetti } from "../ui/confetti.js";
+import { vliegMunten } from "../ui/muntvlieg.js";
 import { mamaSVG } from "../art/mama.js";
 import { oliviaSVG } from "../art/olivia.js";
 import { LIEDJES, liedById, STANDAARD_LIED } from "../data/liedjes.js";
@@ -764,6 +766,22 @@ export function toon(app, params = {}) {
       kaart.append(kop, sterrenEl, scoreRegel, besteRegel, muntRegel, knoppen);
       overlay.append(kaart);
       scherm.append(overlay);
+
+      // ---- Juice (Feature G4): bij een goed resultaat (≥2 sterren) confetti in
+      // de overlay + muntjes die vanaf de resultaat-kaart naar de teller vliegen.
+      // Beide helpers ruimen zichzelf op en zijn reduced-motion-veilig. Even na
+      // het verschijnen vuren zodat de kaart al in beeld is.
+      if (sterren >= 2) {
+        setTimeout(() => {
+          vuurConfetti();
+          if (verdiendMunten > 0) {
+            vliegMunten({
+              van: kaart,
+              aantal: Math.max(1, Math.round(verdiendMunten / 5)),
+            });
+          }
+        }, 120);
+      }
     }
 
     // ---- De ronde-opruimer (cruciaal tegen leaks) ----

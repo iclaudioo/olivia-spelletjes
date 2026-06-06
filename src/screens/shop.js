@@ -32,6 +32,7 @@ import { terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
 import { vierVerdiendeStickers } from "../ui/toast.js";
+import { vuurConfetti } from "../ui/confetti.js";
 import { muntGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
 // Hoe lang de "Gekocht! ✨"-bevestiging op de kaart blijft staan vóór het
@@ -222,6 +223,12 @@ export function toon(app, _params = {}) {
     // De kop is zelf een kaart; we nemen zijn kinderen over zodat het feest-
     // label binnen DEZE kaart valt (geen geneste kaart in de DOM).
     kaart.append(...hoofd.childNodes, maak("div", "winkel-gekocht", "Gekocht! ✨"));
+
+    // ---- Juice (Feature G4): kleine confetti-burst vanaf de gekochte kaart ----
+    // Smaakvol klein (minder stukjes dan de win-burst). Zelf-opruimend + reduced-
+    // motion-veilig. De oorsprong is het midden van de kaart.
+    const r = kaart.getBoundingClientRect();
+    vuurConfetti({ x: r.left + r.width / 2, y: r.top + r.height / 2, aantal: 16 });
 
     setTimeout(tekenAlles, GEKOCHT_FEEST_MS);
   }

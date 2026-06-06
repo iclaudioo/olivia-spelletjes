@@ -1,14 +1,31 @@
-// Beginscherm: toont de huizen die je hebt als grote, aantikbare kaarten,
-// plus een "Winkel"-kaart om nieuwe huizen te kopen. Metadata (naam, emoji)
-// komt uit de catalogus; bezit komt uit de staat.
+// Beginscherm: een LEVEND beginscherm (Feature G4). Toont de huizen die je hebt
+// als grote, aantikbare kaarten, plus kaarten voor Winkel, Dansen, Styling,
+// Verzamelboek en Instellingen. Daaromheen maakt "juice" het scherm levendig:
+//   - een vrolijke ambiance-laag met langzaam zwevende muzieknoten/hartjes/sterren;
+//   - een rustige "parade"-rij onderaan met Mama + Olivia (in haar gekozen look)
+//     + (indien geadopteerd) het gekozen huisdier — die zachtjes wiebelen;
+//   - een klein welkom-titeltje met een vrolijke binnenkomst-animatie.
+//
+// Het HERGEBRUIKTE huisdier-figuur (maakHuisdierFiguur, aaibaar) staat nu IN de
+// parade i.p.v. los onder de kaarten — zo staat het dier nooit dubbel op home.
+//
+// Alles (ambiance-zwevers, parade, het huisdier-figuur en zijn listeners) wordt
+// in de scherm-cleanup opgeruimd zodat er niets lekt. Onder prefers-reduced-motion
+// staat alles stil maar zichtbaar (de CSS bevriest de animaties; de hartjes worden
+// in het huisdier-figuur al overgeslagen).
 
-import { getStaat, bezitHuis } from "../state.js";
+import { getStaat, bezitHuis, getOliviaLook } from "../state.js";
 import { HUIS_CATALOGUS } from "../data/huizen.js";
 import { navigeer } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
 import { maakHuisdierFiguur } from "../ui/huisdier.js";
+import { mamaSVG } from "../art/mama.js";
+import { oliviaSVG } from "../art/olivia.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
+
+// De emoji's die rustig in de achtergrond zweven (vrolijk, weinig, langzaam).
+const AMBIANCE_TEKENS = ["🎵", "🎶", "💕", "⭐", "✨", "💖", "🌟", "🎵"];
 
 export function toon(app, _params = {}) {
   const staat = getStaat();
@@ -21,8 +38,27 @@ export function toon(app, _params = {}) {
   });
   updateMunten(staat.munten);
 
-  // ---- Huizen-rooster ----
+  // ---- Scherm + ambiance-laag (zwevers achter de inhoud) ----
   const scherm = maak("div", "home-scherm");
+  const ambiance = maak("div", "home-ambiance");
+  ambiance.setAttribute("aria-hidden", "true");
+  // Een handvol langzaam opdrijvende tekens op willekeurige posities/snelheden.
+  // Puur decoratief (pointer-events:none in CSS), zelf-herhalend, geen flikkering.
+  for (let i = 0; i < AMBIANCE_TEKENS.length; i++) {
+    const z = maak("span", "home-zwever", AMBIANCE_TEKENS[i]);
+    z.style.left = `${6 + (i / AMBIANCE_TEKENS.length) * 88 + Math.random() * 6}%`;
+    z.style.animationDuration = `${10 + Math.random() * 8}s`;
+    z.style.animationDelay = `${-Math.random() * 10}s`;
+    z.style.fontSize = `${18 + Math.random() * 16}px`;
+    ambiance.append(z);
+  }
+  scherm.append(ambiance);
+
+  // ---- Klein welkom (vrolijke binnenkomst-animatie) ----
+  const welkom = maak("div", "home-welkom", "Hoi! Wat wil je doen? ✨");
+  scherm.append(welkom);
+
+  // ---- Huizen-rooster ----
   const rooster = maak("div", "huis-rooster");
 
   // Eigen huizen uit de catalogus (alleen die je bezit), in catalogus-volgorde.
@@ -99,16 +135,37 @@ export function toon(app, _params = {}) {
 
   scherm.append(rooster);
 
-  // ---- Huisdier-vriendje (Feature G3) ----
-  // Toon (indien geadopteerd) het gekozen huisdier onder de kaarten, aaibaar.
-  // Geen gekozen dier → maakHuisdierFiguur geeft null en we tonen niets.
+  // ---- Parade-rij onderaan: Mama + Olivia + (indien geadopteerd) huisdier ----
+  // Mama en Olivia zijn decoratief (zachte op-en-neer wiebel). Het huisdier komt
+  // uit het HERGEBRUIKTE figuur (aaibaar) en staat nu IN de parade — niet ook nog
+  // los onder de kaarten, zodat het dier nooit dubbel verschijnt.
+  const parade = maak("div", "home-parade");
+  parade.setAttribute("aria-label", "Mama en Olivia");
+
+  const mama = maak("div", "home-parade-figuur mama");
+  mama.innerHTML = mamaSVG;
+  parade.append(mama);
+
+  const olivia = maak("div", "home-parade-figuur olivia");
+  olivia.innerHTML = oliviaSVG(getOliviaLook());
+  parade.append(olivia);
+
+  // Het gekozen huisdier (of null) — als geadopteerd, aaibaar in de parade.
   const huisdier = maakHuisdierFiguur({ aaibaar: true });
-  if (huisdier) scherm.append(huisdier.el);
+  if (huisdier) {
+    const dierWrap = maak("div", "home-parade-figuur huisdier");
+    dierWrap.append(huisdier.el);
+    parade.append(dierWrap);
+  }
+
+  scherm.append(parade);
 
   app.append(top, scherm);
 
   // Opruimen bij weg-navigeren: de huisdier-listener + hartjes-timers wegruimen
-  // zodat er niets lekt (de router roept deze functie aan).
+  // (de ambiance-zwevers en parade-figuren verdwijnen vanzelf met #app's innerHTML,
+  // maar het huisdier-figuur moet zijn pointer-listener netjes loskoppelen). De
+  // router roept deze functie aan.
   return () => {
     if (huisdier) huisdier.opruim();
   };

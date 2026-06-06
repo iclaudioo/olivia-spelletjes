@@ -1842,6 +1842,171 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   margin-top: 4px;
 }
 
+/* ===== Juice (Feature G4): confetti, vliegende munten, scherm-overgang ===== */
+
+/* Zachte scherm-overgang: een korte fade + lichte zoom-in bij elk nieuw scherm.
+   #app krijgt kort de klasse `scherm-in` (zie router.js). Eenmalig en kort. */
+.scherm-in { animation: schermIn .2s ease both; }
+@keyframes schermIn {
+  from { opacity: 0; transform: scale(.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Confetti-laag: boven alles (boven de toast-laag 100). Vangt nooit tikken. */
+.confetti-laag {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Eén confetti-stukje: start op de oorsprong, waaiert uit (--dx) en valt (--dy)
+   terwijl het draait (--rot) en vervaagt. Zelf-opruimend via JS-timer. */
+.confetti-stuk {
+  position: absolute;
+  width: 11px;
+  height: 14px;
+  border-radius: 2px;
+  will-change: transform, opacity;
+  transform: translate(-50%, -50%);
+  animation: confettiVal 1.4s cubic-bezier(.25, .7, .4, 1) forwards;
+}
+@keyframes confettiVal {
+  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(.7); }
+  12%  { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 200px)))
+               rotate(var(--rot, 360deg)) scale(1);
+  }
+}
+/* Reduced-motion-variant: één zacht ✨ dat rustig opdoemt en vervaagt. */
+.confetti-zacht {
+  position: absolute;
+  font-size: 40px;
+  transform: translate(-50%, -50%);
+  animation: confettiZacht .9s ease-out forwards;
+}
+@keyframes confettiZacht {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.8); }
+  30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Munten-vlieg-laag: boven alles, vangt geen tikken. */
+.muntvlieg-laag {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Eén vliegende munt: van de oorsprong naar de teller (--dx/--dy). */
+.muntvlieg-munt {
+  position: absolute;
+  font-size: 26px;
+  color: #f4b400;
+  text-shadow: 0 1px 0 #e09b00, 0 0 6px rgba(255, 213, 74, .7);
+  will-change: transform, opacity;
+  transform: translate(-50%, -50%);
+  animation: muntVlieg .65s cubic-bezier(.5, 0, .6, 1) forwards;
+}
+@keyframes muntVlieg {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(.7);
+  }
+}
+
+/* ===== Levend beginscherm (Feature G4) ===== */
+.home-scherm { position: relative; }
+
+/* Ambiance-laag: langzaam opdrijvende noten/hartjes/sterren áchter de inhoud.
+   Puur decoratief, vangt geen tikken, geen flikkering (rustige drift). */
+.home-ambiance {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.home-zwever {
+  position: absolute;
+  bottom: -10%;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: homeZweef 14s linear infinite;
+}
+@keyframes homeZweef {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg); }
+  10%  { opacity: .55; }
+  85%  { opacity: .55; }
+  100% { opacity: 0; transform: translateY(-78vh) rotate(20deg); }
+}
+
+/* De kaarten + welkom + parade boven de ambiance. */
+.home-welkom, .home-scherm .huis-rooster, .home-parade { position: relative; z-index: 1; }
+
+/* Klein welkom-titeltje met een vrolijke binnenkomst (eenmalig). */
+.home-welkom {
+  text-align: center;
+  font-weight: 900;
+  font-size: clamp(18px, 3.4vw, 28px);
+  color: var(--donker);
+  text-shadow: 0 2px 0 #fff;
+  margin: 2px auto 12px;
+  animation: homeWelkom .5s cubic-bezier(.2, 1.4, .5, 1) both;
+}
+@keyframes homeWelkom {
+  from { opacity: 0; transform: translateY(-12px) scale(.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Parade-rij onderaan: Mama + Olivia (+ huisdier) die zachtjes wiebelen. */
+.home-parade {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(8px, 4vw, 40px);
+  max-width: var(--laan-max);
+  margin: 14px auto 4px;
+  min-height: clamp(120px, 26vw, 200px);
+}
+.home-parade-figuur {
+  width: clamp(80px, 18vw, 150px);
+  height: clamp(120px, 26vw, 200px);
+  display: grid;
+  place-items: end center;
+}
+.home-parade-figuur svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 4px rgba(43, 58, 85, .18));
+}
+/* Zachte, rustige op-en-neer wiebel — elk figuur een net iets ander ritme zodat
+   het levendig oogt (geen synchroon gestamp). Langzaam en kindvriendelijk. */
+.home-parade-figuur.mama   { animation: homeWiebelA 2.8s ease-in-out infinite; }
+.home-parade-figuur.olivia { animation: homeWiebelB 2.4s ease-in-out infinite; }
+/* Het huisdier in de parade gebruikt zijn eigen .huisdier-figuur-animatie; we
+   geven de wrap alleen de juiste grootte (het figuur vult hem). */
+.home-parade-figuur.huisdier { height: clamp(110px, 24vw, 180px); }
+.home-parade-figuur.huisdier .huisdier-figuur {
+  margin: 0;
+  width: clamp(90px, 20vw, 160px);
+  height: clamp(90px, 20vw, 160px);
+}
+@keyframes homeWiebelA {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50%      { transform: translateY(-7px) rotate(1.5deg); }
+}
+@keyframes homeWiebelB {
+  0%, 100% { transform: translateY(0) rotate(1.5deg); }
+  50%      { transform: translateY(-9px) rotate(-1.5deg); }
+}
+
 /* ===== Minder beweging (toegankelijkheid) =====
    Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
    doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
@@ -1906,6 +2071,25 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   }
   /* De concert-lichten zacht en stilstaand tonen (blijft een feestje, geen draai). */
   .dansen-licht { transform: translateX(-50%) rotate(0deg); }
+
+  /* Juice (Feature G4): geen scherm-zoom-overgang en geen idle-bewegingen. De
+     confetti-regen en de munten-vlucht worden in JS al overgeslagen (dan komt er
+     hooguit een zacht ✨ / een directe teller-pop), dus die animeren sowieso niet. */
+  .scherm-in,
+  .home-parade-figuur.mama,
+  .home-parade-figuur.olivia {
+    animation: none !important;
+  }
+  /* Het welkom blijft zichtbaar (eenmalig, maar zet het zeker op zijn eindstand). */
+  .home-welkom { animation: none !important; opacity: 1; transform: none; }
+  /* De ambiance-zwevers stil en zacht zichtbaar tonen i.p.v. omhoog te drijven
+     (hun keyframe eindigt op opacity:0, dus expliciet zichtbaar maken). */
+  .home-zwever {
+    animation: none !important;
+    opacity: .4;
+    bottom: auto;
+    top: 12%;
+  }
 
   /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
      ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit
