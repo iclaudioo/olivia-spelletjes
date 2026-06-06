@@ -61,6 +61,10 @@ function maakStandaard() {
     stickers: [],
     // Of er ooit een foto van een kamer is gemaakt (voor de "fotograaf"-sticker).
     fotoGemaakt: false,
+    // Of Mama ooit langs is geweest om een kamer vies te maken (voor de "mama"-
+    // sticker). Bestaande v4-saves krijgen dit veld vanzelf via diepSamenvoegen,
+    // dus er is GEEN key-bump nodig.
+    mamaGeweest: false,
   };
 }
 
@@ -245,6 +249,27 @@ export function markeerKamerKlaar(huisId, kamerId) {
   if (!k) return;
   k.schoonPct = 100;
   k.klaar = true;
+  bewaren();
+}
+
+// Een kamer weer vies maken (voor de "Mama"-feature, herspeelbaarheid). Zet de
+// voortgang terug naar vuil (klaar=false, schoonPct=0) zodat de kamer opnieuw
+// schoon te maken is. Het DECOR (meubels/behang/vloer) blijft bewust bewaard.
+// Geeft true terug als de kamer bestond (en is aangepast), anders false.
+export function maakKamerVies(huisId, kamerId) {
+  const k = getKamerStaat(huisId, kamerId);
+  if (!k) return false;
+  k.klaar = false;
+  k.schoonPct = 0;
+  bewaren();
+  return true;
+}
+
+// Markeert dat Mama langs is geweest (ontgrendelt de "mama"-sticker). Idempotent:
+// nogmaals aanroepen verandert niets.
+export function markeerMama() {
+  if (staat.mamaGeweest === true) return;
+  staat.mamaGeweest = true;
   bewaren();
 }
 

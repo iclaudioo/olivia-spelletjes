@@ -101,6 +101,41 @@ export function muntGeluid() {
   });
 }
 
+// Plagerig "whoops"-deuntje als Mama een kamer vies maakt: een snelle dalende
+// glide (boing-achtig) — ondeugend en vrolijk, niet eng. Respecteert aanGeluid().
+export function mamaGeluid() {
+  if (!aanGeluid()) return;
+  const a = audio();
+  const t = a.currentTime;
+
+  // Dalende toon (de "whoops").
+  const osc = a.createOscillator();
+  const g = a.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(700, t);
+  osc.frequency.exponentialRampToValueAtTime(180, t + 0.28);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.16, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+  osc.connect(g).connect(a.destination);
+  osc.start(t);
+  osc.stop(t + 0.34);
+
+  // Speels "boing"-staartje erachteraan.
+  const osc2 = a.createOscillator();
+  const g2 = a.createGain();
+  osc2.type = "triangle";
+  const t2 = t + 0.3;
+  osc2.frequency.setValueAtTime(240, t2);
+  osc2.frequency.exponentialRampToValueAtTime(520, t2 + 0.12);
+  g2.gain.setValueAtTime(0.0001, t2);
+  g2.gain.exponentialRampToValueAtTime(0.14, t2 + 0.02);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.2);
+  osc2.connect(g2).connect(a.destination);
+  osc2.start(t2);
+  osc2.stop(t2 + 0.22);
+}
+
 // Groot feest-deuntje bij "klaar!".
 export function vieringGeluid() {
   if (!aanGeluid()) return;
