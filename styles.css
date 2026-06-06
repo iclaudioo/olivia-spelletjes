@@ -1364,7 +1364,97 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   box-shadow: 0 3px 0 var(--schaduw);
 }
 
-/* ===== Dans-minigame "Volg de moves!" ===== */
+/* ===== Dans-minigame v2 "Volg de moves!" ===== */
+
+/* ----- Liedkeuze + niveau-scherm ----- */
+.dans-keuze-scherm {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2.4vw, 20px);
+}
+.dans-keuze-uitleg {
+  text-align: center;
+  font-weight: 800;
+  font-size: clamp(15px, 2.8vw, 22px);
+  color: var(--donker);
+  text-shadow: 0 2px 0 #fff;
+  margin-top: 4px;
+}
+.dans-niveau-rij {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.8vw, 14px);
+  justify-content: center;
+}
+.dans-niveau-knop {
+  border: 3px solid transparent;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 900;
+  font-size: clamp(15px, 2.6vw, 20px);
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 18px;
+  padding: 12px 18px;
+  min-height: 56px;
+  box-shadow: 0 5px 0 var(--schaduw);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .08s ease, border-color .12s ease;
+}
+.dans-niveau-knop.actief {
+  border-color: var(--roze);
+  background: #fff0f6;
+  transform: translateY(-1px);
+}
+.dans-lied-rooster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: clamp(12px, 2.2vw, 20px);
+  width: 100%;
+  max-width: 760px;
+}
+.dans-lied-kaart {
+  --lied-kleur: #ffd24a;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--donker);
+  background: var(--wit);
+  border-radius: 22px;
+  padding: 18px 12px 16px;
+  box-shadow: 0 7px 0 var(--schaduw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  border-top: 8px solid var(--lied-kleur);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.dans-lied-kaart:active {
+  transform: translateY(4px);
+  box-shadow: 0 3px 0 var(--schaduw);
+}
+.dans-lied-emoji { font-size: clamp(40px, 7vw, 58px); line-height: 1; }
+.dans-lied-naam { font-weight: 900; font-size: clamp(16px, 2.6vw, 22px); }
+.dans-lied-bpm {
+  font-weight: 700;
+  font-size: clamp(11px, 1.9vw, 14px);
+  color: #8896a0;
+}
+.dans-lied-score {
+  font-weight: 800;
+  font-size: clamp(12px, 2vw, 16px);
+  color: var(--blauw-diep);
+  margin-top: 2px;
+  min-height: 1.2em;
+}
+
 .dansen-scherm {
   position: relative;
   flex: 1;
@@ -1376,6 +1466,65 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   /* Voorkom page-scroll/zoom tijdens het spelen op de iPad. */
   touch-action: none;
   background: radial-gradient(circle at 50% 30%, #4a3a6e 0%, #2a2148 70%, #1a1530 100%);
+}
+
+/* Zachte concert-lichten achter alles (TRAAG, geen strobe). */
+.dansen-lichten {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.dansen-licht {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  width: 60%;
+  height: 140%;
+  transform-origin: top center;
+  opacity: .14;
+  filter: blur(28px);
+  border-radius: 50%;
+}
+.dansen-licht.a { background: var(--roze);  animation: dansenLicht 9s ease-in-out infinite; }
+.dansen-licht.b { background: var(--blauw); animation: dansenLicht 11s ease-in-out infinite reverse; }
+.dansen-licht.c { background: var(--lied-kleur, #ffd24a); animation: dansenLicht 13s ease-in-out infinite; }
+@keyframes dansenLicht {
+  0%   { transform: translateX(-50%) rotate(-16deg); }
+  50%  { transform: translateX(-50%) rotate(16deg); }
+  100% { transform: translateX(-50%) rotate(-16deg); }
+}
+
+/* Klein juichend publiek onderaan, achter het veld (deint mee). */
+.dansen-publiek {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1%;
+  z-index: 0;
+  display: flex;
+  justify-content: space-around;
+  pointer-events: none;
+  opacity: .5;
+  padding: 0 4%;
+}
+.dansen-hoofd {
+  font-size: clamp(20px, 4.5vw, 34px);
+  line-height: 1;
+  animation: dansenDein 0.62s ease-in-out infinite;
+}
+.dansen-hoofd.h0 { animation-delay: 0s;    }
+.dansen-hoofd.h1 { animation-delay: 0.12s; }
+.dansen-hoofd.h2 { animation-delay: 0.24s; }
+.dansen-hoofd.h3 { animation-delay: 0.36s; }
+.dansen-hoofd.h4 { animation-delay: 0.18s; }
+.dansen-hoofd.h5 { animation-delay: 0.30s; }
+.dansen-hoofd.h6 { animation-delay: 0.06s; }
+.dansen-hoofd.h7 { animation-delay: 0.42s; }
+@keyframes dansenDein {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%      { transform: translateY(-8px) rotate(4deg); }
 }
 
 /* De dansende achtergrond-figuren (Mama links, Olivia rechts), achter het veld. */
@@ -1452,17 +1601,41 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   background: linear-gradient(180deg, rgba(255, 210, 74, .10), rgba(255, 143, 182, .18));
 }
 
-/* Een vallende pijl-cue: gecentreerd op zijn baan-kolom, valt via top%. */
-.dansen-pijl {
+/* Een vallende noot: gecentreerd op zijn baan-kolom, valt via top%. Een tik-noot
+   is alleen een kop; een hold-noot heeft een staart (balk) erboven. */
+.dansen-noot {
   position: absolute;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: top;
+}
+.dansen-noot-kop {
   font-size: clamp(34px, 8vw, 54px);
   line-height: 1;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4));
-  will-change: top;
 }
-.dansen-pijl.in-zone {
+/* De staart van een hold-noot: een dikke, halfdoorzichtige balk boven de kop. */
+.dansen-noot-staart {
+  position: absolute;
+  bottom: 50%;
+  width: clamp(26px, 6vw, 40px);
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, rgba(255, 210, 74, .35), rgba(255, 143, 182, .8));
+  border: 3px solid rgba(255, 255, 255, .7);
+  box-shadow: 0 0 8px rgba(255, 210, 74, .5);
+}
+.dansen-noot.hold .dansen-noot-kop {
+  filter: drop-shadow(0 0 6px rgba(255, 143, 182, .9));
+}
+.dansen-noot.in-zone .dansen-noot-kop {
   filter: drop-shadow(0 0 10px rgba(255, 210, 74, .95));
+}
+/* Actief vastgehouden hold-noot: laat de staart oplichten. */
+.dansen-noot.vastgehouden .dansen-noot-staart {
+  background: linear-gradient(180deg, rgba(126, 255, 160, .5), rgba(255, 210, 74, .9));
+  box-shadow: 0 0 14px rgba(126, 255, 160, .8);
 }
 
 /* De vier grote baan-knoppen onderaan (iPad-vriendelijk). */
@@ -1544,6 +1717,11 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
 }
 .dansen-sterren { font-size: clamp(34px, 7vw, 50px); line-height: 1; }
 .dansen-resultaat-score { font-weight: 800; font-size: clamp(16px, 3vw, 22px); }
+.dansen-resultaat-beste {
+  font-weight: 700;
+  font-size: clamp(13px, 2.4vw, 18px);
+  color: #6a7480;
+}
 .dansen-resultaat-munten {
   font-weight: 900;
   font-size: clamp(18px, 3.4vw, 26px);
@@ -1603,9 +1781,15 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
      gestuurd (top%), niet door een CSS-animatie, dus die blijven gewoon vallen.
      De raak-vonkjes worden in JS sowieso al uitgezet onder reduced-motion. */
   .dansen-danser.mama,
-  .dansen-danser.olivia {
+  .dansen-danser.olivia,
+  .dansen-licht.a,
+  .dansen-licht.b,
+  .dansen-licht.c,
+  .dansen-hoofd {
     animation: none !important;
   }
+  /* De concert-lichten zacht en stilstaand tonen (blijft een feestje, geen draai). */
+  .dansen-licht { transform: translateX(-50%) rotate(0deg); }
 
   /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
      ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit

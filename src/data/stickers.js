@@ -186,6 +186,15 @@ export const STICKERS = [
     verdiend: (s) => !!s?.dansGespeeld,
   },
   {
+    id: "sterdanser",
+    naam: "Sterdanser",
+    emoji: "🌟",
+    beschrijving: "Haal 3 sterren op een lied",
+    // Defensief: een aparte vlag (s.driesterDans) die de dans-minigame zet zodra
+    // een ronde 3 sterren oplevert. Geen afgeleide berekening over scores → crash-vrij.
+    verdiend: (s) => !!s?.driesterDans,
+  },
+  {
     id: "fashionista",
     naam: "Fashionista",
     emoji: "💇‍♀️",

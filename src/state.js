@@ -85,6 +85,22 @@ function maakStandaard() {
     // v4-saves krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump.
     dansGespeeld: false,
     dansTopScore: 0,
+    // Dans-minigame v2: beste resultaat per (lied, niveau), gekeyd op
+    // `${liedId}:${niveau}` (bv. "sterrendans:gewoon"). Elke entry is een object
+    // `{ score, sterren }`: de hoogste behaalde score én het hoogste aantal sterren
+    // (0–3) dat ooit op dit lied+niveau is gehaald. We bewaren de ECHT behaalde
+    // sterren (de in-ronde-meting) zodat het keuze-scherm exact dezelfde sterren
+    // toont als de ronde — geen schatting meer. Vervangt het enkele
+    // dansTopScore-getal (dat we voor de bestaande danskampioen-sticker behouden).
+    // Bestaande v4-saves krijgen dit lege object vanzelf via diepSamenvoegen —
+    // GEEN key-bump nodig. De catalogus (src/data/liedjes.js) is de bron van
+    // waarheid voor liedjes; de staat bewaart hier alleen de scores.
+    dansScores: {},
+    // Of er ooit een ronde met 3 sterren is gehaald (voor de "sterdanser"-
+    // sticker). Een aparte, defensieve vlag i.p.v. een afgeleid predicaat zodat
+    // de sticker crash-vrij is. Bestaande saves krijgen dit veld via
+    // diepSamenvoegen — GEEN key-bump nodig.
+    driesterDans: false,
     // Olivia's gekozen look (Styling Studio, Feature G1). Bewaart ALLEEN de
     // keuze-id's per categorie; alle kleuren/SVG komen uit src/data/styling.js.
     // De standaard-look is de KLASSIEKE Olivia (geen visuele regressie).
@@ -384,9 +400,66 @@ export function markeerDansGespeeld(score) {
   bewaren();
 }
 
-// De hoogste dans-minigame-score (of 0 als er nog niet is gespeeld).
+// De hoogste dans-minigame-score (of 0 als er nog niet is gespeeld). Behouden
+// voor terugwaartse compatibiliteit; v2 gebruikt getDansScore(lied, niveau).
 export function getDansTopScore() {
   return staat.dansTopScore || 0;
+}
+
+// ---- Dans-minigame v2: scores per (lied, niveau) ----
+
+// Bouwt de samengestelde sleutel `${liedId}:${niveau}` (defensief: lege strings
+// als er iets ontbreekt, zodat we nooit "undefined:undefined" krijgen).
+function dansSleutel(liedId, niveau) {
+  return `${liedId || ""}:${niveau || ""}`;
+}
+
+// Het beste resultaat voor een lied+niveau als `{ score, sterren }` (of
+// `{ score: 0, sterren: 0 }` als er nog niet op is gespeeld). Defensief: een oude/
+// vreemde bare-number-waarde wordt als `{ score: dat, sterren: 0 }` behandeld zodat
+// een raar gevormde save het keuze-scherm nooit breekt.
+export function getDansScore(liedId, niveau) {
+  const scores = staat.dansScores;
+  if (!isObject(scores)) return { score: 0, sterren: 0 };
+  const w = scores[dansSleutel(liedId, niveau)];
+  if (Number.isFinite(w)) return { score: w, sterren: 0 }; // oude bare-number-vorm
+  if (!isObject(w)) return { score: 0, sterren: 0 };
+  const score = Number.isFinite(w.score) ? w.score : 0;
+  const sterren = Number.isFinite(w.sterren) ? Math.max(0, Math.min(3, w.sterren)) : 0;
+  return { score, sterren };
+}
+
+// Een nieuw resultaat (score + behaalde sterren) voor lied+niveau bewaren. Score
+// én sterren gaan elk ALLEEN omhoog (we houden de hoogste score ooit én de hoogste
+// sterren ooit, ook als die in verschillende rondes zijn behaald). Werkt tegelijk de
+// algemene topscore + de "gespeeld"-vlag bij (voor de danskampioen-sticker), en
+// geeft het (mogelijk bijgewerkte) beste resultaat `{ score, sterren }` terug.
+export function markeerDansScore(liedId, niveau, score, sterren) {
+  if (!isObject(staat.dansScores)) staat.dansScores = {};
+  const sleutel = dansSleutel(liedId, niveau);
+  // Bestaande entry defensief uitlezen (object, oude bare-number, of niets).
+  const vorig = getDansScore(liedId, niveau);
+  const nieuwScore = Number.isFinite(score) ? score : 0;
+  const nieuwSterren = Number.isFinite(sterren) ? Math.max(0, Math.min(3, sterren)) : 0;
+  const beste = {
+    score: Math.max(vorig.score, nieuwScore),
+    sterren: Math.max(vorig.sterren, nieuwSterren),
+  };
+  staat.dansScores[sleutel] = beste;
+  // Algemene "gespeeld"-vlag + topscore bijwerken (voor de bestaande sticker).
+  staat.dansGespeeld = true;
+  const topNu = staat.dansTopScore || 0;
+  if (nieuwScore > topNu) staat.dansTopScore = nieuwScore;
+  bewaren();
+  return beste;
+}
+
+// Markeert dat er ooit een ronde met 3 sterren is gehaald (ontgrendelt de
+// "sterdanser"-sticker). Idempotent: nogmaals aanroepen verandert niets.
+export function markeerDriesterDans() {
+  if (staat.driesterDans === true) return;
+  staat.driesterDans = true;
+  bewaren();
 }
 
 // ---- Inrichten (decor) ----
