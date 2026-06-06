@@ -925,3 +925,24 @@ a.foto-bewaar { text-decoration: none; display: inline-block; }
   from { opacity: 1; transform: translateY(0) scale(1); }
   to   { opacity: 0; transform: translateY(-24px) scale(.9); }
 }
+
+/* ===== Minder beweging (toegankelijkheid) =====
+   Wie in het systeem "beperk beweging" aan heeft staan, wil geen eindeloos
+   doorlopende animaties. We zetten daarom de oneindige idle-wiebel van de Mama-
+   knop uit en neutraliseren alle andere INFINITE-loops. Korte, eenmalige
+   overgangen (viering, toast, schud, pop) blijven bewust werken: die zijn
+   functioneel-vrolijk en stoppen vanzelf. */
+@media (prefers-reduced-motion: reduce) {
+  /* De eindeloze idle-wiebel van de Mama-knop uit (blijft verder gewoon werken). */
+  .mama-knop {
+    animation: none;
+  }
+  /* Vangnet: mocht er ergens nog een oneindige loop bijkomen, dan stopt die hier
+     ook (één enkele iteratie i.p.v. eindeloos). Eenmalige animaties raakt dit
+     niet, want die hebben standaard al animation-iteration-count: 1. */
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+  }
+}

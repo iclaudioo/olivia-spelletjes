@@ -65,6 +65,10 @@ export function toonToast({ emoji, tekst } = {}) {
 // dezelfde queue/levenscyclus als toonToast (alleen de opmaak verschilt).
 export function toonStickerToast(sticker) {
   if (!sticker) return;
+  // Vrolijk sparkle-deuntje hoort specifiek bij een sticker-beloning. Generieke
+  // toasts (zoals de plagende Mama-melding) hebben hun eigen geluid in de
+  // aanroeper en mogen hier dus NIET ook nog sparkelen.
+  sparkleGeluid();
   wachtrij.push((toast) => {
     const kop = document.createElement("div");
     kop.className = "sticker-toast-kop";
@@ -111,8 +115,10 @@ function volgende() {
   vul(toast);
   laag.append(toast);
 
-  // Vrolijk geluidje bij het verschijnen.
-  sparkleGeluid();
+  // Géén geluid in de gedeelde levenscyclus: een sticker-toast speelt zelf het
+  // sparkle-deuntje (zie toonStickerToast) en een generieke toast laat het geluid
+  // over aan de aanroeper (bijv. Mama's eigen whoops in house.js). Zo klinkt er
+  // nooit een dubbel/verkeerd geluidje.
 
   // Na de toon-tijd de uit-animatie starten, daarna het element verwijderen en
   // de volgende uit de rij tonen. Timers worden opgeruimd door het verwijderen.
