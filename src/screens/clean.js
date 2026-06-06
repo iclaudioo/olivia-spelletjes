@@ -20,6 +20,8 @@ import { skinById, skinAccent } from "../data/skins.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
 import { vierVerdiendeStickers } from "../ui/toast.js";
+import { vuurConfetti } from "../ui/confetti.js";
+import { vliegMunten } from "../ui/muntvlieg.js";
 import { terug, vervang, navigeer } from "../router.js";
 import { muntGeluid, vieringGeluid, sparkleGeluid, ontgrendelAudio } from "../audio/sfx.js";
 
@@ -169,7 +171,9 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     // door te blijven spelen).
     const beloning = eersteKeer ? BELONING : HERHAAL_BELONING;
     const nieuw = voegMuntenToe(beloning);
-    updateMunten(nieuw, true);
+    // Munt-waarde bijwerken zonder zelf te poppen: de vliegende muntjes hieronder
+    // laten de teller poppen bij aankomst (één pop, niet dubbel).
+    updateMunten(nieuw);
     // De viering-kaart toont het bedrag dat ook echt is uitgekeerd.
     if (beloningEl) beloningEl.textContent = `+${beloning} ★`;
     // Eventueel verdiende stickers toekennen en vieren (dedup zit in de staat,
@@ -180,6 +184,12 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     vieringGeluid();
     setTimeout(() => muntGeluid(), 400);
     setTimeout(() => viering.classList.add("aan"), 500);
+    // ---- Juice (Feature G4): confetti boven-midden + muntjes naar de teller ----
+    // Vanaf het midden van de kamer vliegen er muntjes naar de teller; de hoeveel-
+    // heid schaalt mee met de beloning (beloning/5, min. 1). Beide helpers ruimen
+    // zichzelf op en zijn reduced-motion-veilig.
+    vuurConfetti();
+    vliegMunten({ van: wrap, aantal: Math.max(1, Math.round(beloning / 5)) });
   }
 
   // ---- Verkeerd-gereedschap-hint (vriendelijk, niet straffend) ----

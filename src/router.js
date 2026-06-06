@@ -37,6 +37,16 @@ function render(entry) {
   el.innerHTML = "";
   // Een scherm MAG een opruim-functie teruggeven; die roepen we aan bij weg-navigeren.
   huidigeOpruim = toon(el, entry.params) || null;
+
+  // ---- Zachte scherm-overgang (Feature G4) ----
+  // Een korte fade/zoom-in bij elk nieuw scherm. We zetten de klasse opnieuw met
+  // een geforceerde reflow ertussen, zodat de animatie ook bij hetzelfde scherm
+  // (bv. "Nog een keer") opnieuw start. De animatie is eenmalig en kort (~200ms);
+  // onder prefers-reduced-motion zet de CSS hem uit. Dit raakt de render-/opruim-
+  // logica niet (we manipuleren alleen een klasse op #app).
+  el.classList.remove("scherm-in");
+  void el.offsetWidth;
+  el.classList.add("scherm-in");
 }
 
 // Naar een scherm gaan: voegt toe aan de geschiedenis en toont het scherm.
