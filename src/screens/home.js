@@ -28,6 +28,7 @@ import { navigeer } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
 import { maakHuisdierFiguur } from "../ui/huisdier.js";
+import { maakPapaFiguur } from "../ui/papa.js";
 import { mamaSVG } from "../art/mama.js";
 import { oliviaSVG } from "../art/olivia.js";
 import { ontgrendelAudio } from "../audio/sfx.js";
@@ -184,6 +185,15 @@ export function toon(app, _params = {}) {
   olivia.innerHTML = oliviaSVG(getOliviaLook());
   parade.append(olivia);
 
+  // Papa (Feature H1): tikbaar in de parade. Bij tik verschijnt een keuze-bubbeltje
+  // met Knuffel (+5) en Kusje (+10). De munten-callback werkt de topbar-teller bij.
+  const papa = maakPapaFiguur({
+    opMunten: (nieuwTotaal) => updateMunten(nieuwTotaal, true),
+  });
+  const papaWrap = maak("div", "home-parade-figuur papa");
+  papaWrap.append(papa.el);
+  parade.append(papaWrap);
+
   // Het gekozen huisdier (of null) — als geadopteerd, aaibaar in de parade.
   const huisdier = maakHuisdierFiguur({ aaibaar: true });
   if (huisdier) {
@@ -202,5 +212,6 @@ export function toon(app, _params = {}) {
   // router roept deze functie aan.
   return () => {
     if (huisdier) huisdier.opruim();
+    papa.opruim();
   };
 }

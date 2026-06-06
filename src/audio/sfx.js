@@ -196,6 +196,72 @@ export function aaiGeluid() {
   chirp.stop(t + 0.24);
 }
 
+// Knuffel-geluidje voor Papa (Feature H1): een warm, zacht "awww"-toontje — twee
+// lage sinus-noten die zacht omhoog glijden en samen een warme terts vormen, met
+// een heel zachte aanzet zodat het knus en lief klinkt (geen scherpe randen).
+// Respecteert aanGeluid().
+export function knuffelGeluid() {
+  if (!aanGeluid()) return;
+  const a = audio();
+  const t = a.currentTime;
+
+  // Twee warme sinus-noten (een terts) die samen een knus akkoord vormen en
+  // zachtjes een beetje omhoog glijden ("mmm-aah").
+  [
+    { f0: 330, f1: 392 }, // E4 → G4
+    { f0: 415, f1: 494 }, // G#4 → B4 (zachte boventoon)
+  ].forEach(({ f0, f1 }, i) => {
+    const osc = a.createOscillator();
+    const g = a.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(f0, t);
+    osc.frequency.linearRampToValueAtTime(f1, t + 0.28);
+    const piek = i === 0 ? 0.16 : 0.07; // de boventoon zachter
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(piek, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    osc.connect(g).connect(a.destination);
+    osc.start(t);
+    osc.stop(t + 0.55);
+  });
+}
+
+// Kus-geluidje voor Papa (Feature H1): een kort, vrolijk "mwah" — een snel
+// omhoog-en-weer-omlaag glijdend toontje (de "smak") gevolgd door een klein blij
+// tikje. Bewust kort en grappig zodat een kusje extra leuk voelt.
+// Respecteert aanGeluid().
+export function kusGeluid() {
+  if (!aanGeluid()) return;
+  const a = audio();
+  const t = a.currentTime;
+
+  // De "smak": snel omhoog (mwa) en weer omlaag (h) — een puckerend toontje.
+  const osc = a.createOscillator();
+  const g = a.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(520, t);
+  osc.frequency.exponentialRampToValueAtTime(1100, t + 0.05);
+  osc.frequency.exponentialRampToValueAtTime(660, t + 0.13);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  osc.connect(g).connect(a.destination);
+  osc.start(t);
+  osc.stop(t + 0.2);
+
+  // Klein blij "tikje" als vrolijke afronding van de kus.
+  const tik = a.createOscillator();
+  const tg = a.createGain();
+  tik.type = "triangle";
+  tik.frequency.setValueAtTime(1568, t + 0.12);
+  tg.gain.setValueAtTime(0.0001, t + 0.12);
+  tg.gain.exponentialRampToValueAtTime(0.1, t + 0.14);
+  tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+  tik.connect(tg).connect(a.destination);
+  tik.start(t + 0.12);
+  tik.stop(t + 0.28);
+}
+
 // Groot feest-deuntje bij "klaar!".
 export function vieringGeluid() {
   if (!aanGeluid()) return;

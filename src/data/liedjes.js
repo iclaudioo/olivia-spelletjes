@@ -107,6 +107,48 @@ export const LIEDJES = [
       7, 9, 7, 4, 0, null, 0, null,
     ],
   },
+  {
+    id: "glitterbeat",
+    naam: "Glitterbeat",
+    emoji: "🌠",
+    kleur: "#ffb3ec",
+    bpm: 116,
+    grond: 392.0, // G4 — sprankelend en vrolijk
+    melodie: [
+      0, null, 2, 4, 5, null, 4, 2,
+      7, null, 5, 4, 2, null, 4, null,
+      5, 7, 9, null, 7, 5, 4, null,
+      2, 4, 5, 4, 0, null, null, null,
+    ],
+  },
+  {
+    id: "maandisco",
+    naam: "Maandisco",
+    emoji: "🌙",
+    kleur: "#9ad0ff",
+    bpm: 124,
+    grond: 440.0, // A4 — koel en dromerig-disco
+    melodie: [
+      4, null, 2, null, 0, 2, 4, null,
+      5, null, 7, 5, 4, 2, 0, null,
+      7, 5, 7, 9, 7, null, 5, 4,
+      2, 0, 2, 4, 0, null, 0, null,
+    ],
+  },
+  {
+    id: "snoephart",
+    naam: "Snoephart",
+    emoji: "🍬",
+    kleur: "#ff8fb6",
+    bpm: 138,
+    grond: 523.25, // C5 — extra zoet en hoog
+    melodie: [
+      0, 2, 4, 5, 7, 5, 4, 2,
+      4, 5, 7, 9, 7, null, 5, null,
+      0, 2, 4, null, 5, 4, 2, 0,
+      7, 5, 4, 2, 0, null, null, null,
+    ],
+  },
 ];
 
 // Snelle opzoek-map id → definitie.
