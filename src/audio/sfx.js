@@ -160,6 +160,42 @@ export function mamaGeluid() {
   }
 }
 
+// Aai-geluidje voor het huisdier (Feature G3): een kort, schattig "boop"/chirp —
+// een snel omhoog glijdend sinus-toontje met een klein staartje, zoals een blij
+// piepje. Bewust zacht en kort zodat herhaald aaien niet vervelend wordt.
+// Respecteert aanGeluid().
+export function aaiGeluid() {
+  if (!aanGeluid()) return;
+  const a = audio();
+  const t = a.currentTime;
+
+  // Hoofdtoon: snel van ~520 naar ~880 Hz glijden ("boo-p").
+  const osc = a.createOscillator();
+  const g = a.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(520, t);
+  osc.frequency.exponentialRampToValueAtTime(880, t + 0.09);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.14, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  osc.connect(g).connect(a.destination);
+  osc.start(t);
+  osc.stop(t + 0.2);
+
+  // Klein blij "chirp"-tikje erbovenop voor de schattige afronding.
+  const chirp = a.createOscillator();
+  const cg = a.createGain();
+  chirp.type = "triangle";
+  chirp.frequency.setValueAtTime(1320, t + 0.08);
+  chirp.frequency.exponentialRampToValueAtTime(1760, t + 0.15);
+  cg.gain.setValueAtTime(0.0001, t + 0.08);
+  cg.gain.exponentialRampToValueAtTime(0.07, t + 0.1);
+  cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+  chirp.connect(cg).connect(a.destination);
+  chirp.start(t + 0.08);
+  chirp.stop(t + 0.24);
+}
+
 // Groot feest-deuntje bij "klaar!".
 export function vieringGeluid() {
   if (!aanGeluid()) return;

@@ -16,10 +16,18 @@ import {
   koopMeubel,
   bezitSkin,
   koopSkin,
+  bezitHuisdier,
+  koopHuisdier,
 } from "../state.js";
 import { HUIS_CATALOGUS, getHuisDef } from "../data/huizen.js";
 import { MEUBELS, MEUBEL_LIJST, meubelPrijs } from "../art/meubels.js";
 import { SKIN_LIJST, skinById, skinPrijs } from "../data/skins.js";
+import {
+  HUISDIER_LIJST,
+  huisdierById,
+  huisdierSVG,
+  huisdierPrijs,
+} from "../data/huisdieren.js";
 import { terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak, maakHuisKaart } from "../ui/dom.js";
@@ -104,6 +112,32 @@ export function toon(app, _params = {}) {
         const vlag = maak("div", "winkel-skin-vlag huis-emoji", def.emoji);
         vlag.style.background = def.accent;
         kaart.append(vlag, maak("div", "huis-naam", def.naam));
+        return kaart;
+      },
+    },
+    {
+      container: null,
+      titel: "Huisdieren",
+      leegTekst: "Alle dieren geadopteerd! 🐾",
+      // Nog-niet-geadopteerde huisdier-ids in catalogus-volgorde.
+      lijst: () => HUISDIER_LIJST.filter((id) => !bezitHuisdier(id)),
+      naam: (id) => huisdierById(id).naam,
+      prijs: (id) => huisdierPrijs(id),
+      bezit: (id) => bezitHuisdier(id),
+      koop: (id) => koopHuisdier(id),
+      // Visuele "kop": de huisdier-SVG (valt terug op emoji) + naam.
+      maakHoofd: (id) => {
+        const def = huisdierById(id);
+        const kaart = maak("div", "huis-kaart winkel-kaart-koop");
+        const svg = huisdierSVG(id);
+        if (svg) {
+          const sprite = maak("div", "winkel-huisdier-sprite");
+          sprite.innerHTML = svg;
+          kaart.append(sprite);
+        } else {
+          kaart.append(maak("div", "huis-emoji", def.emoji));
+        }
+        kaart.append(maak("div", "huis-naam", def.naam));
         return kaart;
       },
     },

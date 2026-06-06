@@ -17,6 +17,7 @@
 import { HUIS_CATALOGUS, getHuisDef } from "./data/huizen.js";
 import { MEUBEL_GRATIS, meubelPrijs } from "./art/meubels.js";
 import { GRATIS_SKINS, STANDAARD_SKIN, skinPrijs } from "./data/skins.js";
+import { huisdierById, huisdierPrijs } from "./data/huisdieren.js";
 import { STICKERS } from "./data/stickers.js";
 import {
   GRATIS_STYLING,
@@ -110,6 +111,14 @@ function maakStandaard() {
     // De gekochte styling-items. De gratis items (prijs 0) bezit je vanaf het
     // begin; betaalde K-pop-looks koop je in de Styling Studio.
     gekochteStyling: [...GRATIS_STYLING],
+    // Huisdier-vriendje (Feature G3). `huisdieren` bevat de id's van de dieren
+    // die je in de winkel hebt geadopteerd; `gekozenHuisdier` is het actieve dier
+    // dat op het beginscherm verschijnt en meedanst (null = (nog) geen dier). De
+    // catalogus (src/data/huisdieren.js) is de bron van waarheid voor naam/emoji/
+    // prijs/SVG; de staat bewaart hier alleen bezit + keuze. Bestaande v4-saves
+    // krijgen deze velden vanzelf via diepSamenvoegen — GEEN key-bump nodig.
+    huisdieren: [],
+    gekozenHuisdier: null,
   };
 }
 
@@ -330,6 +339,57 @@ export function koopStyling(id) {
   staat.gekochteStyling.push(id);
   bewaren();
   return true;
+}
+
+// ---- Huisdier-vriendje (bezit + gekozen dier) ----
+
+// Of een huisdier in bezit (geadopteerd) is.
+export function bezitHuisdier(id) {
+  return Array.isArray(staat.huisdieren) && staat.huisdieren.includes(id);
+}
+
+// Een huisdier kopen/adopteren: kijkt naar de prijs in de catalogus. Lukt alleen
+// als je het nog niet hebt, het bestaat, én je genoeg munten hebt. Trekt dan
+// munten af, zet het in de bezitslijst en bewaart. Bij de ALLEREERSTE adoptie
+// wordt dit dier meteen het gekozen (actieve) dier. Geeft true bij succes, anders
+// false.
+export function koopHuisdier(id) {
+  if (bezitHuisdier(id)) return false;
+  if (!huisdierById(id)) return false;
+  const prijs = huisdierPrijs(id);
+  if (staat.munten < prijs) return false;
+
+  staat.munten -= prijs;
+  if (!Array.isArray(staat.huisdieren)) staat.huisdieren = [];
+  staat.huisdieren.push(id);
+  // Eerste dier → meteen actief maken, zodat het direct op het beginscherm staat.
+  if (!staat.gekozenHuisdier) staat.gekozenHuisdier = id;
+  bewaren();
+  return true;
+}
+
+// Een huisdier kiezen als actief dier — of `null` om "geen dier" te kiezen.
+// Kiezen mag alleen als je het dier bezit (of null). Zet gekozenHuisdier +
+// bewaart. Geeft true bij succes, anders false (onbekend of niet in bezit).
+export function kiesHuisdier(id) {
+  if (id === null) {
+    staat.gekozenHuisdier = null;
+    bewaren();
+    return true;
+  }
+  if (!bezitHuisdier(id)) return false;
+  staat.gekozenHuisdier = id;
+  bewaren();
+  return true;
+}
+
+// Het gekozen (actieve) huisdier-id, of null als er geen gekozen is. Valt veilig
+// terug op null als het gekozen dier niet (meer) in bezit is (corrupte/bewerkte
+// save of een uit de catalogus verwijderd dier) — zo tonen we nooit een niet-
+// bezeten dier.
+export function getGekozenHuisdier() {
+  const id = staat.gekozenHuisdier;
+  return id && bezitHuisdier(id) ? id : null;
 }
 
 // ---- Kamer-voortgang ----

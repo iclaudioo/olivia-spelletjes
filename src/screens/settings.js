@@ -11,8 +11,12 @@ import {
   bezitSkin,
   kiesSkin,
   getGekozenSkin,
+  bezitHuisdier,
+  kiesHuisdier,
+  getGekozenHuisdier,
 } from "../state.js";
 import { SKIN_LIJST, skinById } from "../data/skins.js";
+import { HUISDIER_LIJST, huisdierById, huisdierSVG } from "../data/huisdieren.js";
 import { terug } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
 import { maak as el } from "../ui/dom.js";
@@ -94,10 +98,48 @@ export function toon(app, _params = {}) {
   skinVak.append(el("div", "skin-hint", "Koop meer in de winkel 🛒"));
 
   scherm.append(audioVak, skinVak);
+
+  // ---- Vak: huisdier-picker (alleen als je minstens één dier bezit) ----
+  // Toont je geadopteerde dieren + een "Geen"-tegel om het dier te verbergen.
+  // Tikken kiest het actieve dier (gekozenHuisdier). Nieuwe dieren koop je in de
+  // winkel; daarom verschijnt dit vak pas zodra je er één hebt.
+  const eigenDieren = HUISDIER_LIJST.filter((id) => bezitHuisdier(id));
+  const dierTegels = []; // { id, el } — id === null voor de "Geen"-tegel
+  if (eigenDieren.length > 0) {
+    const dierVak = el("div", "instellingen-vak");
+    dierVak.append(el("div", "instellingen-sectie-titel", "🐾 Huisdier"));
+
+    const dierRooster = el("div", "skin-rooster");
+
+    // "Geen"-tegel: verbergt het huisdier op het beginscherm/dansfeest.
+    const geenTegel = el("button", "skin-tegel");
+    const geenVlag = el("div", "skin-tegel-vlag", "🚫");
+    geenTegel.append(geenVlag, el("div", "skin-tegel-naam", "Geen"));
+    geenTegel.addEventListener("click", () => kiesDier(null));
+    dierRooster.append(geenTegel);
+    dierTegels.push({ id: null, el: geenTegel });
+
+    for (const id of eigenDieren) {
+      const def = huisdierById(id);
+      const tegel = el("button", "skin-tegel");
+      const vlag = el("div", "skin-tegel-vlag huisdier-tegel-vlag");
+      const svg = huisdierSVG(id);
+      if (svg) vlag.innerHTML = svg;
+      else vlag.textContent = def.emoji;
+      tegel.append(vlag, el("div", "skin-tegel-naam", def.naam));
+      tegel.addEventListener("click", () => kiesDier(id));
+      dierRooster.append(tegel);
+      dierTegels.push({ id, el: tegel });
+    }
+    dierVak.append(dierRooster);
+    scherm.append(dierVak);
+  }
+
   app.append(top, scherm);
 
-  // Begin-markering van de actieve skin.
+  // Begin-markering van de actieve skin + huisdier.
   markeerActief();
+  markeerActiefDier();
 
   function kies(id) {
     ontgrendelAudio();
@@ -107,6 +149,16 @@ export function toon(app, _params = {}) {
   function markeerActief() {
     const actief = getGekozenSkin();
     for (const t of tegels) t.el.classList.toggle("gekozen", t.id === actief);
+  }
+
+  function kiesDier(id) {
+    ontgrendelAudio();
+    if (kiesHuisdier(id)) markeerActiefDier();
+  }
+
+  function markeerActiefDier() {
+    const actief = getGekozenHuisdier(); // null = geen dier
+    for (const t of dierTegels) t.el.classList.toggle("gekozen", t.id === actief);
   }
 }
 
