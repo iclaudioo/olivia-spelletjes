@@ -215,6 +215,23 @@ export const STICKERS = [
       );
     },
   },
+  {
+    id: "geluksvogel",
+    naam: "Geluksvogel",
+    emoji: "🍀",
+    beschrijving: "Draai aan het Rad van Fortuin",
+    verdiend: (s) => !!s?.laatsteRadDag,
+  },
+  {
+    id: "doener",
+    naam: "Doener",
+    emoji: "🎯",
+    beschrijving: "Voltooi een opdracht",
+    verdiend: (s) => {
+      const t = s?.quests?.taken || [];
+      return t.some((x) => x.beloond);
+    },
+  },
 ];
 
 // Het totaal aantal stickers — handig voor "X / N" tellingen.

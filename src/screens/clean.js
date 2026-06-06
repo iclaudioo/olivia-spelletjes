@@ -14,6 +14,7 @@ import {
   markeerKamerKlaar,
   voegMuntenToe,
   getGekozenSkin,
+  meldQuestGebeurtenis,
 } from "../state.js";
 import { getKamerDef } from "../data/huizen.js";
 import { skinById, skinAccent } from "../data/skins.js";
@@ -171,6 +172,8 @@ export function toon(app, { huisId = "thuis", kamerId = "woonkamer" } = {}) {
     // door te blijven spelen).
     const beloning = eersteKeer ? BELONING : HERHAAL_BELONING;
     const nieuw = voegMuntenToe(beloning);
+    // Dagelijkse opdrachten (G5): een schoongemaakte kamer telt mee.
+    meldQuestGebeurtenis("schoonmaak");
     // Munt-waarde bijwerken zonder zelf te poppen: de vliegende muntjes hieronder
     // laten de teller poppen bij aankomst (één pop, niet dubbel).
     updateMunten(nieuw);

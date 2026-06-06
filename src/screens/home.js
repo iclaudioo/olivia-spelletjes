@@ -14,7 +14,15 @@
 // staat alles stil maar zichtbaar (de CSS bevriest de animaties; de hartjes worden
 // in het huisdier-figuur al overgeslagen).
 
-import { getStaat, bezitHuis, getOliviaLook } from "../state.js";
+import {
+  getStaat,
+  bezitHuis,
+  getOliviaLook,
+  zorgVoorQuestsVandaag,
+  getQuestsVandaag,
+  kanRadDraaien,
+} from "../state.js";
+import { questById } from "../data/quests.js";
 import { HUIS_CATALOGUS } from "../data/huizen.js";
 import { navigeer } from "../router.js";
 import { maakTopbar } from "../ui/topbar.js";
@@ -96,6 +104,32 @@ export function toon(app, _params = {}) {
     navigeer("dansen");
   });
   rooster.append(dansenKaart);
+
+  // ---- Opdrachten-kaart (dagelijkse quests + Rad van Fortuin) ----
+  // Een klein badge/stipje als er vandaag nog iets te doen is: het rad nog niet
+  // gedraaid, of een voltooide-maar-nog-niet-opgehaalde opdracht. We zorgen eerst
+  // dat de quests van vandaag bestaan zodat de badge klopt (dit kiest ze de eerste
+  // keer vandaag en is daarna een no-op).
+  const opdrachtenKaart = maakHuisKaart({
+    emoji: "🎯",
+    naam: "Opdrachten",
+    extraKlasse: "opdrachten-kaart",
+  });
+  zorgVoorQuestsVandaag();
+  const claimbaar = getQuestsVandaag().some((t) => {
+    const def = questById(t.id);
+    return def && !t.beloond && t.voortgang >= t.doel;
+  });
+  if (kanRadDraaien() || claimbaar) {
+    const badge = maak("span", "kaart-badge", "•");
+    badge.setAttribute("aria-hidden", "true");
+    opdrachtenKaart.append(badge);
+  }
+  opdrachtenKaart.addEventListener("click", () => {
+    ontgrendelAudio();
+    navigeer("opdrachten");
+  });
+  rooster.append(opdrachtenKaart);
 
   // ---- Styling-kaart (Styling Studio — Olivia aankleden) ----
   const stylingKaart = maakHuisKaart({

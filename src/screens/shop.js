@@ -18,6 +18,7 @@ import {
   koopSkin,
   bezitHuisdier,
   koopHuisdier,
+  meldQuestGebeurtenis,
 } from "../state.js";
 import { HUIS_CATALOGUS, getHuisDef } from "../data/huizen.js";
 import { MEUBELS, MEUBEL_LIJST, meubelPrijs } from "../art/meubels.js";
@@ -208,6 +209,9 @@ export function toon(app, _params = {}) {
     ontgrendelAudio();
     const gelukt = sectie.koop(id);
     if (!gelukt) return;
+
+    // Dagelijkse opdrachten (G5): een geslaagde aankoop telt mee.
+    meldQuestGebeurtenis("koop");
 
     muntGeluid();
     updateMunten(getStaat().munten, true);
