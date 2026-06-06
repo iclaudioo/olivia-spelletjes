@@ -110,6 +110,13 @@ export const STICKERS = [
     verdiend: (s) => s?.huizen?.raket?.gekocht === true,
   },
   {
+    id: "popster",
+    naam: "Popster!",
+    emoji: "🎤",
+    beschrijving: "Koop de Popster Studio",
+    verdiend: (s) => !!s?.huizen?.popster?.gekocht,
+  },
+  {
     id: "poetskampioen",
     naam: "Poetskampioen",
     emoji: "🏆",

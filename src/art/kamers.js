@@ -18,6 +18,7 @@ import {
   ruimtekeukenSVG,
   ruimteslaapkamerSVG,
 } from "./themes/ruimte.js";
+import { podiumSVG, kleedkamerSVG, oefenstudioSVG } from "./themes/popster.js";
 
 // Registry: koppelt een kamer-art-sleutel aan de bijbehorende SVG.
 export const KAMER_ART = {
@@ -38,6 +39,10 @@ export const KAMER_ART = {
   stuurkamer: stuurkamerSVG,
   ruimtekeuken: ruimtekeukenSVG,
   ruimteslaapkamer: ruimteslaapkamerSVG,
+  // popster studio
+  podium: podiumSVG,
+  kleedkamer: kleedkamerSVG,
+  oefenstudio: oefenstudioSVG,
 };
 
 // Haalt de SVG op bij een art-sleutel; valt veilig terug op de woonkamer.
@@ -64,6 +69,10 @@ export const KAMER_EMOJI = {
   stuurkamer: "🛸",
   ruimtekeuken: "🪐",
   ruimteslaapkamer: "🛰️",
+  // popster studio
+  podium: "🎤",
+  kleedkamer: "💄",
+  oefenstudio: "🪩",
 };
 
 // Haalt de emoji op bij een art-sleutel; valt veilig terug op een huisje.
@@ -99,6 +108,10 @@ export const VLOER_GRENS = {
   stuurkamer: 0.7,
   ruimtekeuken: 0.7,
   ruimteslaapkamer: 0.7,
+  // popster studio (alle drie vloer-rect y=380 → 0.63)
+  podium: 0.63,
+  kleedkamer: 0.63,
+  oefenstudio: 0.63,
 };
 
 // Geeft de muur/vloer-grens (0..1) voor een art-sleutel; standaard 0.62.

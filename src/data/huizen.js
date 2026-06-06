@@ -53,6 +53,18 @@ export const HUIS_CATALOGUS = [
       { id: "ruimteslaapkamer", naam: "Ruimte-slaapkamer", art: "ruimteslaapkamer" },
     ],
   },
+  {
+    id: "popster",
+    naam: "Popster Studio",
+    emoji: "🎤",
+    thema: "popster",
+    prijs: 300,
+    kamers: [
+      { id: "podium", naam: "Podium", art: "podium" },
+      { id: "kleedkamer", naam: "Kleedkamer", art: "kleedkamer" },
+      { id: "oefenstudio", naam: "Oefenstudio", art: "oefenstudio" },
+    ],
+  },
 ];
 
 // Een huis-definitie opzoeken in de catalogus (of undefined).

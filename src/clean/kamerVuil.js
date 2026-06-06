@@ -62,6 +62,20 @@ export const KAMER_VUIL = {
     vuil: ["stof", "spinnenweb", "vlek"],
     rommel: ["🧦", "🎧", "🚀"],
   },
+
+  // ---- Popster Studio (gemorste drankjes, make-up, glitter en zweet) ----
+  podium: {
+    vuil: ["stof", "vlek", "kruimel"],
+    rommel: ["🎤", "🎧", "🥤"],
+  },
+  kleedkamer: {
+    vuil: ["vlek", "stof", "aangekoekt"],
+    rommel: ["💄", "👗", "🧴"],
+  },
+  oefenstudio: {
+    vuil: ["modder", "vlek", "spinnenweb"],
+    rommel: ["🩰", "🧦", "🥤"],
+  },
 };
 
 // Veilige standaard als een art-sleutel onbekend is.
