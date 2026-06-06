@@ -101,39 +101,63 @@ export function muntGeluid() {
   });
 }
 
-// Plagerig "whoops"-deuntje als Mama een kamer vies maakt: een snelle dalende
-// glide (boing-achtig) — ondeugend en vrolijk, niet eng. Respecteert aanGeluid().
+// Mama is een ZANGERES: in plaats van de oude whoops/boing zingt ze nu een kort,
+// vrolijk frasetje ("la-la-laa") — een paar op- en aflopende noten, gespeeld met
+// oscillators alsof ze even uitschiet in een liedje terwijl ze de kamer vies
+// maakt. Elke noot krijgt een lichte triangel-toon + zacht "ah"-vibrato, en een
+// kwint erboven voor een warme, gezongen klank. Respecteert aanGeluid().
 export function mamaGeluid() {
   if (!aanGeluid()) return;
   const a = audio();
-  const t = a.currentTime;
+  const t0 = a.currentTime;
 
-  // Dalende toon (de "whoops").
-  const osc = a.createOscillator();
-  const g = a.createGain();
-  osc.type = "sawtooth";
-  osc.frequency.setValueAtTime(700, t);
-  osc.frequency.exponentialRampToValueAtTime(180, t + 0.28);
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.16, t + 0.03);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
-  osc.connect(g).connect(a.destination);
-  osc.start(t);
-  osc.stop(t + 0.34);
+  // Vrolijk "la-la-laa"-frasetje: omhoog en weer terug (C–E–G–E–C-achtig).
+  const frase = [
+    { f: 523.25, dur: 0.16 }, // C5  "la"
+    { f: 659.25, dur: 0.16 }, // E5  "la"
+    { f: 783.99, dur: 0.22 }, // G5  "laa" (langer gehouden)
+    { f: 659.25, dur: 0.16 }, // E5  "la"
+    { f: 587.33, dur: 0.26 }, // D5  "laa" (zachte afsluiting)
+  ];
 
-  // Speels "boing"-staartje erachteraan.
-  const osc2 = a.createOscillator();
-  const g2 = a.createGain();
-  osc2.type = "triangle";
-  const t2 = t + 0.3;
-  osc2.frequency.setValueAtTime(240, t2);
-  osc2.frequency.exponentialRampToValueAtTime(520, t2 + 0.12);
-  g2.gain.setValueAtTime(0.0001, t2);
-  g2.gain.exponentialRampToValueAtTime(0.14, t2 + 0.02);
-  g2.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.2);
-  osc2.connect(g2).connect(a.destination);
-  osc2.start(t2);
-  osc2.stop(t2 + 0.22);
+  let t = t0;
+  for (const { f, dur } of frase) {
+    // Grondtoon (warme triangel — klinkt "gezongen", niet scherp).
+    const osc = a.createOscillator();
+    const g = a.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(f, t);
+    // Klein "ah"-vibrato voor een levendige stem.
+    const vib = a.createOscillator();
+    const vibG = a.createGain();
+    vib.type = "sine";
+    vib.frequency.value = 6;
+    vibG.gain.value = f * 0.012;
+    vib.connect(vibG).connect(osc.frequency);
+    vib.start(t);
+    vib.stop(t + dur + 0.05);
+
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.16, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g).connect(a.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+
+    // Zachte kwint erboven voor een vollere, blijere klank.
+    const boven = a.createOscillator();
+    const bg = a.createGain();
+    boven.type = "sine";
+    boven.frequency.setValueAtTime(f * 1.5, t);
+    bg.gain.setValueAtTime(0.0001, t);
+    bg.gain.exponentialRampToValueAtTime(0.05, t + 0.03);
+    bg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    boven.connect(bg).connect(a.destination);
+    boven.start(t);
+    boven.stop(t + dur + 0.05);
+
+    t += dur * 0.92; // noten lichtjes laten overlappen → vloeiend "legato"
+  }
 }
 
 // Groot feest-deuntje bij "klaar!".

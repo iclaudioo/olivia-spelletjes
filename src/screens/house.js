@@ -2,9 +2,12 @@
 // elk met de schoon-status. Tikken op een kamer opent het schoonmaak-scherm.
 // Kamers + metadata komen uit de catalogus; de status uit de staat.
 //
-// Boven het rooster staat de vrolijke "Mama"-knop: tik erop en Mama maakt een
-// willekeurige schone kamer weer vies, zodat je hem opnieuw kunt poetsen (en
-// opnieuw munten verdient). Het decor van die kamer blijft bewaard.
+// Over het rooster wandelt continu het zingende Mama-figuur (een SVG-zangeres
+// met bruin haar en een microfoon). Tik op Mama en ze maakt een willekeurige
+// schone kamer weer vies, zodat je hem opnieuw kunt poetsen (en opnieuw munten
+// verdient). Het decor van die kamer blijft bewaard. De loop-, flip-, wiebel- en
+// muzieknoot-animaties zijn puur CSS (zie styles.css) — er lopen dus geen JS-
+// timers/listeners die kunnen lekken na navigeren.
 
 import {
   getStaat,
@@ -19,6 +22,7 @@ import { maak } from "../ui/dom.js";
 import { ontgrendelAudio, mamaGeluid } from "../audio/sfx.js";
 import { toonToast, vierVerdiendeStickers } from "../ui/toast.js";
 import { kamerEmoji } from "../art/kamers.js";
+import { mamaSVG } from "../art/mama.js";
 
 export function toon(app, { huisId } = {}) {
   const staat = getStaat();
@@ -37,16 +41,12 @@ export function toon(app, { huisId } = {}) {
   const scherm = maak("div", "huis-scherm");
   const rooster = maak("div", "kamer-rooster");
 
-  // De Mama-knop alleen tonen als er kamers zijn (dus een geldig, bezeten huis).
+  // Het rondlopende Mama-figuur alleen tonen als er kamers zijn (dus een geldig,
+  // bezeten huis). Mama wandelt continu heen en weer over de breedte van het
+  // overzicht; tikken op haar maakt een willekeurige schone kamer weer vies.
   const kamers = huisDef ? huisDef.kamers : [];
   if (kamers.length > 0) {
-    const mamaKnop = maak("button", "mama-knop");
-    mamaKnop.append(
-      maak("span", "mama-knop-emoji", "👩"),
-      maak("span", "mama-knop-tekst", "Roep Mama! 🙈"),
-    );
-    mamaKnop.addEventListener("click", () => roepMama(huisId, rooster));
-    scherm.append(mamaKnop);
+    scherm.append(maakMamaFiguur(huisId, rooster));
   }
 
   // Het rooster wordt door tekenRooster gevuld; zo kan roepMama het opnieuw
@@ -55,6 +55,57 @@ export function toon(app, { huisId } = {}) {
 
   scherm.append(rooster);
   app.append(top, scherm);
+}
+
+// Bouwt het rondlopende, zingende Mama-figuur. De structuur is met opzet in
+// lagen verdeeld zodat de CSS-animaties elkaar niet in de weg zitten:
+//   .mama-laan      → vaste, volle-breedte laan (bewegingsgebied)
+//     .mama-loper   → translateX heen-en-weer (de wandeling)
+//       .mama-flip  → scaleX-flip zodat Mama altijd de loop-richting op kijkt
+//         .mama-svg-wrap → zachte op-en-neer "loop"-wiebel + het SVG-figuur
+//         .mama-noot*    → zwevende muzieknoten die omhoog faden (puur CSS)
+//       .mama-wolkje → af-en-toe "Tik me!"-spraakwolkje (ontdekbaarheid). Zit
+//                      BUITEN .mama-flip zodat de hint-tekst nooit gespiegeld
+//                      rendert (alleen .mama-loper transleert, flipt nooit).
+// Het HELE figuur is één groot, kindvriendelijk tikdoel (roept roepMama aan).
+function maakMamaFiguur(huisId, rooster) {
+  const laan = maak("div", "mama-laan");
+
+  const loper = maak("button", "mama-loper");
+  loper.type = "button";
+  loper.setAttribute("aria-label", "Tik op Mama om een kamer vies te maken");
+
+  const flip = maak("div", "mama-flip");
+
+  // Het figuur zelf (op-en-neer wiebel zit op de wrap).
+  const svgWrap = maak("div", "mama-svg-wrap");
+  svgWrap.innerHTML = mamaSVG;
+
+  // Zwevende muzieknoten vanaf de microfoon — puur CSS-animatie, geen timers.
+  const noten = maak("div", "mama-noten");
+  noten.setAttribute("aria-hidden", "true");
+  for (const [n, klas] of [
+    ["🎵", "mama-noot a"],
+    ["🎶", "mama-noot b"],
+    ["🎵", "mama-noot c"],
+  ]) {
+    noten.append(maak("span", klas, n));
+  }
+
+  // Subtiel, af-en-toe spraakwolkje zodat duidelijk is dat je kunt tikken.
+  const wolkje = maak("div", "mama-wolkje", "🎶 Tik me! 🎶");
+  wolkje.setAttribute("aria-hidden", "true");
+
+  // De noten mogen mee-flippen (cosmetisch onschuldig), maar het tekstwolkje
+  // NIET: het hoort in .mama-loper (alleen translateX, nooit scaleX) zodat de
+  // "Tik me!"-hint altijd leesbaar blijft i.p.v. spiegelbeeldig tijdens het
+  // naar-rechts-lopen.
+  flip.append(svgWrap, noten);
+  loper.append(flip, wolkje);
+  loper.addEventListener("click", () => roepMama(huisId, rooster));
+
+  laan.append(loper);
+  return laan;
 }
 
 // (Her)tekent het kamer-rooster op basis van de huidige staat. Geeft per kamer
