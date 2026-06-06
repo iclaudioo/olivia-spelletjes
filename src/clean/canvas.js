@@ -3,7 +3,7 @@
 // sparkles, het meten van het schoon-percentage, en een vriendelijke hint als
 // het verkeerde gereedschap wordt gebruikt.
 
-import { schrobGeluid, sparkleGeluid } from "../audio/sfx.js";
+import { sparkleGeluid } from "../audio/sfx.js";
 
 // Alle bekende vuilsoorten (sleutels gelijk aan tools.js `verwijdert`).
 export const VUIL_SOORTEN = ["stof", "vlek", "modder", "aangekoekt", "spinnenweb", "kruimel"];
@@ -311,7 +311,6 @@ export function maakSchoonmaak({
     veeg(laatst.x, laatst.y);
     spawnSparkles(laatst.x, laatst.y, 2);
     onSchrob?.();
-    schrobGeluid();
     meetThrottled();
   }
   function beweeg(e) {
@@ -321,7 +320,6 @@ export function maakSchoonmaak({
     if (Math.random() < 0.5) spawnSparkles(p.x, p.y, 2);
     laatst = p;
     onSchrob?.();
-    schrobGeluid();
     meetThrottled();
   }
   function omhoog() {
