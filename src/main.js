@@ -11,6 +11,7 @@ import { toon as toonInstellingen } from "./screens/settings.js";
 import { toon as toonDansen } from "./screens/dansen.js";
 import { toon as toonStyling } from "./screens/styling.js";
 import { toon as toonOpdrachten } from "./screens/quests.js";
+import { toon as toonConcert } from "./screens/concert.js";
 import { ontgrendelAudio } from "./audio/sfx.js";
 import { startMuziekIndienAan } from "./audio/muziek.js";
 
@@ -25,6 +26,7 @@ registreer("instellingen", toonInstellingen);
 registreer("dansen", toonDansen);
 registreer("styling", toonStyling);
 registreer("opdrachten", toonOpdrachten);
+registreer("concert", toonConcert);
 
 // Audio ontgrendelen bij de allereerste aanraking (vereist door iOS Safari).
 // Datzelfde gebaar telt ook om de achtergrondmuziek te mogen starten — dus als
