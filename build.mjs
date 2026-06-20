@@ -1,8 +1,9 @@
 // Bouwt Olivia's site in één gecombineerde dist/:
 //   1) homepage  → dist/            (leegt dist eerst)
-//   2) poetsen   → dist/spelletjes/poetsen/  (relatieve base; leegt alleen die submap)
-// Volgorde is belangrijk: de homepage-build leegt dist/, daarna vult de spel-build
-// de submap. Vite draait per app met de submap als cwd (root = cwd, public = ./public).
+//   2) poetsen   → dist/spelletjes/poetsen/  (relatieve base)
+//   3) panini    → dist/spelletjes/panini/   (relatieve base)
+// Volgorde is belangrijk: de homepage-build leegt dist/, daarna vullen de spel-builds
+// hun submappen. Vite draait per app met de submap als cwd (root = cwd, public = ./public).
 import { execSync } from "node:child_process";
 
 function bouw(label, cmd, cwd) {
@@ -21,5 +22,10 @@ bouw(
   "npx vite build --base=./ --outDir ../../dist/spelletjes/poetsen --emptyOutDir",
   "spelletjes/poetsen"
 );
+bouw(
+  "Panini",
+  "npx vite build --base=./ --outDir ../../dist/spelletjes/panini --emptyOutDir",
+  "spelletjes/panini"
+);
 
-console.log("\n✓ Klaar: dist/ bevat de homepage + spelletjes/poetsen/");
+console.log("\n✓ Klaar: dist/ bevat de homepage + spelletjes/poetsen/ + spelletjes/panini/");
