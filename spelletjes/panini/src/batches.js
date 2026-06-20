@@ -1,5 +1,5 @@
-// Automatische update voor nieuwe losse stickers.
-// Draait vóór main.js zodat bestaande toestellen de nieuwste batch éénmalig meekrijgen.
+// Automatische update voor nieuwe losse stickers en dubbele stickers.
+// Draait vóór main.js zodat bestaande toestellen de nieuwste batches éénmalig meekrijgen.
 (() => {
   const STORE = 'olivia-panini-v3';
   const BASE = {
@@ -19,7 +19,13 @@
   const BATCHES = [
     {
       id: 'loose-stickers-2026-06-20-01',
-      stickers: ['JOR 3','NED 5','FRA 6','MEX 7','CRO 14','IRQ 2','IRN 9','RSA 15']
+      stickers: ['JOR 3','NED 5','FRA 6','MEX 7','CRO 14','IRQ 2','IRN 9','RSA 15'],
+      trades: []
+    },
+    {
+      id: 'duplicate-stickers-2026-06-20-01',
+      stickers: [],
+      trades: ['CRO 13','SCO 1','CRO 10','JPN 4','ESP 4','CPV 16','SUI 20','FRA 14','TUN 3','CZE 17','CUW 12']
     }
   ];
   function parse() {
@@ -33,15 +39,19 @@
     state.trades = state.trades || {};
     state.newOnes = state.newOnes || [];
   }
+  state.trades = state.trades || {};
   state.appliedBatches = state.appliedBatches || [];
   for (const batch of BATCHES) {
     if (state.appliedBatches.includes(batch.id)) continue;
-    for (const sticker of batch.stickers) {
+    for (const sticker of batch.stickers || []) {
       const [code, raw] = sticker.split(' ');
       const num = Number(raw);
       state.teams[code] = unique([...(state.teams[code] || []), num]);
       state.newOnes = state.newOnes || [];
       state.newOnes.push(sticker);
+    }
+    for (const trade of batch.trades || []) {
+      state.trades[trade] = (state.trades[trade] || 0) + 1;
     }
     state.appliedBatches.push(batch.id);
   }
