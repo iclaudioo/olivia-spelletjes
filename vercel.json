@@ -5,13 +5,16 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/spelletjes/poetsen/:path*", "destination": "/spelletjes/poetsen/index.html" },
+    { "source": "/spelletjes/panini/:path*", "destination": "/spelletjes/panini/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/(.*)", "headers": [ { "key": "X-Robots-Tag", "value": "noindex, nofollow" } ] },
     { "source": "/sw.js", "headers": [ { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" } ] },
     { "source": "/spelletjes/poetsen/sw.js", "headers": [ { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" } ] },
+    { "source": "/spelletjes/panini/sw.js", "headers": [ { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" } ] },
     { "source": "/manifest.webmanifest", "headers": [ { "key": "Content-Type", "value": "application/manifest+json" } ] },
-    { "source": "/spelletjes/poetsen/manifest.webmanifest", "headers": [ { "key": "Content-Type", "value": "application/manifest+json" } ] }
+    { "source": "/spelletjes/poetsen/manifest.webmanifest", "headers": [ { "key": "Content-Type", "value": "application/manifest+json" } ] },
+    { "source": "/spelletjes/panini/manifest.json", "headers": [ { "key": "Content-Type", "value": "application/manifest+json" } ] }
   ]
 }
