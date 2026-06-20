@@ -1,0 +1,9 @@
+{
+  "name": "Olivia Panini WK 2026",
+  "short_name": "Panini",
+  "start_url": "/spelletjes/panini/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": []
+}
