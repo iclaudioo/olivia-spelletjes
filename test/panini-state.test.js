@@ -14,6 +14,7 @@ import {
   normaliseStickerCode,
   normalisePaniniState,
   tradeShareAvailability,
+  tradeShareClaimSummaries,
 } from '../spelletjes/panini/src/sticker-state.js';
 
 test('normaliseStickerCode accepts loose typing and validates known sticker ranges', () => {
@@ -204,6 +205,61 @@ test('normalisePaniniState preserves trade shares and normalises claims', () => 
   assert.deepEqual(state.tradeShares.share123.missing, ['SUI 20']);
   assert.deepEqual(state.tradeShares.share123.claims[0].wanted, ['BEL 15']);
   assert.deepEqual(state.tradeShares.share123.claims[0].offered, ['SUI 20']);
+});
+
+test('normalisePaniniState preserves Aldo claim with FWC 3 offer', () => {
+  const state = normalisePaniniState({
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 19': 1, 'USA 17': 1 },
+        missing: ['FWC 3', 'AUT 8'],
+        claims: [{
+          friendName: 'Aldo',
+          wanted: ['BEL 19', 'USA 17'],
+          offered: ['FWC 3', 'AUT 8'],
+          updatedAt: '2026-06-21T16:20:31.803218+00:00',
+        }],
+      },
+    },
+  });
+
+  assert.equal(state.tradeShares.share123.claims[0].friendName, 'Aldo');
+  assert.equal(state.tradeShares.share123.claims[0].offered.includes('FWC 3'), true);
+});
+
+test('tradeShareClaimSummaries prepares ruilkaart metrics without changing claims', () => {
+  const share = normalisePaniniState({
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 19': 1, 'USA 17': 1 },
+        missing: ['FWC 3', 'AUT 8'],
+        claims: [{
+          friendName: 'Aldo',
+          wanted: ['BEL 19', 'USA 17'],
+          offered: ['FWC 3', 'AUT 8'],
+          updatedAt: '2026-06-21T16:20:31.803218+00:00',
+        }],
+      },
+    },
+  }).tradeShares.share123;
+
+  const summaries = tradeShareClaimSummaries(share);
+
+  assert.deepEqual(summaries, [{
+    friendName: 'Aldo',
+    wantedCount: 2,
+    offeredCount: 2,
+    availableWantedCount: 2,
+    unavailableWantedCount: 0,
+    wanted: ['BEL 19', 'USA 17'],
+    offered: ['FWC 3', 'AUT 8'],
+    updatedAt: '2026-06-21T16:20:31.803218+00:00',
+  }]);
+  assert.deepEqual(share.claims[0].offered, ['FWC 3', 'AUT 8']);
 });
 
 test('mergeTradeShares keeps owner updates and friend claims together', () => {

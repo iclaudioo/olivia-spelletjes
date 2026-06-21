@@ -148,6 +148,29 @@ export function tradeShareAvailability(rawShare, options = {}) {
   );
 }
 
+export function tradeShareClaimSummaries(rawShare) {
+  const share = normaliseTradeShare(rawShare);
+  if (!share) return [];
+
+  return share.claims.map((claim) => {
+    const availability = tradeShareAvailability(share, { excludeFriendName: claim.friendName });
+    const availableWantedCount = claim.wanted.filter((label) => Number(availability[label] || 0) > 0).length;
+    return {
+      friendName: claim.friendName,
+      wantedCount: claim.wanted.length,
+      offeredCount: claim.offered.length,
+      availableWantedCount,
+      unavailableWantedCount: claim.wanted.length - availableWantedCount,
+      wanted: [...claim.wanted],
+      offered: [...claim.offered],
+      updatedAt: claim.updatedAt,
+    };
+  }).sort((a, b) => (
+    (b.availableWantedCount + b.offeredCount) - (a.availableWantedCount + a.offeredCount)
+    || a.friendName.localeCompare(b.friendName)
+  ));
+}
+
 export function normalisePaniniState(state) {
   const source = state && typeof state === 'object' ? state : {};
   const teams = {};
