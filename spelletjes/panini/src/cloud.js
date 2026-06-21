@@ -1,4 +1,4 @@
-import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePaniniState } from './sticker-state.js';
+import { mergePaniniStates, normalisePaniniState } from './sticker-state.js';
 
 (() => {
   const STORE = 'olivia-panini-v3';
@@ -11,6 +11,7 @@ import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePa
   const originalSetItem = localStorage.setItem.bind(localStorage);
   let bootDone = false;
   let pushTimer = null;
+  let refreshTimer = null;
   let tokenPanel = null;
 
   function mountBadge() {
@@ -182,27 +183,7 @@ import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePa
   }
 
   function mergeStates(a, b) {
-    const left = normalise(a);
-    const right = normalise(b);
-    const teams = { ...left.teams };
-    for (const [code, stickers] of Object.entries(right.teams)) {
-      teams[code] = normalisePaniniState({ teams: { [code]: [...(teams[code] || []), ...stickers] } }).teams[code] || [];
-    }
-    const trades = { ...left.trades };
-    for (const [code, amount] of Object.entries(right.trades)) {
-      trades[code] = Math.max(Number(trades[code] || 0), Number(amount || 0));
-    }
-    return normalise({
-      cloudSchema: 1,
-      teams,
-      extras: mergePaniniExtras(left.extras, right.extras),
-      rareExtras: mergePaniniRareExtras(left.rareExtras, right.rareExtras),
-      trades,
-      tradeShares: mergeTradeShares(left.tradeShares, right.tradeShares),
-      newOnes: [...(left.newOnes || []), ...(right.newOnes || [])].slice(-100),
-      appliedBatches: [...new Set([...(left.appliedBatches || []), ...(right.appliedBatches || [])])],
-      lastSyncedAt: new Date().toISOString(),
-    });
+    return mergePaniniStates(a, b);
   }
 
   async function fetchCloud(requireToken = false) {
@@ -280,8 +261,13 @@ import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePa
       try {
         badge('opslaan...', 'sync');
         const local = normalise(parseState(localStorage.getItem(STORE)));
-        await pushCloud({ ...local, lastSyncedAt: new Date().toISOString() });
+        const cloud = await fetchCloud(false);
+        const merged = mergeStates(cloud, local);
+        const saved = await pushCloud({ ...merged, lastSyncedAt: new Date().toISOString() });
+        const savedRaw = JSON.stringify(saved);
+        if (savedRaw !== JSON.stringify(local)) originalSetItem(STORE, savedRaw);
         badge('opgeslagen', 'ok');
+        dispatchStateUpdate();
       } catch (error) {
         if (error.message === 'owner token required' || error.message === 'forbidden') {
           if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
@@ -299,6 +285,23 @@ import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePa
     if (key === STORE) schedulePush();
     return result;
   };
+
+  function hasLocalTradeShares() {
+    const local = normalise(parseState(localStorage.getItem(STORE)));
+    return Object.keys(local.tradeShares || {}).length > 0;
+  }
+
+  function startOwnerRefresh() {
+    if (refreshTimer) return;
+    refreshTimer = setInterval(async () => {
+      if (activeShareId() || document.hidden || !ownerToken() || !hasLocalTradeShares()) return;
+      try {
+        await forceSync(false, false);
+      } catch (error) {
+        if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
+      }
+    }, 30000);
+  }
 
   window.oliviaPaniniCloud = {
     forceSync,
@@ -330,11 +333,13 @@ import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePa
       badge(error.message === 'forbidden' ? 'niet opgeslagen' : 'offline bewaard', 'error');
     } finally {
       bootDone = true;
+      startOwnerRefresh();
     }
   })();
 
   window.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') schedulePush(0);
+    else if (ownerToken() && hasLocalTradeShares()) forceSync(false, false).catch(() => {});
   });
   window.addEventListener('online', () => schedulePush(0));
 })();

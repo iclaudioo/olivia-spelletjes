@@ -6,6 +6,7 @@ import {
   addTradeSticker,
   createTradeShare,
   mergePaniniExtras,
+  mergePaniniStates,
   mergeTradeShares,
   missingStickerLabels,
   removeOwnedSticker,
@@ -230,4 +231,36 @@ test('mergeTradeShares keeps owner updates and friend claims together', () => {
   assert.deepEqual(merged.share123.items, { 'BEL 15': 2, 'CRO 10': 1 });
   assert.deepEqual(merged.share123.missing, ['SUI 20', 'BEL 16']);
   assert.deepEqual(merged.share123.claims.map((claim) => claim.friendName).sort(), ['Emma', 'Noah']);
+});
+
+test('mergePaniniStates keeps cloud trade claims when local owner state is stale', () => {
+  const cloud = normalisePaniniState({
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 15': 1 },
+        missing: ['SUI 20'],
+        claims: [{ friendName: 'Emma', wanted: ['BEL 15'], offered: ['SUI 20'], updatedAt: '2026-06-21T08:01:00.000Z' }],
+        updatedAt: '2026-06-21T08:01:00.000Z',
+      },
+    },
+  });
+  const staleLocal = normalisePaniniState({
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 15': 1, 'CRO 10': 1 },
+        missing: ['SUI 20'],
+        claims: [],
+        updatedAt: '2026-06-21T08:00:00.000Z',
+      },
+    },
+  });
+
+  const merged = mergePaniniStates(cloud, staleLocal);
+
+  assert.deepEqual(merged.tradeShares.share123.items, { 'BEL 15': 1, 'CRO 10': 1 });
+  assert.deepEqual(merged.tradeShares.share123.claims.map((claim) => claim.friendName), ['Emma']);
 });

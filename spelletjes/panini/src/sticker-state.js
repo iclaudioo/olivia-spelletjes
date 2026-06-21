@@ -219,6 +219,32 @@ export function mergePaniniRareExtras(leftExtras, rightExtras) {
   return mergeRareExtras(leftExtras, rightExtras);
 }
 
+export function mergePaniniStates(cloudState, localState) {
+  const left = normalisePaniniState(cloudState);
+  const right = normalisePaniniState(localState);
+  const teams = { ...left.teams };
+  for (const [code, stickers] of Object.entries(right.teams)) {
+    teams[code] = normalisePaniniState({ teams: { [code]: [...(teams[code] || []), ...stickers] } }).teams[code] || [];
+  }
+
+  const trades = { ...left.trades };
+  for (const [code, amount] of Object.entries(right.trades)) {
+    trades[code] = Math.max(Number(trades[code] || 0), Number(amount || 0));
+  }
+
+  return normalisePaniniState({
+    cloudSchema: 1,
+    teams,
+    extras: mergePaniniExtras(left.extras, right.extras),
+    rareExtras: mergePaniniRareExtras(left.rareExtras, right.rareExtras),
+    trades,
+    tradeShares: mergeTradeShares(left.tradeShares, right.tradeShares),
+    newOnes: [...(left.newOnes || []), ...(right.newOnes || [])].slice(-100),
+    appliedBatches: [...new Set([...(left.appliedBatches || []), ...(right.appliedBatches || [])])],
+    lastSyncedAt: new Date().toISOString(),
+  });
+}
+
 export function addOwnedSticker(state, codeOrLabel, number) {
   const sticker = normaliseStickerCode(codeOrLabel, number);
   if (!sticker) return null;
