@@ -1,15 +1,11 @@
 import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
 
-// Supabase cloud sync voor Olivia's Panini-tool.
-// Bewaart dezelfde state als localStorage, maar nu ook centraal in Supabase.
-// Belangrijk: de nieuwe Supabase publishable key gaat enkel in de apikey-header.
 (() => {
   const STORE = 'olivia-panini-v3';
-  const ROW_ID = 'olivia';
+  const OWNER_TOKEN_STORE = 'olivia-panini-owner-token';
   const SUPABASE_URL = 'https://eblgjinuakxdiikscjpe.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_88Vk4S3kmsA4uxiA_e5Mqg_01vPFNRd';
-  const TABLE = 'olivia_panini_state';
-  const ENDPOINT = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+  const RPC_ENDPOINT = `${SUPABASE_URL}/rest/v1/rpc`;
 
   const originalSetItem = localStorage.setItem.bind(localStorage);
   let bootDone = false;
@@ -29,7 +25,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
         el.id = 'cloudSyncBadge';
         el.type = 'button';
         el.className = 'cloud-sync-badge';
-        el.onclick = () => forceSync(true);
+        el.onclick = () => forceSync(true, true).catch(() => {});
       }
       const dot = kind === 'ok' ? '🟢' : kind === 'error' ? '🔴' : '🟡';
       el.textContent = `${dot} ${message}`;
@@ -46,17 +42,43 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     catch { return {}; }
   }
 
-  function uniqueStrings(value) {
-    const out = [];
-    for (const item of Array.isArray(value) ? value : []) {
-      const text = String(item || '').trim();
-      if (text && !out.includes(text)) out.push(text);
-    }
-    return out;
-  }
-
   function normalise(state) {
     return normalisePaniniState(state);
+  }
+
+  function ownerToken() {
+    return localStorage.getItem(OWNER_TOKEN_STORE) || '';
+  }
+
+  function promptOwnerToken() {
+    const value = window.prompt('Geef de Panini beheercode in om met Supabase te synchroniseren.');
+    const token = String(value || '').trim();
+    if (token) localStorage.setItem(OWNER_TOKEN_STORE, token);
+    return token;
+  }
+
+  function activeShareId() {
+    return new URLSearchParams(location.search).get('ruil')?.trim() || '';
+  }
+
+  function dispatchStateUpdate() {
+    window.dispatchEvent(new CustomEvent('olivia-panini-cloud-updated'));
+  }
+
+  async function rpc(name, body) {
+    const response = await fetch(`${RPC_ENDPOINT}/${name}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) throw new Error('forbidden');
+      throw new Error('cloud request failed');
+    }
+    return response.json();
   }
 
   function mergeStates(a, b) {
@@ -70,63 +92,77 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     for (const [code, amount] of Object.entries(right.trades)) {
       trades[code] = Math.max(Number(trades[code] || 0), Number(amount || 0));
     }
-    return {
-      ...left,
-      ...right,
+    return normalise({
       cloudSchema: 1,
       teams,
       trades,
       tradeShares: mergeTradeShares(left.tradeShares, right.tradeShares),
-      newOnes: uniqueStrings([...(left.newOnes || []), ...(right.newOnes || [])]).slice(-100),
-      appliedBatches: uniqueStrings([...(left.appliedBatches || []), ...(right.appliedBatches || [])]),
+      newOnes: [...(left.newOnes || []), ...(right.newOnes || [])].slice(-100),
+      appliedBatches: [...new Set([...(left.appliedBatches || []), ...(right.appliedBatches || [])])],
       lastSyncedAt: new Date().toISOString(),
-    };
-  }
-
-  const baseHeaders = {
-    apikey: SUPABASE_KEY,
-    'Content-Type': 'application/json',
-  };
-
-  async function fetchCloud() {
-    const response = await fetch(`${ENDPOINT}?id=eq.${encodeURIComponent(ROW_ID)}&select=state,updated_at`, {
-      headers: { apikey: SUPABASE_KEY },
-      cache: 'no-store',
     });
-    if (!response.ok) throw new Error(`Cloud read failed: ${response.status}`);
-    const rows = await response.json();
-    return rows?.[0]?.state || {};
   }
 
-  async function pushCloud(state) {
+  async function fetchCloud(requireToken = false) {
+    let token = ownerToken();
+    if (!token && requireToken) token = promptOwnerToken();
+    if (!token) throw new Error('owner token required');
+    return normalise(await rpc('olivia_panini_read_state', { p_owner_token: token }));
+  }
+
+  async function pushCloud(state, requireToken = false) {
+    let token = ownerToken();
+    if (!token && requireToken) token = promptOwnerToken();
+    if (!token) throw new Error('owner token required');
     const clean = normalise(state);
-    const response = await fetch(`${ENDPOINT}?on_conflict=id`, {
-      method: 'POST',
-      headers: {
-        ...baseHeaders,
-        Prefer: 'resolution=merge-duplicates,return=minimal',
-      },
-      body: JSON.stringify({ id: ROW_ID, state: clean }),
-    });
-    if (!response.ok) throw new Error(`Cloud write failed: ${response.status}`);
+    return normalise(await rpc('olivia_panini_write_state', {
+      p_owner_token: token,
+      p_state: clean,
+    }));
   }
 
-  async function forceSync(reloadAfter = false) {
+  async function fetchShare(shareId = activeShareId()) {
+    if (!shareId) return null;
+    const board = await rpc('olivia_panini_read_share', { p_share_id: shareId });
+    if (!board?.id) return null;
+    const local = normalise(parseState(localStorage.getItem(STORE)));
+    local.tradeShares[board.id] = board;
+    originalSetItem(STORE, JSON.stringify(normalise(local)));
+    dispatchStateUpdate();
+    return board;
+  }
+
+  async function submitClaim(shareId, friendName, wanted) {
+    const board = await rpc('olivia_panini_submit_claim', {
+      p_share_id: shareId,
+      p_friend_name: friendName,
+      p_wanted: wanted,
+    });
+    if (!board?.id) throw new Error('claim not saved');
+    const local = normalise(parseState(localStorage.getItem(STORE)));
+    local.tradeShares[board.id] = board;
+    originalSetItem(STORE, JSON.stringify(normalise(local)));
+    dispatchStateUpdate();
+    return board;
+  }
+
+  async function forceSync(reloadAfter = false, requireToken = false) {
     badge('cloud sync...', 'sync');
     const beforeRaw = localStorage.getItem(STORE) || '{}';
     const local = normalise(parseState(beforeRaw));
-    const cloud = await fetchCloud();
+    const cloud = await fetchCloud(requireToken);
     const merged = mergeStates(cloud, local);
-    const mergedRaw = JSON.stringify(merged);
-    if (mergedRaw !== beforeRaw) originalSetItem(STORE, mergedRaw);
-    await pushCloud(merged);
+    const saved = await pushCloud(merged, requireToken);
+    const savedRaw = JSON.stringify(saved);
+    if (savedRaw !== beforeRaw) originalSetItem(STORE, savedRaw);
     badge('cloud actief', 'ok');
+    dispatchStateUpdate();
     if (reloadAfter) location.reload();
-    return merged;
+    return saved;
   }
 
   function schedulePush(delay = 650) {
-    if (!bootDone) return;
+    if (!bootDone || activeShareId()) return;
     clearTimeout(pushTimer);
     pushTimer = setTimeout(async () => {
       try {
@@ -135,6 +171,10 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
         await pushCloud({ ...local, lastSyncedAt: new Date().toISOString() });
         badge('opgeslagen', 'ok');
       } catch (error) {
+        if (error.message === 'owner token required' || error.message === 'forbidden') {
+          badge('beheercode nodig', 'error');
+          return;
+        }
         console.warn('[Panini cloud sync]', error);
         badge('offline bewaard', 'error');
       }
@@ -147,24 +187,35 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     return result;
   };
 
-  window.oliviaPaniniCloud = { forceSync, fetchCloud, pushCloud, mergeStates, normalise, mountBadge };
+  window.oliviaPaniniCloud = {
+    forceSync,
+    fetchCloud,
+    fetchShare,
+    mergeStates,
+    mountBadge,
+    normalise,
+    promptOwnerToken,
+    pushCloud,
+    submitClaim,
+  };
 
   (async () => {
     try {
-      const beforeRaw = localStorage.getItem(STORE) || '{}';
-      badge('cloud laden...', 'sync');
-      const merged = await forceSync(false);
-      bootDone = true;
-      const afterRaw = JSON.stringify(merged);
-      if (afterRaw !== beforeRaw && !sessionStorage.getItem('olivia-panini-cloud-reloaded')) {
-        sessionStorage.setItem('olivia-panini-cloud-reloaded', '1');
-        location.reload();
+      badge(activeShareId() ? 'ruillijst laden...' : 'cloud laden...', 'sync');
+      if (activeShareId()) {
+        await fetchShare();
+        badge('ruillijst actief', 'ok');
+      } else if (ownerToken()) {
+        await forceSync(false, false);
+      } else {
+        badge('beheercode nodig', 'error');
       }
     } catch (error) {
       console.warn('[Panini cloud sync]', error);
+      if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
+      badge('offline bewaard', 'error');
+    } finally {
       bootDone = true;
-      badge('offline modus', 'error');
-      schedulePush(2500);
     }
   })();
 

@@ -102,7 +102,6 @@ export function normalisePaniniState(state) {
   }
 
   return {
-    ...source,
     cloudSchema: 1,
     teams,
     trades,
@@ -162,6 +161,20 @@ export function addOwnedSticker(state, codeOrLabel, number) {
     state.newOnes.push(sticker.label);
     state.newOnes = state.newOnes.slice(-100);
   }
+
+  return state;
+}
+
+export function removeOwnedSticker(state, codeOrLabel, number) {
+  const sticker = normaliseStickerCode(codeOrLabel, number);
+  if (!sticker) return null;
+
+  state.teams ??= {};
+  state.newOnes ??= [];
+
+  const current = uniqueNumbers(state.teams[sticker.code]);
+  state.teams[sticker.code] = current.filter((value) => value !== sticker.number);
+  state.newOnes = uniqueStickerLabels(state.newOnes).filter((label) => label !== sticker.label);
 
   return state;
 }
