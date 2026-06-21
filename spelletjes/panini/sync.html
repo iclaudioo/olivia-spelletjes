@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Panini cloud herstel</title>
+  <style>
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#243d70,#07111f 55%,#030713);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;display:grid;place-items:center;padding:24px}
+    .card{max-width:520px;width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:28px;padding:24px;box-shadow:0 20px 80px rgba(0,0,0,.35)}
+    h1{margin:0 0 10px;font-size:32px;line-height:.95}p{color:#b8c4d8;line-height:1.5}.status{font-size:22px;font-weight:900;margin:18px 0}.bar{height:12px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}.fill{height:100%;width:25%;background:linear-gradient(90deg,#ff5570,#ffd84d,#21e08a);animation:move 1.5s infinite alternate;border-radius:99px}@keyframes move{to{width:100%}}button,a{display:inline-block;margin-top:12px;border:0;border-radius:16px;padding:13px 16px;font-weight:900;background:linear-gradient(135deg,#21e08a,#58a6ff);color:#06101b;text-decoration:none}.small{font-size:13px;color:#93a4bd}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>🏆 Panini cloud herstel</h1>
+    <p>Deze pagina haalt Olivia's collectie uit Supabase, merge't met dit toestel, ruimt oude cache op en opent daarna de app opnieuw.</p>
+    <div class="status" id="status">Start cloud sync...</div>
+    <div class="bar"><div class="fill"></div></div>
+    <p class="small" id="details"></p>
+    <a id="openApp" href="./?v=after-sync" style="display:none">Open Panini app</a>
+  </main>
+
+  <script src="./src/batches.js"></script>
+  <script>
+  const STORE='olivia-panini-v3';
+  const ROW_ID='olivia';
+  const URL='https://eblgjinuakxdiikscjpe.supabase.co';
+  const KEY='sb_publishable_88Vk4S3kmsA4uxiA_e5Mqg_01vPFNRd';
+  const ENDPOINT=`${URL}/rest/v1/olivia_panini_state`;
+  const statusEl=document.getElementById('status');
+  const detailsEl=document.getElementById('details');
+  function status(t,d=''){statusEl.textContent=t;detailsEl.textContent=d;}
+  function parse(raw){try{return JSON.parse(raw||'{}')||{}}catch{return {}}}
+  function nums(v){return [...new Set((Array.isArray(v)?v:[]).map(Number).filter(Boolean))].sort((a,b)=>a-b)}
+  function strs(v){const out=[];for(const x of Array.isArray(v)?v:[]){const s=String(x||'').trim();if(s&&!out.includes(s))out.push(s)}return out}
+  function norm(s){s=s&&typeof s==='object'?s:{};const teams={};for(const [k,v] of Object.entries(s.teams||{}))teams[k]=nums(v);const trades={};for(const [k,v] of Object.entries(s.trades||{})){const n=Number(v);if(k&&n>0)trades[String(k).replace(/\s+/g,'').toUpperCase()]=Math.floor(n)}return {...s,cloudSchema:1,teams,trades,newOnes:strs(s.newOnes).slice(-100),appliedBatches:strs(s.appliedBatches),lastSyncedAt:s.lastSyncedAt||null}}
+  function merge(a,b){const A=norm(a),B=norm(b),teams={...A.teams};for(const [k,v] of Object.entries(B.teams))teams[k]=nums([...(teams[k]||[]),...v]);const trades={...A.trades};for(const [k,v] of Object.entries(B.trades))trades[k]=Math.max(Number(trades[k]||0),Number(v||0));return {...A,...B,cloudSchema:1,teams,trades,newOnes:strs([...(A.newOnes||[]),...(B.newOnes||[])]).slice(-100),appliedBatches:strs([...(A.appliedBatches||[]),...(B.appliedBatches||[])]),lastSyncedAt:new Date().toISOString()}}
+  async function cloudRead(){const r=await fetch(`${ENDPOINT}?id=eq.${ROW_ID}&select=state,updated_at`,{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('cloud read '+r.status);const rows=await r.json();return rows?.[0]?.state||{}}
+  async function cloudWrite(state){const r=await fetch(`${ENDPOINT}?on_conflict=id`,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:ROW_ID,state:norm(state)})});if(!r.ok)throw new Error('cloud write '+r.status)}
+  async function clearOldCache(){if('serviceWorker'in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.filter(r=>r.scope.includes('/spelletjes/panini/')).map(r=>r.unregister()))}if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('olivia-panini-')).map(k=>caches.delete(k)))}}
+  async function run(){try{status('Cloud lezen...');const local=norm(parse(localStorage.getItem(STORE)));const cloud=await cloudRead();status('Data samenvoegen...');const merged=merge(cloud,local);localStorage.setItem(STORE,JSON.stringify(merged));status('Cloud opslaan...');await cloudWrite(merged);status('Cache opruimen...');await clearOldCache();const teamCount=Object.values(merged.teams||{}).reduce((s,a)=>s+a.length,0);const tradeCount=Object.keys(merged.trades||{}).length;status('✅ Cloud sync klaar',`${teamCount} teamstickers + ${tradeCount} dubbels staan klaar.`);document.getElementById('openApp').style.display='inline-block';setTimeout(()=>{location.href='./?v=after-sync-'+Date.now()},1200)}catch(e){console.error(e);status('❌ Sync niet gelukt',e.message||String(e));document.getElementById('openApp').style.display='inline-block'}}
+  run();
+  </script>
+</body>
+</html>
