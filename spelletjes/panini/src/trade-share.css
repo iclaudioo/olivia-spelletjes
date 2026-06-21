@@ -4,6 +4,14 @@
   margin-top: 16px;
 }
 
+.share-mode .nav,
+.share-mode .topstats,
+.share-mode #trade .grid.two,
+.share-mode #tradeShareTools,
+.share-mode #recoveryPanel {
+  display: none !important;
+}
+
 .trade-share-viewer {
   border-color: rgba(33, 224, 138, .36);
 }
