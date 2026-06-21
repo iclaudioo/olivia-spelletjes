@@ -1,0 +1,159 @@
+.navin {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  max-width: 780px;
+}
+
+.extra-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 150px));
+  margin: 0 0 16px;
+}
+
+.extra-summary > div {
+  background: linear-gradient(135deg, rgba(255, 216, 77, .18), rgba(255, 255, 255, .05));
+  border: 1px solid rgba(255, 216, 77, .26);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.extra-summary b {
+  display: block;
+  font-size: 24px;
+}
+
+.extra-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.extras-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.extra-group {
+  display: grid;
+  gap: 10px;
+}
+
+.extra-group-head {
+  align-items: end;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.extra-group-head h3 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.extra-group-head span {
+  color: #ffe89a;
+  font-weight: 1000;
+}
+
+.extra-cards {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.extra-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .035)),
+    radial-gradient(circle at 20% 0%, rgba(255, 216, 77, .16), transparent 55%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: inherit;
+  display: grid;
+  gap: 8px;
+  min-height: 176px;
+  padding: 13px;
+  text-align: left;
+}
+
+.extra-card.owned {
+  border-color: rgba(255, 216, 77, .5);
+  box-shadow: inset 0 0 0 1px rgba(33, 224, 138, .18);
+}
+
+.extra-card.missing {
+  border-color: rgba(255, 85, 112, .26);
+}
+
+.extra-card.check {
+  border-color: rgba(255, 216, 77, .38);
+}
+
+.extra-code {
+  color: #ffe89a;
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+.extra-name {
+  font-size: 13px;
+  font-weight: 1000;
+  line-height: 1.25;
+}
+
+.extra-status {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 1000;
+  justify-self: start;
+  padding: 6px 8px;
+}
+
+.extra-card.owned .extra-status {
+  background: rgba(33, 224, 138, .18);
+  color: #caffdf;
+}
+
+.extra-card.missing .extra-status {
+  background: rgba(255, 85, 112, .16);
+  color: #ffd4dc;
+}
+
+.extra-card.check .extra-status {
+  background: rgba(255, 216, 77, .17);
+  color: #ffefb0;
+}
+
+.extra-card p {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.offer-extra-list {
+  display: grid;
+  gap: 8px;
+}
+
+.extra-offer.is-selected {
+  background: rgba(40, 130, 255, .18);
+  border-color: rgba(40, 130, 255, .44);
+}
+
+@media (max-width: 980px) {
+  .extra-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .navbtn {
+    font-size: 10px;
+  }
+
+  .extra-summary,
+  .extra-cards {
+    grid-template-columns: 1fr;
+  }
+}

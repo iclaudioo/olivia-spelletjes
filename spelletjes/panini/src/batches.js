@@ -1,5 +1,7 @@
 // Automatische update voor nieuwe losse stickers en dubbele stickers.
 // Draait vóór main.js zodat bestaande toestellen de nieuwste batches éénmalig meekrijgen.
+import { mergeExtras, normaliseExtras } from './extras.js';
+
 (() => {
   const STORE = 'olivia-panini-v3';
   const BASE = {
@@ -20,12 +22,14 @@
     {
       id: 'loose-stickers-2026-06-20-01',
       stickers: ['JOR 3','NED 5','FRA 6','MEX 7','CRO 14','IRQ 2','IRN 9','RSA 15'],
-      trades: []
+      trades: [],
+      extras: {}
     },
     {
       id: 'duplicate-stickers-2026-06-20-01',
       stickers: [],
-      trades: ['CRO 13','SCO 1','CRO 10','JPN 4','ESP 4','CPV 16','SUI 20','FRA 14','TUN 3','CZE 17','CUW 12']
+      trades: ['CRO 13','SCO 1','CRO 10','JPN 4','ESP 4','CPV 16','SUI 20','FRA 14','TUN 3','CZE 17','CUW 12'],
+      extras: {}
     }
   ];
   function parse() {
@@ -40,6 +44,7 @@
     state.newOnes = state.newOnes || [];
   }
   state.trades = state.trades || {};
+  state.extras = normaliseExtras(state.extras);
   state.appliedBatches = state.appliedBatches || [];
   for (const batch of BATCHES) {
     if (state.appliedBatches.includes(batch.id)) continue;
@@ -53,6 +58,7 @@
     for (const trade of batch.trades || []) {
       state.trades[trade] = (state.trades[trade] || 0) + 1;
     }
+    state.extras = mergeExtras(state.extras, batch.extras || {});
     state.appliedBatches.push(batch.id);
   }
   localStorage.setItem(STORE, JSON.stringify(state));

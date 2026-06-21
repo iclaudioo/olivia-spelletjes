@@ -1,3 +1,11 @@
+import {
+  EXTRA_CODE_SET,
+  mergeExtras,
+  missingExtraLabels,
+  normaliseExtraCode,
+  normaliseExtras,
+} from './extras.js';
+
 const TEAM_CODE_LIST = [
   'MEX', 'RSA', 'KOR', 'CZE', 'CAN', 'BIH', 'QAT', 'SUI',
   'BRA', 'MAR', 'HAI', 'SCO', 'USA', 'PAR', 'AUS', 'TUR',
@@ -10,6 +18,9 @@ const TEAM_CODES = new Set(TEAM_CODE_LIST);
 
 export function normaliseStickerCode(input, number) {
   const text = number == null ? String(input || '') : `${input || ''} ${number}`;
+  const extraCode = normaliseExtraCode(text);
+  if (extraCode) return { code: extraCode, number: 0, label: extraCode, type: 'extra' };
+
   const match = text.trim().toUpperCase().match(/^([A-Z]{3})\s*(\d{1,2})$/);
   if (!match) return null;
 
@@ -17,7 +28,7 @@ export function normaliseStickerCode(input, number) {
   const stickerNumber = Number(match[2]);
   if (!TEAM_CODES.has(code) || stickerNumber < 1 || stickerNumber > 20) return null;
 
-  return { code, number: stickerNumber, label: `${code} ${stickerNumber}` };
+  return { code, number: stickerNumber, label: `${code} ${stickerNumber}`, type: 'team' };
 }
 
 export function uniqueNumbers(value) {
@@ -56,7 +67,7 @@ export function missingStickerLabels(state) {
       if (!owned.has(number)) out.push(`${code} ${number}`);
     }
   }
-  return out;
+  return [...out, ...missingExtraLabels(source.extras)];
 }
 
 function normaliseFriendName(value) {
@@ -138,6 +149,7 @@ export function normalisePaniniState(state) {
   }
 
   const trades = normaliseStickerMap(source.trades);
+  const extras = normaliseExtras(source.extras);
   const tradeShares = {};
   for (const rawShare of Object.values(source.tradeShares || {})) {
     const share = normaliseTradeShare(rawShare);
@@ -147,6 +159,7 @@ export function normalisePaniniState(state) {
   return {
     cloudSchema: 1,
     teams,
+    extras,
     trades,
     tradeShares,
     newOnes: uniqueStickerLabels(source.newOnes).slice(-100),
@@ -189,12 +202,27 @@ export function mergeTradeShares(leftShares, rightShares) {
   return merged;
 }
 
+export function mergePaniniExtras(leftExtras, rightExtras) {
+  return mergeExtras(leftExtras, rightExtras);
+}
+
 export function addOwnedSticker(state, codeOrLabel, number) {
   const sticker = normaliseStickerCode(codeOrLabel, number);
   if (!sticker) return null;
 
-  state.teams ??= {};
   state.newOnes ??= [];
+
+  if (sticker.type === 'extra') {
+    state.extras = normaliseExtras(state.extras);
+    state.extras[sticker.label] = 'owned';
+    if (!state.newOnes.includes(sticker.label)) {
+      state.newOnes.push(sticker.label);
+      state.newOnes = state.newOnes.slice(-100);
+    }
+    return state;
+  }
+
+  state.teams ??= {};
 
   const current = uniqueNumbers(state.teams[sticker.code]);
   const alreadyOwned = current.includes(sticker.number);
@@ -215,6 +243,13 @@ export function removeOwnedSticker(state, codeOrLabel, number) {
   state.teams ??= {};
   state.newOnes ??= [];
 
+  if (sticker.type === 'extra') {
+    state.extras = normaliseExtras(state.extras);
+    state.extras[sticker.label] = 'missing';
+    state.newOnes = uniqueStickerLabels(state.newOnes).filter((label) => label !== sticker.label);
+    return state;
+  }
+
   const current = uniqueNumbers(state.teams[sticker.code]);
   state.teams[sticker.code] = current.filter((value) => value !== sticker.number);
   state.newOnes = uniqueStickerLabels(state.newOnes).filter((label) => label !== sticker.label);
@@ -228,6 +263,15 @@ export function addTradeSticker(state, codeOrLabel, number) {
 
   state.trades ??= {};
   state.trades[sticker.label] = Math.floor(Number(state.trades[sticker.label] || 0)) + 1;
+  return state;
+}
+
+export function setExtraStatus(state, codeOrLabel, status) {
+  const code = normaliseExtraCode(codeOrLabel);
+  if (!EXTRA_CODE_SET.has(code)) return null;
+
+  state.extras = normaliseExtras(state.extras);
+  state.extras[code] = ['owned', 'missing', 'check'].includes(status) ? status : 'missing';
   return state;
 }
 

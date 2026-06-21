@@ -5,6 +5,7 @@ import {
   addOwnedSticker,
   addTradeSticker,
   createTradeShare,
+  mergePaniniExtras,
   mergeTradeShares,
   missingStickerLabels,
   removeOwnedSticker,
@@ -15,9 +16,12 @@ import {
 } from '../spelletjes/panini/src/sticker-state.js';
 
 test('normaliseStickerCode accepts loose typing and validates known sticker ranges', () => {
-  assert.deepEqual(normaliseStickerCode(' bel 15 '), { code: 'BEL', number: 15, label: 'BEL 15' });
-  assert.deepEqual(normaliseStickerCode('bel15'), { code: 'BEL', number: 15, label: 'BEL 15' });
+  assert.deepEqual(normaliseStickerCode(' bel 15 '), { code: 'BEL', number: 15, label: 'BEL 15', type: 'team' });
+  assert.deepEqual(normaliseStickerCode('bel15'), { code: 'BEL', number: 15, label: 'BEL 15', type: 'team' });
+  assert.deepEqual(normaliseStickerCode('00'), { code: '00', number: 0, label: '00', type: 'extra' });
+  assert.deepEqual(normaliseStickerCode('fwc10'), { code: 'FWC 10', number: 0, label: 'FWC 10', type: 'extra' });
   assert.equal(normaliseStickerCode('BEL 21'), null);
+  assert.equal(normaliseStickerCode('FWC 20'), null);
   assert.equal(normaliseStickerCode('XXX 1'), null);
 });
 
@@ -38,6 +42,9 @@ test('addTradeSticker increments normalised duplicate labels', () => {
   const result = addTradeSticker(state, 'bel15');
 
   assert.deepEqual(result.trades, { 'BEL 15': 2 });
+
+  addTradeSticker(state, 'fwc10');
+  assert.equal(result.trades['FWC 10'], 1);
 });
 
 test('removeOwnedSticker removes a mistaken sticker and recent entry', () => {
@@ -60,12 +67,16 @@ test('normalisePaniniState drops unexpected imported fields', () => {
   assert.deepEqual(Object.keys(state).sort(), [
     'appliedBatches',
     'cloudSchema',
+    'extras',
     'lastSyncedAt',
     'newOnes',
     'teams',
     'tradeShares',
     'trades',
   ]);
+  assert.equal(state.extras['00'], 'owned');
+  assert.equal(state.extras['FWC 6'], 'check');
+  assert.equal(state.extras['FWC 19'], 'missing');
 });
 
 test('createTradeShare snapshots current duplicate stickers into a share board', () => {
@@ -86,6 +97,22 @@ test('missingStickerLabels lists stickers Olivia does not own', () => {
   assert.equal(labels.includes('BEL 1'), false);
   assert.equal(labels.includes('BEL 4'), true);
   assert.equal(labels.includes('CRO 10'), true);
+  assert.equal(labels.includes('00'), false);
+  assert.equal(labels.includes('FWC 4'), false);
+  assert.equal(labels.includes('FWC 6'), true);
+  assert.equal(labels.includes('FWC 19'), true);
+});
+
+test('mergePaniniExtras keeps the strongest status', () => {
+  const merged = mergePaniniExtras(
+    { 'FWC 6': 'missing', 'FWC 7': 'owned', 'FWC 8': 'check' },
+    { 'FWC 6': 'check', 'FWC 7': 'missing', 'FWC 8': 'missing', 'FWC 9': 'owned' },
+  );
+
+  assert.equal(merged['FWC 6'], 'check');
+  assert.equal(merged['FWC 7'], 'owned');
+  assert.equal(merged['FWC 8'], 'check');
+  assert.equal(merged['FWC 9'], 'owned');
 });
 
 test('saveTradeClaim keeps one claim per friend and validates wanted and offered stickers', () => {
