@@ -8,6 +8,23 @@
   width: 100%;
 }
 
+.quick-team-row {
+  align-items: stretch;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
+}
+
+.quick-team-btn {
+  align-items: center;
+  display: inline-grid;
+  font-size: 24px;
+  justify-content: center;
+  line-height: 1;
+  min-height: 44px;
+  padding: 0;
+}
+
 .numbergrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

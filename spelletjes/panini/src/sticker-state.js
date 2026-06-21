@@ -67,6 +67,18 @@ function claimKey(friendName) {
   return friendName.toLowerCase();
 }
 
+function wantedCounts(claims, excludeFriendName = '') {
+  const excludeKey = claimKey(normaliseFriendName(excludeFriendName));
+  const counts = {};
+  for (const claim of Array.isArray(claims) ? claims : []) {
+    if (excludeKey && claimKey(normaliseFriendName(claim?.friendName)) === excludeKey) continue;
+    for (const label of uniqueStickerLabels(claim?.wanted)) {
+      counts[label] = (counts[label] || 0) + 1;
+    }
+  }
+  return counts;
+}
+
 function normaliseTradeShare(rawShare) {
   const share = rawShare && typeof rawShare === 'object' ? rawShare : {};
   const id = String(share.id || '').trim();
@@ -103,6 +115,19 @@ function normaliseTradeShare(rawShare) {
     createdAt: share.createdAt || null,
     updatedAt: share.updatedAt || share.createdAt || null,
   };
+}
+
+export function tradeShareAvailability(rawShare, options = {}) {
+  const share = normaliseTradeShare(rawShare);
+  if (!share) return {};
+
+  const reserved = wantedCounts(share.claims, options.excludeFriendName);
+  return Object.fromEntries(
+    Object.entries(share.items).map(([label, count]) => [
+      label,
+      Math.max(0, Math.floor(Number(count || 0)) - (reserved[label] || 0)),
+    ]),
+  );
 }
 
 export function normalisePaniniState(state) {
@@ -236,7 +261,8 @@ export function saveTradeClaim(state, shareId, options = {}) {
   const friendName = normaliseFriendName(options.friendName);
   const allowedWanted = new Set(Object.keys(share.items));
   const allowedOffered = new Set(share.missing);
-  const wanted = uniqueStickerLabels(options.wanted).filter((label) => allowedWanted.has(label));
+  const availability = tradeShareAvailability(share, { excludeFriendName: friendName });
+  const wanted = uniqueStickerLabels(options.wanted).filter((label) => allowedWanted.has(label) && availability[label] > 0);
   const offered = uniqueStickerLabels(options.offered).filter((label) => allowedOffered.has(label));
   if (!friendName || (!wanted.length && !offered.length)) return null;
 

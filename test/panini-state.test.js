@@ -11,6 +11,7 @@ import {
   saveTradeClaim,
   normaliseStickerCode,
   normalisePaniniState,
+  tradeShareAvailability,
 } from '../spelletjes/panini/src/sticker-state.js';
 
 test('normaliseStickerCode accepts loose typing and validates known sticker ranges', () => {
@@ -121,6 +122,33 @@ test('saveTradeClaim keeps one claim per friend and validates wanted and offered
   assert.equal(state.tradeShares.share123.claims.length, 1);
   assert.deepEqual(state.tradeShares.share123.claims[0].wanted, ['CRO 10']);
   assert.deepEqual(state.tradeShares.share123.claims[0].offered, ['SUI 20']);
+});
+
+test('trade claims reserve duplicate availability for other friends', () => {
+  const state = {
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 15': 1, 'CRO 10': 2 },
+        missing: ['SUI 20'],
+        claims: [{ friendName: 'Emma', wanted: ['BEL 15', 'CRO 10'], offered: [], updatedAt: '2026-06-21T08:00:00.000Z' }],
+      },
+    },
+  };
+
+  assert.deepEqual(tradeShareAvailability(state.tradeShares.share123), { 'BEL 15': 0, 'CRO 10': 1 });
+  assert.deepEqual(tradeShareAvailability(state.tradeShares.share123, { excludeFriendName: 'Emma' }), { 'BEL 15': 1, 'CRO 10': 2 });
+
+  const claim = saveTradeClaim(state, 'share123', {
+    friendName: 'Noah',
+    wanted: ['BEL 15', 'CRO 10'],
+    offered: [],
+    now: '2026-06-21T08:02:00.000Z',
+  });
+
+  assert.deepEqual(claim.wanted, ['CRO 10']);
+  assert.equal(state.tradeShares.share123.claims.length, 2);
 });
 
 test('normalisePaniniState preserves trade shares and normalises claims', () => {

@@ -60,6 +60,12 @@
   padding: 8px 10px;
 }
 
+.share-chip.is-reserved {
+  background: rgba(255, 85, 112, .12);
+  border-color: rgba(255, 85, 112, .3);
+  color: #ffd4dc;
+}
+
 .code.offer {
   background: #e4f1ff;
   border-color: #9fc9ff;
@@ -117,6 +123,15 @@
 .claim-pick:has(input:checked) {
   background: rgba(33, 224, 138, .16);
   border-color: rgba(33, 224, 138, .38);
+}
+
+.claim-pick.is-unavailable {
+  cursor: not-allowed;
+  opacity: .46;
+}
+
+.claim-pick.is-unavailable b {
+  color: #ff9aad;
 }
 
 .offer-picker {
