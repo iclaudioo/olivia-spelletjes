@@ -17,6 +17,17 @@
   padding: 12px;
 }
 
+.kpi.clickable,
+.extra-summary > div.clickable {
+  cursor: pointer;
+  outline: 0;
+}
+
+.kpi.clickable:focus-visible,
+.extra-summary > div.clickable:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 216, 77, .32);
+}
+
 .extra-summary b {
   display: block;
   font-size: 24px;
@@ -86,6 +97,11 @@
 
 .extra-card.check {
   border-color: rgba(255, 216, 77, .38);
+}
+
+.extra-card.focus-check {
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255, 216, 77, .18), 0 14px 40px rgba(255, 216, 77, .16);
 }
 
 .extra-code {
