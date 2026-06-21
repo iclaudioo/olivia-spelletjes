@@ -13,5 +13,5 @@ test('Panini production build includes all runtime scripts', () => {
   assert.equal(html.includes('./src/batches.js'), false);
   assert.equal(html.includes('./src/cloud.js'), false);
   assert.equal(existsSync(join(process.cwd(), 'dist/spelletjes/panini/assets')), true);
-  assert.equal(existsSync(join(process.cwd(), 'dist/spelletjes/panini/sync.html')), true);
+  assert.equal(existsSync(join(process.cwd(), 'dist/spelletjes/panini/sync.html')), false);
 });

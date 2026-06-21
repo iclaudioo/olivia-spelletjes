@@ -6,6 +6,7 @@ import {
   addTradeSticker,
   createTradeShare,
   mergeTradeShares,
+  removeOwnedSticker,
   saveTradeClaim,
   normaliseStickerCode,
   normalisePaniniState,
@@ -35,6 +36,34 @@ test('addTradeSticker increments normalised duplicate labels', () => {
   const result = addTradeSticker(state, 'bel15');
 
   assert.deepEqual(result.trades, { 'BEL 15': 2 });
+});
+
+test('removeOwnedSticker removes a mistaken sticker and recent entry', () => {
+  const state = { teams: { BEL: [3, 7, 15, 20] }, trades: {}, newOnes: ['BEL 15', 'CRO 10'] };
+  const result = removeOwnedSticker(state, 'bel15');
+
+  assert.deepEqual(result.teams.BEL, [3, 7, 20]);
+  assert.deepEqual(result.newOnes, ['CRO 10']);
+});
+
+test('normalisePaniniState drops unexpected imported fields', () => {
+  const state = normalisePaniniState({
+    teams: { BEL: [15] },
+    trades: {},
+    newOnes: ['BEL 15'],
+    injected: '<script>alert(1)</script>',
+    nested: { unexpected: true },
+  });
+
+  assert.deepEqual(Object.keys(state).sort(), [
+    'appliedBatches',
+    'cloudSchema',
+    'lastSyncedAt',
+    'newOnes',
+    'teams',
+    'tradeShares',
+    'trades',
+  ]);
 });
 
 test('createTradeShare snapshots current duplicate stickers into a share board', () => {
