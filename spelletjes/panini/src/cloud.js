@@ -1,4 +1,4 @@
-import { normalisePaniniState } from './sticker-state.js';
+import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
 
 // Supabase cloud sync voor Olivia's Panini-tool.
 // Bewaart dezelfde state als localStorage, maar nu ook centraal in Supabase.
@@ -76,6 +76,7 @@ import { normalisePaniniState } from './sticker-state.js';
       cloudSchema: 1,
       teams,
       trades,
+      tradeShares: mergeTradeShares(left.tradeShares, right.tradeShares),
       newOnes: uniqueStrings([...(left.newOnes || []), ...(right.newOnes || [])]).slice(-100),
       appliedBatches: uniqueStrings([...(left.appliedBatches || []), ...(right.appliedBatches || [])]),
       lastSyncedAt: new Date().toISOString(),
