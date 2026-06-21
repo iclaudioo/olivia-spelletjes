@@ -1,3 +1,5 @@
+import { normalisePaniniState } from './sticker-state.js';
+
 // Supabase cloud sync voor Olivia's Panini-tool.
 // Bewaart dezelfde state als localStorage, maar nu ook centraal in Supabase.
 // Belangrijk: de nieuwe Supabase publishable key gaat enkel in de apikey-header.
@@ -13,6 +15,12 @@
   let bootDone = false;
   let pushTimer = null;
 
+  function mountBadge() {
+    const el = document.getElementById('cloudSyncBadge');
+    const slot = document.getElementById('cloudSyncSlot');
+    if (el && slot && el.parentElement !== slot) slot.appendChild(el);
+  }
+
   function badge(message, kind = 'idle') {
     const show = () => {
       let el = document.getElementById('cloudSyncBadge');
@@ -20,12 +28,14 @@
         el = document.createElement('button');
         el.id = 'cloudSyncBadge';
         el.type = 'button';
-        el.style.cssText = 'position:fixed;right:10px;top:72px;z-index:100;padding:8px 10px;border-radius:999px;font:900 11px system-ui;background:rgba(8,17,29,.82);color:#fff;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(14px);box-shadow:0 8px 30px rgba(0,0,0,.28)';
+        el.className = 'cloud-sync-badge';
         el.onclick = () => forceSync(true);
-        document.body.appendChild(el);
       }
       const dot = kind === 'ok' ? '🟢' : kind === 'error' ? '🔴' : '🟡';
       el.textContent = `${dot} ${message}`;
+      const slot = document.getElementById('cloudSyncSlot');
+      if (slot && el.parentElement !== slot) slot.appendChild(el);
+      else if (!el.parentElement) document.body.appendChild(el);
     };
     if (document.body) show();
     else window.addEventListener('DOMContentLoaded', show, { once: true });
@@ -34,10 +44,6 @@
   function parseState(raw) {
     try { return JSON.parse(raw || '{}') || {}; }
     catch { return {}; }
-  }
-
-  function uniqueNums(value) {
-    return [...new Set((Array.isArray(value) ? value : []).map(Number).filter(Boolean))].sort((a, b) => a - b);
   }
 
   function uniqueStrings(value) {
@@ -50,23 +56,7 @@
   }
 
   function normalise(state) {
-    const s = state && typeof state === 'object' ? state : {};
-    const teams = {};
-    for (const [code, stickers] of Object.entries(s.teams || {})) teams[code] = uniqueNums(stickers);
-    const trades = {};
-    for (const [code, amount] of Object.entries(s.trades || {})) {
-      const n = Number(amount);
-      if (code && n > 0) trades[String(code).replace(/\s+/g, '').toUpperCase()] = Math.floor(n);
-    }
-    return {
-      ...s,
-      cloudSchema: 1,
-      teams,
-      trades,
-      newOnes: uniqueStrings(s.newOnes).slice(-100),
-      appliedBatches: uniqueStrings(s.appliedBatches),
-      lastSyncedAt: s.lastSyncedAt || null,
-    };
+    return normalisePaniniState(state);
   }
 
   function mergeStates(a, b) {
@@ -74,7 +64,7 @@
     const right = normalise(b);
     const teams = { ...left.teams };
     for (const [code, stickers] of Object.entries(right.teams)) {
-      teams[code] = uniqueNums([...(teams[code] || []), ...stickers]);
+      teams[code] = normalisePaniniState({ teams: { [code]: [...(teams[code] || []), ...stickers] } }).teams[code] || [];
     }
     const trades = { ...left.trades };
     for (const [code, amount] of Object.entries(right.trades)) {
@@ -156,7 +146,7 @@
     return result;
   };
 
-  window.oliviaPaniniCloud = { forceSync, fetchCloud, pushCloud, mergeStates, normalise };
+  window.oliviaPaniniCloud = { forceSync, fetchCloud, pushCloud, mergeStates, normalise, mountBadge };
 
   (async () => {
     try {

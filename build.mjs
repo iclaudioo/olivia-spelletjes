@@ -5,6 +5,7 @@
 // Volgorde is belangrijk: de homepage-build leegt dist/, daarna vullen de spel-builds
 // hun submappen. Vite draait per app met de submap als cwd (root = cwd, public = ./public).
 import { execSync } from "node:child_process";
+import { copyFileSync } from "node:fs";
 
 function bouw(label, cmd, cwd) {
   console.log(`\n▶ ${label}`);
@@ -27,5 +28,6 @@ bouw(
   "npx vite build --base=./ --outDir ../../dist/spelletjes/panini --emptyOutDir",
   "spelletjes/panini"
 );
+copyFileSync("spelletjes/panini/sync.html", "dist/spelletjes/panini/sync.html");
 
 console.log("\n✓ Klaar: dist/ bevat de homepage + spelletjes/poetsen/ + spelletjes/panini/");
