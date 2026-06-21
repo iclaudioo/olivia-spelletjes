@@ -1,0 +1,51 @@
+.quickentry {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 14px;
+}
+
+.quickentry .field {
+  width: 100%;
+}
+
+.numbergrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.numberpick {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .055);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  transition: transform .18s, background .18s, border-color .18s;
+}
+
+.numberpick:active {
+  transform: translateY(1px) scale(.98);
+}
+
+.numberpick.have {
+  background: rgba(33, 224, 138, .16);
+  border-color: rgba(33, 224, 138, .35);
+}
+
+.numberpick.miss {
+  background: rgba(255, 85, 112, .08);
+  border-color: rgba(255, 255, 255, .1);
+}
+
+.numberpick b {
+  font-size: 15px;
+}
+
+.numberpick span {
+  color: var(--yellow);
+  font-size: 10px;
+  font-weight: 1000;
+}

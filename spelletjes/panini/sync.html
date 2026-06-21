@@ -20,7 +20,6 @@
     <a id="openApp" href="./?v=after-sync" style="display:none">Open Panini app</a>
   </main>
 
-  <script src="./src/batches.js"></script>
   <script>
   const STORE='olivia-panini-v3';
   const ROW_ID='olivia';
@@ -33,7 +32,8 @@
   function parse(raw){try{return JSON.parse(raw||'{}')||{}}catch{return {}}}
   function nums(v){return [...new Set((Array.isArray(v)?v:[]).map(Number).filter(Boolean))].sort((a,b)=>a-b)}
   function strs(v){const out=[];for(const x of Array.isArray(v)?v:[]){const s=String(x||'').trim();if(s&&!out.includes(s))out.push(s)}return out}
-  function norm(s){s=s&&typeof s==='object'?s:{};const teams={};for(const [k,v] of Object.entries(s.teams||{}))teams[k]=nums(v);const trades={};for(const [k,v] of Object.entries(s.trades||{})){const n=Number(v);if(k&&n>0)trades[String(k).replace(/\s+/g,'').toUpperCase()]=Math.floor(n)}return {...s,cloudSchema:1,teams,trades,newOnes:strs(s.newOnes).slice(-100),appliedBatches:strs(s.appliedBatches),lastSyncedAt:s.lastSyncedAt||null}}
+  function label(k){const m=String(k||'').trim().toUpperCase().match(/^([A-Z]{3})\s*(\d{1,2})$/);if(!m)return null;const n=Number(m[2]);return n>=1&&n<=20?`${m[1]} ${n}`:null}
+  function norm(s){s=s&&typeof s==='object'?s:{};const teams={};for(const [k,v] of Object.entries(s.teams||{}))teams[k]=nums(v);const trades={};for(const [k,v] of Object.entries(s.trades||{})){const n=Number(v),l=label(k);if(l&&n>0)trades[l]=(trades[l]||0)+Math.floor(n)}return {...s,cloudSchema:1,teams,trades,newOnes:strs(s.newOnes).map(label).filter(Boolean).slice(-100),appliedBatches:strs(s.appliedBatches),lastSyncedAt:s.lastSyncedAt||null}}
   function merge(a,b){const A=norm(a),B=norm(b),teams={...A.teams};for(const [k,v] of Object.entries(B.teams))teams[k]=nums([...(teams[k]||[]),...v]);const trades={...A.trades};for(const [k,v] of Object.entries(B.trades))trades[k]=Math.max(Number(trades[k]||0),Number(v||0));return {...A,...B,cloudSchema:1,teams,trades,newOnes:strs([...(A.newOnes||[]),...(B.newOnes||[])]).slice(-100),appliedBatches:strs([...(A.appliedBatches||[]),...(B.appliedBatches||[])]),lastSyncedAt:new Date().toISOString()}}
   async function cloudRead(){const r=await fetch(`${ENDPOINT}?id=eq.${ROW_ID}&select=state,updated_at`,{headers:{apikey:KEY},cache:'no-store'});if(!r.ok)throw new Error('cloud read '+r.status);const rows=await r.json();return rows?.[0]?.state||{}}
   async function cloudWrite(state){const r=await fetch(`${ENDPOINT}?on_conflict=id`,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:ROW_ID,state:norm(state)})});if(!r.ok)throw new Error('cloud write '+r.status)}
