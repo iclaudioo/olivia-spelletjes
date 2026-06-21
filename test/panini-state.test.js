@@ -6,6 +6,7 @@ import {
   addTradeSticker,
   createTradeShare,
   mergeTradeShares,
+  missingStickerLabels,
   removeOwnedSticker,
   saveTradeClaim,
   normaliseStickerCode,
@@ -67,22 +68,33 @@ test('normalisePaniniState drops unexpected imported fields', () => {
 });
 
 test('createTradeShare snapshots current duplicate stickers into a share board', () => {
-  const state = { trades: { 'bel15': 2, 'CRO 10': 1, 'BAD 99': 4 } };
+  const state = { teams: { BEL: [15], CRO: [10] }, trades: { 'bel15': 2, 'CRO 10': 1, 'BAD 99': 4 } };
   const board = createTradeShare(state, { id: 'share123', ownerName: 'Olivia', now: '2026-06-21T08:00:00.000Z' });
 
   assert.equal(board.id, 'share123');
   assert.equal(board.ownerName, 'Olivia');
   assert.deepEqual(board.items, { 'BEL 15': 2, 'CRO 10': 1 });
+  assert.equal(board.missing.includes('BEL 15'), false);
+  assert.equal(board.missing.includes('BEL 16'), true);
   assert.deepEqual(state.tradeShares.share123, board);
 });
 
-test('saveTradeClaim keeps one claim per friend and only accepts stickers on the share board', () => {
+test('missingStickerLabels lists stickers Olivia does not own', () => {
+  const labels = missingStickerLabels({ teams: { BEL: [1, 2, 3] } });
+
+  assert.equal(labels.includes('BEL 1'), false);
+  assert.equal(labels.includes('BEL 4'), true);
+  assert.equal(labels.includes('CRO 10'), true);
+});
+
+test('saveTradeClaim keeps one claim per friend and validates wanted and offered stickers', () => {
   const state = {
     tradeShares: {
       share123: {
         id: 'share123',
         ownerName: 'Olivia',
         items: { 'BEL 15': 2, 'CRO 10': 1 },
+        missing: ['SUI 20', 'BEL 16'],
         claims: [],
       },
     },
@@ -91,20 +103,24 @@ test('saveTradeClaim keeps one claim per friend and only accepts stickers on the
   const claim = saveTradeClaim(state, 'share123', {
     friendName: 'Emma',
     wanted: ['bel15', 'CRO 10', 'SUI 20'],
+    offered: ['SUI 20', 'BEL 15', 'BEL 16'],
     now: '2026-06-21T08:01:00.000Z',
   });
 
   assert.equal(claim.friendName, 'Emma');
   assert.deepEqual(claim.wanted, ['BEL 15', 'CRO 10']);
+  assert.deepEqual(claim.offered, ['SUI 20', 'BEL 16']);
 
   saveTradeClaim(state, 'share123', {
     friendName: 'Emma',
     wanted: ['CRO 10'],
+    offered: ['SUI 20'],
     now: '2026-06-21T08:02:00.000Z',
   });
 
   assert.equal(state.tradeShares.share123.claims.length, 1);
   assert.deepEqual(state.tradeShares.share123.claims[0].wanted, ['CRO 10']);
+  assert.deepEqual(state.tradeShares.share123.claims[0].offered, ['SUI 20']);
 });
 
 test('normalisePaniniState preserves trade shares and normalises claims', () => {
@@ -114,13 +130,16 @@ test('normalisePaniniState preserves trade shares and normalises claims', () => 
         id: 'share123',
         ownerName: 'Olivia',
         items: { bel15: 2, 'CRO 10': 1 },
-        claims: [{ friendName: ' Emma ', wanted: ['BEL15', 'XXX 1'] }],
+        missing: ['SUI 20'],
+        claims: [{ friendName: ' Emma ', wanted: ['BEL15', 'XXX 1'], offered: ['SUI20', 'BEL15'] }],
       },
     },
   });
 
   assert.deepEqual(state.tradeShares.share123.items, { 'BEL 15': 2, 'CRO 10': 1 });
+  assert.deepEqual(state.tradeShares.share123.missing, ['SUI 20']);
   assert.deepEqual(state.tradeShares.share123.claims[0].wanted, ['BEL 15']);
+  assert.deepEqual(state.tradeShares.share123.claims[0].offered, ['SUI 20']);
 });
 
 test('mergeTradeShares keeps owner updates and friend claims together', () => {
@@ -130,7 +149,8 @@ test('mergeTradeShares keeps owner updates and friend claims together', () => {
         id: 'share123',
         ownerName: 'Olivia',
         items: { 'BEL 15': 1 },
-        claims: [{ friendName: 'Emma', wanted: ['BEL 15'], updatedAt: '2026-06-21T08:01:00.000Z' }],
+        missing: ['SUI 20'],
+        claims: [{ friendName: 'Emma', wanted: ['BEL 15'], offered: ['SUI 20'], updatedAt: '2026-06-21T08:01:00.000Z' }],
       },
     },
     {
@@ -138,11 +158,13 @@ test('mergeTradeShares keeps owner updates and friend claims together', () => {
         id: 'share123',
         ownerName: 'Olivia',
         items: { 'BEL 15': 2, 'CRO 10': 1 },
-        claims: [{ friendName: 'Noah', wanted: ['CRO 10'], updatedAt: '2026-06-21T08:02:00.000Z' }],
+        missing: ['SUI 20', 'BEL 16'],
+        claims: [{ friendName: 'Noah', wanted: ['CRO 10'], offered: ['BEL 16'], updatedAt: '2026-06-21T08:02:00.000Z' }],
       },
     },
   );
 
   assert.deepEqual(merged.share123.items, { 'BEL 15': 2, 'CRO 10': 1 });
+  assert.deepEqual(merged.share123.missing, ['SUI 20', 'BEL 16']);
   assert.deepEqual(merged.share123.claims.map((claim) => claim.friendName).sort(), ['Emma', 'Noah']);
 });

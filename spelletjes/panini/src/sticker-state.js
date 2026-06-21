@@ -1,11 +1,12 @@
-const TEAM_CODES = new Set([
+const TEAM_CODE_LIST = [
   'MEX', 'RSA', 'KOR', 'CZE', 'CAN', 'BIH', 'QAT', 'SUI',
   'BRA', 'MAR', 'HAI', 'SCO', 'USA', 'PAR', 'AUS', 'TUR',
   'GER', 'CUW', 'CIV', 'ECU', 'NED', 'JPN', 'SWE', 'TUN',
   'BEL', 'EGY', 'IRN', 'NZL', 'ESP', 'CPV', 'KSA', 'URU',
   'FRA', 'SEN', 'IRQ', 'NOR', 'ARG', 'ALG', 'AUT', 'JOR',
   'POR', 'COD', 'UZB', 'COL', 'ENG', 'CRO', 'GHA', 'PAN',
-]);
+];
+const TEAM_CODES = new Set(TEAM_CODE_LIST);
 
 export function normaliseStickerCode(input, number) {
   const text = number == null ? String(input || '') : `${input || ''} ${number}`;
@@ -46,6 +47,18 @@ function normaliseStickerMap(value, allowedLabels = null) {
   return out;
 }
 
+export function missingStickerLabels(state) {
+  const source = state && typeof state === 'object' ? state : {};
+  const out = [];
+  for (const code of TEAM_CODE_LIST) {
+    const owned = new Set(uniqueNumbers(source.teams?.[code]));
+    for (let number = 1; number <= 20; number++) {
+      if (!owned.has(number)) out.push(`${code} ${number}`);
+    }
+  }
+  return out;
+}
+
 function normaliseFriendName(value) {
   return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 80);
 }
@@ -60,19 +73,23 @@ function normaliseTradeShare(rawShare) {
   if (!id) return null;
 
   const items = normaliseStickerMap(share.items);
-  const allowedLabels = new Set(Object.keys(items));
+  const allowedWanted = new Set(Object.keys(items));
+  const missing = uniqueStickerLabels(share.missing);
+  const allowedOffered = new Set(missing);
   const claims = [];
   const seenClaimKeys = new Set();
 
   for (const rawClaim of Array.isArray(share.claims) ? share.claims : []) {
     const friendName = normaliseFriendName(rawClaim?.friendName);
-    const wanted = uniqueStickerLabels(rawClaim?.wanted).filter((label) => allowedLabels.has(label));
+    const wanted = uniqueStickerLabels(rawClaim?.wanted).filter((label) => allowedWanted.has(label));
+    const offered = uniqueStickerLabels(rawClaim?.offered).filter((label) => allowedOffered.has(label));
     const key = claimKey(friendName);
-    if (!friendName || !wanted.length || seenClaimKeys.has(key)) continue;
+    if (!friendName || (!wanted.length && !offered.length) || seenClaimKeys.has(key)) continue;
     seenClaimKeys.add(key);
     claims.push({
       friendName,
       wanted,
+      offered,
       updatedAt: rawClaim?.updatedAt || null,
     });
   }
@@ -81,6 +98,7 @@ function normaliseTradeShare(rawShare) {
     id,
     ownerName: normaliseFriendName(share.ownerName) || 'Olivia',
     items,
+    missing,
     claims,
     createdAt: share.createdAt || null,
     updatedAt: share.updatedAt || share.createdAt || null,
@@ -200,6 +218,7 @@ export function createTradeShare(state, options = {}) {
     id,
     ownerName,
     items,
+    missing: missingStickerLabels(state),
     claims: Array.isArray(existing?.claims) ? existing.claims : [],
     createdAt: existing?.createdAt || now,
     updatedAt: now,
@@ -215,13 +234,15 @@ export function saveTradeClaim(state, shareId, options = {}) {
   if (!share) return null;
 
   const friendName = normaliseFriendName(options.friendName);
-  const allowedLabels = new Set(Object.keys(share.items));
-  const wanted = uniqueStickerLabels(options.wanted).filter((label) => allowedLabels.has(label));
-  if (!friendName || !wanted.length) return null;
+  const allowedWanted = new Set(Object.keys(share.items));
+  const allowedOffered = new Set(share.missing);
+  const wanted = uniqueStickerLabels(options.wanted).filter((label) => allowedWanted.has(label));
+  const offered = uniqueStickerLabels(options.offered).filter((label) => allowedOffered.has(label));
+  if (!friendName || (!wanted.length && !offered.length)) return null;
 
   const now = options.now || new Date().toISOString();
   const key = claimKey(friendName);
-  const claim = { friendName, wanted, updatedAt: now };
+  const claim = { friendName, wanted, offered, updatedAt: now };
   share.claims = share.claims.filter((item) => claimKey(item.friendName) !== key);
   share.claims.push(claim);
   share.updatedAt = now;

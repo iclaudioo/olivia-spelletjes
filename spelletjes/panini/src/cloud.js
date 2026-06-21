@@ -232,11 +232,12 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     return board;
   }
 
-  async function submitClaim(shareId, friendName, wanted) {
-    const board = await rpc('olivia_panini_submit_claim', {
+  async function submitClaim(shareId, friendName, wanted, offered = []) {
+    const board = await rpc('olivia_panini_submit_trade_claim', {
       p_share_id: shareId,
       p_friend_name: friendName,
       p_wanted: wanted,
+      p_offered: offered,
     });
     if (!board?.id) throw new Error('claim not saved');
     const local = normalise(parseState(localStorage.getItem(STORE)));
