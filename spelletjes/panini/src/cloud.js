@@ -63,6 +63,32 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     return token;
   }
 
+  async function consumeFamilyEntryFromUrl() {
+    const url = new URL(location.href);
+    const wantsFamilyEntry = url.searchParams.get('familie') === '1';
+    if (!wantsFamilyEntry) return '';
+
+    url.searchParams.delete('familie');
+    history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+
+    const response = await fetch('/api/panini-owner-token', {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error('owner token required');
+
+    const data = await response.json();
+    const token = String(data?.ownerToken || '').trim();
+    if (!token) throw new Error('owner token required');
+    localStorage.setItem(OWNER_TOKEN_STORE, token);
+    return token;
+  }
+
+  async function setupOwnerTokenFromUrl() {
+    const linkedToken = consumeOwnerTokenFromUrl();
+    if (linkedToken) return linkedToken;
+    return consumeFamilyEntryFromUrl();
+  }
+
   function closeOwnerTokenPanel() {
     tokenPanel?.remove();
     tokenPanel = null;
@@ -256,7 +282,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
       } catch (error) {
         if (error.message === 'owner token required' || error.message === 'forbidden') {
           if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
-          badge('koppel toestel', 'error');
+          badge('niet opgeslagen', 'error');
           return;
         }
         console.warn('[Panini cloud sync]', error);
@@ -286,19 +312,19 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
   (async () => {
     try {
       badge(activeShareId() ? 'ruillijst laden...' : 'cloud laden...', 'sync');
-      const linkedToken = consumeOwnerTokenFromUrl();
+      const linkedToken = await setupOwnerTokenFromUrl();
       if (activeShareId()) {
         await fetchShare();
         badge('ruillijst actief', 'ok');
       } else if (linkedToken || ownerToken()) {
         await forceSync(false, false);
       } else {
-        badge('koppel toestel', 'error');
+        badge('niet opgeslagen', 'error');
       }
     } catch (error) {
       console.warn('[Panini cloud sync]', error);
       if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
-      badge(error.message === 'forbidden' ? 'koppel toestel' : 'offline bewaard', 'error');
+      badge(error.message === 'forbidden' ? 'niet opgeslagen' : 'offline bewaard', 'error');
     } finally {
       bootDone = true;
     }

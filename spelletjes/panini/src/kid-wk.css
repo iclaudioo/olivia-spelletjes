@@ -1,0 +1,408 @@
+:root {
+  --bg: #0b6f43;
+  --bg2: #08492f;
+  --card: #fffaf0;
+  --glass: rgba(255, 255, 255, .88);
+  --line: rgba(8, 49, 35, .16);
+  --text: #10261b;
+  --muted: #5d6b63;
+  --green: #10a65a;
+  --yellow: #ffd84d;
+  --orange: #ff9f1c;
+  --red: #e5484d;
+  --blue: #1c73e8;
+  --purple: #7c5cff;
+  --cyan: #0aa6a6;
+}
+
+html,
+body {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, .06) 1px, transparent 1px),
+    linear-gradient(180deg, #118451 0%, #0b6f43 48%, #08492f 100%);
+  background-size: 64px 64px, 64px 64px, auto;
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+body {
+  padding-bottom: 0;
+}
+
+.top {
+  background: #083323;
+  border-bottom: 4px solid var(--yellow);
+  color: #fff;
+}
+
+.topin {
+  max-width: 1120px;
+  padding: 10px 14px;
+}
+
+.brand {
+  min-width: 0;
+}
+
+.logo {
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.brand h1 {
+  font-size: clamp(18px, 4vw, 25px);
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.brand small {
+  color: #cce9d5;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.topstats {
+  gap: 8px;
+}
+
+#cloudSyncSlot {
+  display: none;
+}
+
+.pill {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .22);
+  color: #fff;
+}
+
+.pill.gold {
+  background: var(--yellow);
+  color: #10261b;
+}
+
+.wrap {
+  max-width: 1120px;
+  padding: 14px 14px 32px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+  gap: 14px;
+}
+
+.card,
+.teamcard,
+.groupcard,
+.star,
+.zone,
+.tradeitem,
+.scanbox,
+.audit,
+.field,
+.btn,
+.code,
+.level,
+.ring,
+.numberpick,
+.claim-card,
+.claim-pick {
+  border-radius: 8px;
+}
+
+.card {
+  background: var(--glass);
+  border-color: var(--line);
+  box-shadow: 0 10px 28px rgba(4, 30, 20, .16);
+  color: var(--text);
+}
+
+.card::before {
+  display: none;
+}
+
+.mega {
+  background:
+    linear-gradient(135deg, rgba(255, 216, 77, .35), transparent 36%),
+    linear-gradient(180deg, #fffdf5, #eef9f1);
+  min-height: 300px;
+}
+
+.eyebrow {
+  color: #0b6f43;
+  letter-spacing: 0;
+}
+
+.title,
+.bigpct,
+.section-title h2 {
+  letter-spacing: 0;
+}
+
+.title {
+  color: #083323;
+  font-size: clamp(38px, 7vw, 70px);
+  line-height: .98;
+}
+
+.title span {
+  background: none;
+  color: #0b6f43;
+}
+
+.bigpct {
+  color: #0b6f43;
+  font-size: clamp(68px, 13vw, 118px);
+}
+
+.muted,
+.sub,
+.footer-note,
+.mini,
+.section-title p {
+  color: var(--muted);
+}
+
+.progress {
+  background: rgba(8, 49, 35, .1);
+  border-color: rgba(8, 49, 35, .12);
+}
+
+.bar {
+  background: linear-gradient(90deg, #e5484d, #ff9f1c, #ffd84d, #10a65a);
+}
+
+.kpi {
+  background: #fff;
+  border-color: var(--line);
+}
+
+.cup {
+  background:
+    linear-gradient(180deg, rgba(255, 216, 77, .34), rgba(255, 255, 255, .7)),
+    linear-gradient(90deg, transparent 48%, rgba(11, 111, 67, .18) 49%, rgba(11, 111, 67, .18) 51%, transparent 52%);
+  border: 2px solid rgba(11, 111, 67, .16);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, .45);
+  filter: none;
+}
+
+.teamrow,
+.teamcard,
+.groupcard,
+.star,
+.zone,
+.tradeitem {
+  background: #fff;
+  border-color: var(--line);
+}
+
+.teamcard h3,
+.starname,
+.name {
+  color: var(--text);
+}
+
+.field,
+.btn {
+  background: #fff;
+  border-color: rgba(8, 49, 35, .22);
+  color: var(--text);
+}
+
+.btn.primary {
+  background: var(--yellow);
+  color: #10261b;
+}
+
+.btn.danger {
+  background: #ffe6e8;
+  border-color: #f5a2a6;
+  color: #8b1e24;
+}
+
+.code {
+  background: #fff1bf;
+  border-color: #f5cf4d;
+  color: #513b00;
+}
+
+.code.ok {
+  background: #dff8e9;
+  border-color: #8fdeb0;
+  color: #0e5a33;
+}
+
+.level {
+  background: #eef3ef;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.level.done,
+.level.now {
+  background: #0b6f43;
+  color: #fff;
+}
+
+.world,
+.teamcards,
+.stars,
+.groupgrid {
+  gap: 10px;
+}
+
+.nav {
+  background: #083323;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  border-top: 4px solid var(--yellow);
+  bottom: auto;
+  left: 0;
+  padding: 8px 10px;
+  position: static;
+  right: 0;
+  top: auto;
+  transform: none;
+  width: auto;
+}
+
+.navin {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 680px;
+  padding: 0;
+}
+
+.navbtn {
+  background: rgba(255, 255, 255, .09);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  color: #d7efe0;
+  min-height: 58px;
+}
+
+.navbtn span {
+  font-size: 20px;
+}
+
+.navbtn.on {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: #10261b;
+}
+
+.toast {
+  background: #083323;
+  color: #fff;
+  max-width: calc(100vw - 28px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal {
+  color: #fff;
+}
+
+.sheet {
+  background: #083323;
+}
+
+.sticker.have {
+  background: #dff8e9;
+  border-color: #8fdeb0;
+  color: #0e5a33;
+}
+
+.sticker.miss {
+  background: #fff7df;
+  border-color: #f5cf4d;
+  color: #4a3b14;
+}
+
+.sticker span {
+  color: inherit;
+}
+
+.recovery-panel {
+  display: none;
+}
+
+@media (min-width: 981px) {
+  body {
+    padding-bottom: 0;
+  }
+
+  .wrap {
+    padding-bottom: 32px;
+  }
+
+  .nav {
+    background: #083323;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    border-top: 4px solid var(--yellow);
+    bottom: auto;
+    left: 0;
+    padding: 8px 10px;
+    position: static;
+    right: 0;
+    top: auto;
+    transform: none;
+    width: auto;
+  }
+}
+
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .mega {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .topin {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topstats {
+    justify-content: flex-start;
+  }
+
+  #miniTotal {
+    display: inline-flex;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .title {
+    font-size: clamp(36px, 12vw, 50px);
+  }
+
+  .bigpct {
+    font-size: clamp(64px, 20vw, 92px);
+  }
+
+  .cup {
+    display: none;
+  }
+
+  .navbtn {
+    font-size: 10px;
+    min-height: 54px;
+    padding: 7px 2px;
+  }
+
+  .navbtn span {
+    font-size: 18px;
+  }
+}
