@@ -1,6 +1,6 @@
 // Automatische update voor nieuwe losse stickers en dubbele stickers.
 // Draait vóór main.js zodat bestaande toestellen de nieuwste batches éénmalig meekrijgen.
-import { mergeExtras, normaliseExtras } from './extras.js';
+import { mergeExtras, mergeRareExtras, normaliseExtras, normaliseRareExtras } from './extras.js';
 
 (() => {
   const STORE = 'olivia-panini-v3';
@@ -45,6 +45,7 @@ import { mergeExtras, normaliseExtras } from './extras.js';
   }
   state.trades = state.trades || {};
   state.extras = normaliseExtras(state.extras);
+  state.rareExtras = normaliseRareExtras(state.rareExtras);
   state.appliedBatches = state.appliedBatches || [];
   for (const batch of BATCHES) {
     if (state.appliedBatches.includes(batch.id)) continue;
@@ -59,6 +60,7 @@ import { mergeExtras, normaliseExtras } from './extras.js';
       state.trades[trade] = (state.trades[trade] || 0) + 1;
     }
     state.extras = mergeExtras(state.extras, batch.extras || {});
+    state.rareExtras = mergeRareExtras(state.rareExtras, batch.rareExtras || {});
     state.appliedBatches.push(batch.id);
   }
   localStorage.setItem(STORE, JSON.stringify(state));

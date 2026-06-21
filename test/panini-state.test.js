@@ -20,8 +20,11 @@ test('normaliseStickerCode accepts loose typing and validates known sticker rang
   assert.deepEqual(normaliseStickerCode('bel15'), { code: 'BEL', number: 15, label: 'BEL 15', type: 'team' });
   assert.deepEqual(normaliseStickerCode('00'), { code: '00', number: 0, label: '00', type: 'extra' });
   assert.deepEqual(normaliseStickerCode('fwc10'), { code: 'FWC 10', number: 0, label: 'FWC 10', type: 'extra' });
+  assert.deepEqual(normaliseStickerCode('messi gold'), { code: 'MESSI GOLD', number: 0, label: 'MESSI GOLD', type: 'rareExtra' });
+  assert.deepEqual(normaliseStickerCode('arg gold'), { code: 'MESSI GOLD', number: 0, label: 'MESSI GOLD', type: 'rareExtra' });
   assert.equal(normaliseStickerCode('BEL 21'), null);
   assert.equal(normaliseStickerCode('FWC 20'), null);
+  assert.equal(normaliseStickerCode('messi red'), null);
   assert.equal(normaliseStickerCode('XXX 1'), null);
 });
 
@@ -70,6 +73,7 @@ test('normalisePaniniState drops unexpected imported fields', () => {
     'extras',
     'lastSyncedAt',
     'newOnes',
+    'rareExtras',
     'teams',
     'tradeShares',
     'trades',
@@ -77,6 +81,8 @@ test('normalisePaniniState drops unexpected imported fields', () => {
   assert.equal(state.extras['00'], 'owned');
   assert.equal(state.extras['FWC 6'], 'check');
   assert.equal(state.extras['FWC 19'], 'missing');
+  assert.equal(state.rareExtras['MESSI GOLD'], 'owned');
+  assert.equal(state.rareExtras['DOKU GOLD'], 'missing');
 });
 
 test('createTradeShare snapshots current duplicate stickers into a share board', () => {
@@ -101,6 +107,8 @@ test('missingStickerLabels lists stickers Olivia does not own', () => {
   assert.equal(labels.includes('FWC 4'), false);
   assert.equal(labels.includes('FWC 6'), true);
   assert.equal(labels.includes('FWC 19'), true);
+  assert.equal(labels.includes('MESSI GOLD'), false);
+  assert.equal(labels.includes('DOKU GOLD'), true);
 });
 
 test('mergePaniniExtras keeps the strongest status', () => {

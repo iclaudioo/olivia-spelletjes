@@ -1,4 +1,4 @@
-import { mergePaniniExtras, mergeTradeShares, normalisePaniniState } from './sticker-state.js';
+import { mergePaniniExtras, mergePaniniRareExtras, mergeTradeShares, normalisePaniniState } from './sticker-state.js';
 
 (() => {
   const STORE = 'olivia-panini-v3';
@@ -196,6 +196,7 @@ import { mergePaniniExtras, mergeTradeShares, normalisePaniniState } from './sti
       cloudSchema: 1,
       teams,
       extras: mergePaniniExtras(left.extras, right.extras),
+      rareExtras: mergePaniniRareExtras(left.rareExtras, right.rareExtras),
       trades,
       tradeShares: mergeTradeShares(left.tradeShares, right.tradeShares),
       newOnes: [...(left.newOnes || []), ...(right.newOnes || [])].slice(-100),

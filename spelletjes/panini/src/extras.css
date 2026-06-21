@@ -99,7 +99,8 @@
   border-color: rgba(255, 216, 77, .38);
 }
 
-.extra-card.focus-check {
+.extra-card.focus-check,
+.rare-variant.focus-check {
   border-color: var(--yellow);
   box-shadow: 0 0 0 3px rgba(255, 216, 77, .18), 0 14px 40px rgba(255, 216, 77, .16);
 }
@@ -157,8 +158,97 @@
   border-color: rgba(40, 130, 255, .44);
 }
 
+.toast {
+  max-width: calc(100vw - 28px);
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
+}
+
+.rare-title {
+  margin-top: 24px;
+}
+
+.rare-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rare-player {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .035)),
+    radial-gradient(circle at 100% 0%, rgba(255, 216, 77, .15), transparent 44%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.rare-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rare-head strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.rare-head span {
+  color: #ffe89a;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.rare-variants {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rare-variant {
+  background: rgba(255, 255, 255, .055);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: inherit;
+  display: grid;
+  gap: 4px;
+  min-height: 68px;
+  padding: 9px 7px;
+  text-align: center;
+}
+
+.rare-variant b {
+  font-size: 12px;
+}
+
+.rare-variant span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.rare-variant.owned {
+  background: linear-gradient(145deg, rgba(255, 216, 77, .2), rgba(33, 224, 138, .12));
+  border-color: rgba(255, 216, 77, .58);
+}
+
+.rare-variant.missing {
+  border-color: rgba(255, 85, 112, .24);
+}
+
+.rare-variant.check {
+  border-color: rgba(255, 216, 77, .38);
+}
+
 @media (max-width: 980px) {
-  .extra-cards {
+  .extra-cards,
+  .rare-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -169,7 +259,12 @@
   }
 
   .extra-summary,
-  .extra-cards {
+  .extra-cards,
+  .rare-grid {
     grid-template-columns: 1fr;
+  }
+
+  .rare-variants {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

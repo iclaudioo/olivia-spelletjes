@@ -166,8 +166,61 @@ export const EXTRA_CODES = EXTRA_ITEMS.map((item) => item.code);
 export const EXTRA_CODE_SET = new Set(EXTRA_CODES);
 export const DEFAULT_EXTRAS = Object.fromEntries(EXTRA_ITEMS.map((item) => [item.code, item.status]));
 
+export const RARE_EXTRA_VARIANTS = [
+  { code: 'REGULAR', label: 'Normaal', aliases: ['REGULAR', 'NORMAL', 'NORMAAL'] },
+  { code: 'BRONZE', label: 'Brons', aliases: ['BRONZE', 'BRONS'] },
+  { code: 'SILVER', label: 'Zilver', aliases: ['SILVER', 'ZILVER'] },
+  { code: 'GOLD', label: 'Goud', aliases: ['GOLD', 'GOUD'] },
+];
+
+export const RARE_EXTRA_PLAYERS = [
+  { key: 'MESSI', team: 'ARG', name: 'Lionel Messi', aliases: ['MESSI', 'LIONEL MESSI'] },
+  { key: 'DOKU', team: 'BEL', name: 'Jérémy Doku', aliases: ['DOKU', 'JEREMY DOKU'] },
+  { key: 'VINICIUS', team: 'BRA', name: 'Vinícius Júnior', aliases: ['VINICIUS', 'VINICIUS JUNIOR'] },
+  { key: 'DAVIES', team: 'CAN', name: 'Alphonso Davies', aliases: ['DAVIES', 'ALPHONSO DAVIES'] },
+  { key: 'DIAZ', team: 'COL', name: 'Luis Díaz', aliases: ['DIAZ', 'LUIS DIAZ'] },
+  { key: 'MODRIC', team: 'CRO', name: 'Luka Modrić', aliases: ['MODRIC', 'LUKA MODRIC'] },
+  { key: 'CAICEDO', team: 'ECU', name: 'Moisés Caicedo', aliases: ['CAICEDO', 'MOISES CAICEDO'] },
+  { key: 'SALAH', team: 'EGY', name: 'Mohamed Salah', aliases: ['SALAH', 'MOHAMED SALAH'] },
+  { key: 'BELLINGHAM', team: 'ENG', name: 'Jude Bellingham', aliases: ['BELLINGHAM', 'JUDE BELLINGHAM'] },
+  { key: 'MBAPPE', team: 'FRA', name: 'Kylian Mbappé', aliases: ['MBAPPE', 'KYLIAN MBAPPE'] },
+  { key: 'WIRTZ', team: 'GER', name: 'Florian Wirtz', aliases: ['WIRTZ', 'FLORIAN WIRTZ'] },
+  { key: 'SON', team: 'KOR', name: 'Heungmin Son', aliases: ['SON', 'HEUNGMIN SON'] },
+  { key: 'JIMENEZ', team: 'MEX', name: 'Raúl Jiménez', aliases: ['JIMENEZ', 'RAUL JIMENEZ'] },
+  { key: 'HAKIMI', team: 'MAR', name: 'Achraf Hakimi', aliases: ['HAKIMI', 'ACHRAF HAKIMI'] },
+  { key: 'GAKPO', team: 'NED', name: 'Cody Gakpo', aliases: ['GAKPO', 'CODY GAKPO'] },
+  { key: 'HAALAND', team: 'NOR', name: 'Erling Haaland', aliases: ['HAALAND', 'ERLING HAALAND'] },
+  { key: 'RONALDO', team: 'POR', name: 'Cristiano Ronaldo', aliases: ['RONALDO', 'CRISTIANO RONALDO'] },
+  { key: 'YAMAL', team: 'ESP', name: 'Lamine Yamal', aliases: ['YAMAL', 'LAMINE YAMAL'] },
+  { key: 'VALVERDE', team: 'URU', name: 'Federico Valverde', aliases: ['VALVERDE', 'FEDERICO VALVERDE'] },
+  { key: 'PULISIC', team: 'USA', name: 'Christian Pulisic', aliases: ['PULISIC', 'CHRISTIAN PULISIC'] },
+];
+
+export const RARE_EXTRA_ITEMS = RARE_EXTRA_PLAYERS.flatMap((player) => RARE_EXTRA_VARIANTS.map((variant) => ({
+  code: `${player.key} ${variant.code}`,
+  playerKey: player.key,
+  team: player.team,
+  name: player.name,
+  variant: variant.code,
+  variantLabel: variant.label,
+  status: player.key === 'MESSI' && variant.code === 'GOLD' ? 'owned' : 'missing',
+})));
+export const RARE_EXTRA_CODES = RARE_EXTRA_ITEMS.map((item) => item.code);
+export const RARE_EXTRA_CODE_SET = new Set(RARE_EXTRA_CODES);
+export const DEFAULT_RARE_EXTRAS = Object.fromEntries(RARE_EXTRA_ITEMS.map((item) => [item.code, item.status]));
+
 const STATUS_SET = new Set(['owned', 'missing', 'check']);
 const STATUS_RANK = { missing: 0, check: 1, owned: 2 };
+
+function canonical(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
 
 export function normaliseExtraCode(value) {
   const text = String(value || '').trim().toUpperCase().replace(/\s+/g, ' ');
@@ -181,6 +234,22 @@ export function normaliseExtraCode(value) {
   return number >= 1 && number <= 19 ? code : null;
 }
 
+export function normaliseRareExtraCode(value) {
+  const text = canonical(value);
+  if (!text) return null;
+  if (RARE_EXTRA_CODE_SET.has(text)) return text;
+
+  const tokens = text.split(' ');
+  const variant = RARE_EXTRA_VARIANTS.find((item) => item.aliases.some((alias) => tokens.includes(alias)));
+  if (!variant) return null;
+
+  const player = RARE_EXTRA_PLAYERS.find((item) => {
+    if (tokens.includes(item.team) || tokens.includes(item.key)) return true;
+    return item.aliases.some((alias) => text.includes(canonical(alias)));
+  });
+  return player ? `${player.key} ${variant.code}` : null;
+}
+
 export function normaliseExtraStatus(value) {
   return STATUS_SET.has(value) ? value : 'missing';
 }
@@ -190,6 +259,15 @@ export function normaliseExtras(value) {
   const out = {};
   for (const code of EXTRA_CODES) {
     out[code] = normaliseExtraStatus(source[code] || DEFAULT_EXTRAS[code]);
+  }
+  return out;
+}
+
+export function normaliseRareExtras(value) {
+  const source = value && typeof value === 'object' ? value : {};
+  const out = {};
+  for (const code of RARE_EXTRA_CODES) {
+    out[code] = normaliseExtraStatus(source[code] || DEFAULT_RARE_EXTRAS[code]);
   }
   return out;
 }
@@ -206,6 +284,12 @@ export function mergeExtras(a, b) {
   return Object.fromEntries(EXTRA_CODES.map((code) => [code, mergeExtraStatus(left[code], right[code])]));
 }
 
+export function mergeRareExtras(a, b) {
+  const left = normaliseRareExtras(a);
+  const right = normaliseRareExtras(b);
+  return Object.fromEntries(RARE_EXTRA_CODES.map((code) => [code, mergeExtraStatus(left[code], right[code])]));
+}
+
 export function extraTotals(extras) {
   const clean = normaliseExtras(extras);
   return {
@@ -215,7 +299,21 @@ export function extraTotals(extras) {
   };
 }
 
+export function rareExtraTotals(rareExtras) {
+  const clean = normaliseRareExtras(rareExtras);
+  return {
+    owned: RARE_EXTRA_CODES.filter((code) => clean[code] === 'owned').length,
+    check: RARE_EXTRA_CODES.filter((code) => clean[code] === 'check').length,
+    total: RARE_EXTRA_CODES.length,
+  };
+}
+
 export function missingExtraLabels(extras) {
   const clean = normaliseExtras(extras);
   return EXTRA_CODES.filter((code) => clean[code] !== 'owned');
+}
+
+export function missingRareExtraLabels(rareExtras) {
+  const clean = normaliseRareExtras(rareExtras);
+  return RARE_EXTRA_CODES.filter((code) => clean[code] !== 'owned');
 }

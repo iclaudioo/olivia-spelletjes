@@ -1,9 +1,14 @@
 import {
   EXTRA_CODE_SET,
   mergeExtras,
+  mergeRareExtras,
   missingExtraLabels,
+  missingRareExtraLabels,
   normaliseExtraCode,
   normaliseExtras,
+  normaliseRareExtraCode,
+  normaliseRareExtras,
+  RARE_EXTRA_CODE_SET,
 } from './extras.js';
 
 const TEAM_CODE_LIST = [
@@ -20,6 +25,8 @@ export function normaliseStickerCode(input, number) {
   const text = number == null ? String(input || '') : `${input || ''} ${number}`;
   const extraCode = normaliseExtraCode(text);
   if (extraCode) return { code: extraCode, number: 0, label: extraCode, type: 'extra' };
+  const rareExtraCode = normaliseRareExtraCode(text);
+  if (rareExtraCode) return { code: rareExtraCode, number: 0, label: rareExtraCode, type: 'rareExtra' };
 
   const match = text.trim().toUpperCase().match(/^([A-Z]{3})\s*(\d{1,2})$/);
   if (!match) return null;
@@ -67,7 +74,7 @@ export function missingStickerLabels(state) {
       if (!owned.has(number)) out.push(`${code} ${number}`);
     }
   }
-  return [...out, ...missingExtraLabels(source.extras)];
+  return [...out, ...missingExtraLabels(source.extras), ...missingRareExtraLabels(source.rareExtras)];
 }
 
 function normaliseFriendName(value) {
@@ -150,6 +157,7 @@ export function normalisePaniniState(state) {
 
   const trades = normaliseStickerMap(source.trades);
   const extras = normaliseExtras(source.extras);
+  const rareExtras = normaliseRareExtras(source.rareExtras);
   const tradeShares = {};
   for (const rawShare of Object.values(source.tradeShares || {})) {
     const share = normaliseTradeShare(rawShare);
@@ -160,6 +168,7 @@ export function normalisePaniniState(state) {
     cloudSchema: 1,
     teams,
     extras,
+    rareExtras,
     trades,
     tradeShares,
     newOnes: uniqueStickerLabels(source.newOnes).slice(-100),
@@ -206,15 +215,21 @@ export function mergePaniniExtras(leftExtras, rightExtras) {
   return mergeExtras(leftExtras, rightExtras);
 }
 
+export function mergePaniniRareExtras(leftExtras, rightExtras) {
+  return mergeRareExtras(leftExtras, rightExtras);
+}
+
 export function addOwnedSticker(state, codeOrLabel, number) {
   const sticker = normaliseStickerCode(codeOrLabel, number);
   if (!sticker) return null;
 
   state.newOnes ??= [];
 
-  if (sticker.type === 'extra') {
-    state.extras = normaliseExtras(state.extras);
-    state.extras[sticker.label] = 'owned';
+  if (sticker.type === 'extra' || sticker.type === 'rareExtra') {
+    const key = sticker.type === 'extra' ? 'extras' : 'rareExtras';
+    const normalise = sticker.type === 'extra' ? normaliseExtras : normaliseRareExtras;
+    state[key] = normalise(state[key]);
+    state[key][sticker.label] = 'owned';
     if (!state.newOnes.includes(sticker.label)) {
       state.newOnes.push(sticker.label);
       state.newOnes = state.newOnes.slice(-100);
@@ -243,9 +258,11 @@ export function removeOwnedSticker(state, codeOrLabel, number) {
   state.teams ??= {};
   state.newOnes ??= [];
 
-  if (sticker.type === 'extra') {
-    state.extras = normaliseExtras(state.extras);
-    state.extras[sticker.label] = 'missing';
+  if (sticker.type === 'extra' || sticker.type === 'rareExtra') {
+    const key = sticker.type === 'extra' ? 'extras' : 'rareExtras';
+    const normalise = sticker.type === 'extra' ? normaliseExtras : normaliseRareExtras;
+    state[key] = normalise(state[key]);
+    state[key][sticker.label] = 'missing';
     state.newOnes = uniqueStickerLabels(state.newOnes).filter((label) => label !== sticker.label);
     return state;
   }
@@ -272,6 +289,15 @@ export function setExtraStatus(state, codeOrLabel, status) {
 
   state.extras = normaliseExtras(state.extras);
   state.extras[code] = ['owned', 'missing', 'check'].includes(status) ? status : 'missing';
+  return state;
+}
+
+export function setRareExtraStatus(state, codeOrLabel, status) {
+  const code = normaliseRareExtraCode(codeOrLabel);
+  if (!RARE_EXTRA_CODE_SET.has(code)) return null;
+
+  state.rareExtras = normaliseRareExtras(state.rareExtras);
+  state.rareExtras[code] = ['owned', 'missing', 'check'].includes(status) ? status : 'missing';
   return state;
 }
 
