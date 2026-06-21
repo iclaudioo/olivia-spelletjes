@@ -1,0 +1,76 @@
+.owner-token-panel {
+  align-items: center;
+  background: rgba(0, 0, 0, .68);
+  backdrop-filter: blur(12px);
+  display: grid;
+  inset: 0;
+  padding: 18px;
+  position: fixed;
+  z-index: 60;
+}
+
+.owner-token-card {
+  background: linear-gradient(180deg, #111e34, #07111f);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 22px 90px rgba(0, 0, 0, .42);
+  display: grid;
+  gap: 12px;
+  justify-self: center;
+  max-width: 440px;
+  padding: 18px;
+  position: relative;
+  width: min(100%, 440px);
+}
+
+.owner-token-card h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.owner-token-card p {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.owner-token-card .field {
+  width: 100%;
+}
+
+.owner-token-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.owner-token-actions .btn {
+  flex: 1;
+  min-width: 150px;
+}
+
+.owner-token-close {
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 900;
+  height: 38px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 38px;
+}
+
+@media (max-width: 430px) {
+  .owner-token-panel {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .owner-token-card {
+    border-radius: 22px 22px 16px 16px;
+  }
+}

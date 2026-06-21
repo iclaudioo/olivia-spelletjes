@@ -1,5 +1,6 @@
 import './batches.js';
 import './cloud.js';
+import './cloud-sync.css';
 import './quick-entry.css';
 import './design-polish.css';
 import './trade-share.css';

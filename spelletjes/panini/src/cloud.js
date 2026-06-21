@@ -10,6 +10,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
   const originalSetItem = localStorage.setItem.bind(localStorage);
   let bootDone = false;
   let pushTimer = null;
+  let tokenPanel = null;
 
   function mountBadge() {
     const el = document.getElementById('cloudSyncBadge');
@@ -25,7 +26,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
         el.id = 'cloudSyncBadge';
         el.type = 'button';
         el.className = 'cloud-sync-badge';
-        el.onclick = () => forceSync(true, true).catch(() => {});
+        el.onclick = () => showOwnerTokenPanel();
       }
       const dot = kind === 'ok' ? '🟢' : kind === 'error' ? '🔴' : '🟡';
       el.textContent = `${dot} ${message}`;
@@ -50,11 +51,72 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     return localStorage.getItem(OWNER_TOKEN_STORE) || '';
   }
 
-  function promptOwnerToken() {
-    const value = window.prompt('Geef de Panini beheercode in om met Supabase te synchroniseren.');
-    const token = String(value || '').trim();
-    if (token) localStorage.setItem(OWNER_TOKEN_STORE, token);
-    return token;
+  function closeOwnerTokenPanel() {
+    tokenPanel?.remove();
+    tokenPanel = null;
+  }
+
+  function showOwnerTokenPanel(message = 'Koppel dit toestel met de Panini beheercode.') {
+    closeOwnerTokenPanel();
+    tokenPanel = document.createElement('div');
+    tokenPanel.id = 'ownerTokenPanel';
+    tokenPanel.className = 'owner-token-panel';
+    tokenPanel.innerHTML = `
+      <div class="owner-token-card" role="dialog" aria-modal="true" aria-labelledby="ownerTokenTitle">
+        <button class="owner-token-close" id="ownerTokenClose" type="button" aria-label="Sluit">×</button>
+        <h2 id="ownerTokenTitle">Koppel dit toestel</h2>
+        <p id="ownerTokenMessage"></p>
+        <label class="mini" for="ownerTokenInput">Panini beheercode</label>
+        <input class="field" id="ownerTokenInput" autocomplete="off" inputmode="text" placeholder="Plak de code hier">
+        <div class="owner-token-actions">
+          <button class="btn primary" id="ownerTokenSave" type="button">Bewaar en sync</button>
+          <button class="btn" id="ownerTokenForget" type="button">Vergeet code</button>
+        </div>
+      </div>`;
+    document.body.append(tokenPanel);
+    tokenPanel.querySelector('#ownerTokenMessage').textContent = message;
+    const input = tokenPanel.querySelector('#ownerTokenInput');
+    const saveButton = tokenPanel.querySelector('#ownerTokenSave');
+    tokenPanel.querySelector('#ownerTokenClose').onclick = closeOwnerTokenPanel;
+    tokenPanel.querySelector('#ownerTokenForget').onclick = () => {
+      localStorage.removeItem(OWNER_TOKEN_STORE);
+      input.value = '';
+      badge('beheercode nodig', 'error');
+      input.focus();
+    };
+    tokenPanel.onclick = (event) => {
+      if (event.target === tokenPanel) closeOwnerTokenPanel();
+    };
+    saveButton.onclick = async () => {
+      const token = input.value.trim();
+      if (!token) {
+        tokenPanel.querySelector('#ownerTokenMessage').textContent = 'Plak eerst de beheercode.';
+        input.focus();
+        return;
+      }
+      localStorage.setItem(OWNER_TOKEN_STORE, token);
+      saveButton.disabled = true;
+      tokenPanel.querySelector('#ownerTokenMessage').textContent = 'Code controleren en synchroniseren...';
+      try {
+        await forceSync(false, false);
+        closeOwnerTokenPanel();
+        badge('cloud actief', 'ok');
+      } catch (error) {
+        if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
+        saveButton.disabled = false;
+        tokenPanel.querySelector('#ownerTokenMessage').textContent = error.message === 'forbidden'
+          ? 'Deze code klopt niet. Plak de beheercode opnieuw.'
+          : 'Sync lukte niet. Controleer je internet en probeer opnieuw.';
+        badge(error.message === 'forbidden' ? 'code fout' : 'offline bewaard', 'error');
+        input.focus();
+        input.select();
+      }
+    };
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') saveButton.click();
+      if (event.key === 'Escape') closeOwnerTokenPanel();
+    });
+    setTimeout(() => input.focus(), 0);
   }
 
   function activeShareId() {
@@ -105,14 +167,14 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
 
   async function fetchCloud(requireToken = false) {
     let token = ownerToken();
-    if (!token && requireToken) token = promptOwnerToken();
+    if (!token && requireToken) showOwnerTokenPanel();
     if (!token) throw new Error('owner token required');
     return normalise(await rpc('olivia_panini_read_state', { p_owner_token: token }));
   }
 
   async function pushCloud(state, requireToken = false) {
     let token = ownerToken();
-    if (!token && requireToken) token = promptOwnerToken();
+    if (!token && requireToken) showOwnerTokenPanel();
     if (!token) throw new Error('owner token required');
     const clean = normalise(state);
     return normalise(await rpc('olivia_panini_write_state', {
@@ -150,7 +212,16 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     badge('cloud sync...', 'sync');
     const beforeRaw = localStorage.getItem(STORE) || '{}';
     const local = normalise(parseState(beforeRaw));
-    const cloud = await fetchCloud(requireToken);
+    let cloud;
+    try {
+      cloud = await fetchCloud(requireToken);
+    } catch (error) {
+      if (error.message === 'forbidden') {
+        localStorage.removeItem(OWNER_TOKEN_STORE);
+        if (requireToken) showOwnerTokenPanel('Deze code klopt niet. Plak de beheercode opnieuw.');
+      }
+      throw error;
+    }
     const merged = mergeStates(cloud, local);
     const saved = await pushCloud(merged, requireToken);
     const savedRaw = JSON.stringify(saved);
@@ -172,6 +243,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
         badge('opgeslagen', 'ok');
       } catch (error) {
         if (error.message === 'owner token required' || error.message === 'forbidden') {
+          if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
           badge('beheercode nodig', 'error');
           return;
         }
@@ -194,7 +266,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     mergeStates,
     mountBadge,
     normalise,
-    promptOwnerToken,
+    showOwnerTokenPanel,
     pushCloud,
     submitClaim,
   };
@@ -213,7 +285,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     } catch (error) {
       console.warn('[Panini cloud sync]', error);
       if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
-      badge('offline bewaard', 'error');
+      badge(error.message === 'forbidden' ? 'beheercode nodig' : 'offline bewaard', 'error');
     } finally {
       bootDone = true;
     }
