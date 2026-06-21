@@ -3,6 +3,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
 (() => {
   const STORE = 'olivia-panini-v3';
   const OWNER_TOKEN_STORE = 'olivia-panini-owner-token';
+  const OWNER_LINK_PARAMS = ['koppel', 'beheer'];
   const SUPABASE_URL = 'https://eblgjinuakxdiikscjpe.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_88Vk4S3kmsA4uxiA_e5Mqg_01vPFNRd';
   const RPC_ENDPOINT = `${SUPABASE_URL}/rest/v1/rpc`;
@@ -51,12 +52,23 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     return localStorage.getItem(OWNER_TOKEN_STORE) || '';
   }
 
+  function consumeOwnerTokenFromUrl() {
+    const url = new URL(location.href);
+    const token = OWNER_LINK_PARAMS.map((name) => url.searchParams.get(name)).find(Boolean)?.trim();
+    if (!token) return '';
+
+    localStorage.setItem(OWNER_TOKEN_STORE, token);
+    for (const name of OWNER_LINK_PARAMS) url.searchParams.delete(name);
+    history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    return token;
+  }
+
   function closeOwnerTokenPanel() {
     tokenPanel?.remove();
     tokenPanel = null;
   }
 
-  function showOwnerTokenPanel(message = 'Koppel dit toestel met de Panini beheercode.') {
+  function showOwnerTokenPanel(message = 'Open de privé koppel-link op dit toestel, of plak de koppelcode.') {
     closeOwnerTokenPanel();
     tokenPanel = document.createElement('div');
     tokenPanel.id = 'ownerTokenPanel';
@@ -66,8 +78,8 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
         <button class="owner-token-close" id="ownerTokenClose" type="button" aria-label="Sluit">×</button>
         <h2 id="ownerTokenTitle">Koppel dit toestel</h2>
         <p id="ownerTokenMessage"></p>
-        <label class="mini" for="ownerTokenInput">Panini beheercode</label>
-        <input class="field" id="ownerTokenInput" autocomplete="off" inputmode="text" placeholder="Plak de code hier">
+        <label class="mini" for="ownerTokenInput">Koppelcode</label>
+        <input class="field" id="ownerTokenInput" autocomplete="off" inputmode="text" placeholder="Plak de koppelcode hier">
         <div class="owner-token-actions">
           <button class="btn primary" id="ownerTokenSave" type="button">Bewaar en sync</button>
           <button class="btn" id="ownerTokenForget" type="button">Vergeet code</button>
@@ -81,7 +93,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     tokenPanel.querySelector('#ownerTokenForget').onclick = () => {
       localStorage.removeItem(OWNER_TOKEN_STORE);
       input.value = '';
-      badge('beheercode nodig', 'error');
+      badge('koppel toestel', 'error');
       input.focus();
     };
     tokenPanel.onclick = (event) => {
@@ -90,7 +102,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     saveButton.onclick = async () => {
       const token = input.value.trim();
       if (!token) {
-        tokenPanel.querySelector('#ownerTokenMessage').textContent = 'Plak eerst de beheercode.';
+        tokenPanel.querySelector('#ownerTokenMessage').textContent = 'Plak eerst de koppelcode.';
         input.focus();
         return;
       }
@@ -105,7 +117,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
         if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
         saveButton.disabled = false;
         tokenPanel.querySelector('#ownerTokenMessage').textContent = error.message === 'forbidden'
-          ? 'Deze code klopt niet. Plak de beheercode opnieuw.'
+          ? 'Deze code klopt niet. Open de koppel-link opnieuw of plak de juiste koppelcode.'
           : 'Sync lukte niet. Controleer je internet en probeer opnieuw.';
         badge(error.message === 'forbidden' ? 'code fout' : 'offline bewaard', 'error');
         input.focus();
@@ -218,7 +230,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
     } catch (error) {
       if (error.message === 'forbidden') {
         localStorage.removeItem(OWNER_TOKEN_STORE);
-        if (requireToken) showOwnerTokenPanel('Deze code klopt niet. Plak de beheercode opnieuw.');
+        if (requireToken) showOwnerTokenPanel('Deze code klopt niet. Open de koppel-link opnieuw of plak de juiste koppelcode.');
       }
       throw error;
     }
@@ -244,7 +256,7 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
       } catch (error) {
         if (error.message === 'owner token required' || error.message === 'forbidden') {
           if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
-          badge('beheercode nodig', 'error');
+          badge('koppel toestel', 'error');
           return;
         }
         console.warn('[Panini cloud sync]', error);
@@ -274,18 +286,19 @@ import { mergeTradeShares, normalisePaniniState } from './sticker-state.js';
   (async () => {
     try {
       badge(activeShareId() ? 'ruillijst laden...' : 'cloud laden...', 'sync');
+      const linkedToken = consumeOwnerTokenFromUrl();
       if (activeShareId()) {
         await fetchShare();
         badge('ruillijst actief', 'ok');
-      } else if (ownerToken()) {
+      } else if (linkedToken || ownerToken()) {
         await forceSync(false, false);
       } else {
-        badge('beheercode nodig', 'error');
+        badge('koppel toestel', 'error');
       }
     } catch (error) {
       console.warn('[Panini cloud sync]', error);
       if (error.message === 'forbidden') localStorage.removeItem(OWNER_TOKEN_STORE);
-      badge(error.message === 'forbidden' ? 'beheercode nodig' : 'offline bewaard', 'error');
+      badge(error.message === 'forbidden' ? 'koppel toestel' : 'offline bewaard', 'error');
     } finally {
       bootDone = true;
     }
