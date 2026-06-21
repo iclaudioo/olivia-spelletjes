@@ -1,0 +1,154 @@
+.trade-share-viewer,
+.trade-share-owner,
+.recovery-panel {
+  margin-top: 16px;
+}
+
+.trade-share-viewer {
+  border-color: rgba(33, 224, 138, .36);
+}
+
+.share-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.share-link {
+  margin: 0 0 14px;
+  width: 100%;
+}
+
+.share-block {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.share-block h3 {
+  font-size: 15px;
+  margin: 0;
+}
+
+.share-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.share-chip {
+  align-items: center;
+  background: rgba(255, 216, 77, .13);
+  border: 1px solid rgba(255, 216, 77, .28);
+  border-radius: 12px;
+  color: #fff3bf;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 1000;
+  gap: 6px;
+  min-height: 34px;
+  padding: 8px 10px;
+}
+
+.claim-list {
+  display: grid;
+  gap: 8px;
+}
+
+.claim-card {
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 16px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.claim-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.claim-pick {
+  align-items: center;
+  background: rgba(255, 255, 255, .055);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  min-height: 78px;
+  padding: 10px;
+  text-align: center;
+}
+
+.claim-pick input {
+  inline-size: 18px;
+  justify-self: center;
+  margin: 0;
+}
+
+.claim-pick span {
+  font-weight: 1000;
+}
+
+.claim-pick b {
+  color: var(--yellow);
+  font-size: 11px;
+}
+
+.claim-pick:has(input:checked) {
+  background: rgba(33, 224, 138, .16);
+  border-color: rgba(33, 224, 138, .38);
+}
+
+.recovery-panel summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.recovery-panel summary span {
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+.recovery-panel summary small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.recovery-actions .footer-note {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+}
+
+@media (max-width: 720px) {
+  .claim-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .claim-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recovery-panel summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
