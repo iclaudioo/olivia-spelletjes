@@ -4,6 +4,7 @@ import './cloud-sync.css';
 import './quick-entry.css';
 import './design-polish.css';
 import './trade-share.css';
+import './kid-wk.css';
 import {
   addOwnedSticker,
   addTradeSticker,
@@ -95,7 +96,39 @@ function scanPreview(file){const img=$$('#scanPreview'); if(!file){img.style.dis
 function nav(id){document.querySelectorAll('.section').forEach(s=>s.classList.toggle('on',s.id===id)); document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('on',b.dataset.nav===id)); window.scrollTo({top:0,behavior:'smooth'});}
 function toast(msg){let t=$$('#toast'); if(!t){t=el('div','toast'); t.id='toast'; document.body.append(t)} t.textContent=msg; t.classList.add('show'); clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove('show'),1800)}
 function teamSelectOptions(){return TEAMS.map(t=>`<option value="${t.code}">${t.flag} ${t.name} (${t.code})</option>`).join('')}
-function renderAll(full=true){renderHome(); renderTeams(); renderGroups(); renderStars(); renderTrade(); renderQuickEntries(); ensureRecoveryPanel(); renderShareTools(); renderShareViewer(); if(full){} }
+function renderAll(full=true){renderHome(); renderTeams(); renderGroups(); renderStars(); renderTrade(); renderQuickEntries(); ensureRecoveryPanel(); renderShareTools(); renderShareViewer(); placeNavigation(); applyFriendlyCopy(); if(full){} }
+function placeNavigation(){
+  const navEl=$$('.nav'), mainEl=$$('.wrap');
+  if(navEl&&mainEl&&navEl.nextElementSibling!==mainEl)mainEl.before(navEl);
+}
+function applyFriendlyCopy(){
+  const text=(selector,value)=>{const node=$$(selector); if(node)node.textContent=value;};
+  const navLabel=(id,icon,label)=>{const node=$$(`.navbtn[data-nav="${id}"]`); if(node)node.innerHTML=`<span>${icon}</span>${label}`;};
+  text('.brand h1',"Olivia's stickerboek");
+  text('.brand small','WK 2026');
+  text('#home .eyebrow','WK 2026 stickerboek');
+  const title=$$('#home .title');
+  if(title)title.innerHTML='Stickerboek<br><span>van Olivia</span>';
+  text('#home .statline .muted','stickers in het boek');
+  text('#home .grid .card:nth-child(1) h2','Bekerstand');
+  text('#home .grid .card:nth-child(2) h2','Nog te zoeken');
+  text('#home .section-title h2','Bijna vol');
+  text('#home .section-title p','Deze landen zijn het dichtst bij compleet.');
+  text('#battle .section-title:nth-of-type(1) h2','Groepen');
+  text('#battle .section-title:nth-of-type(1) p','Welke groep is al het verst?');
+  text('#stars .section-title h2','Sterspelers');
+  text('#stars .section-title p','De bekende spelers in Olivia’s stickerboek.');
+  text('#trade .section-title h2','Dubbels en ruilen');
+  text('#trade .section-title p','Nieuwe stickers, dubbels en ruil-lijstjes.');
+  text('#tradeShareTools h2','Dubbels delen');
+  const scanCard=$$('#scanPreview')?.closest('.card');
+  if(scanCard)scanCard.hidden=true;
+  navLabel('home','🏆','Boek');
+  navLabel('teams','🌍','Landen');
+  navLabel('battle','📊','Groepen');
+  navLabel('stars','⭐','Sterren');
+  navLabel('trade','🔁','Dubbels');
+}
 function app(){document.getElementById('app').innerHTML=`<header class="top"><div class="topin"><div class="brand"><div class="logo">🏆</div><div><h1>Olivia's Panini WK 2026</h1><small>Sticker Command Center</small></div></div><div class="topstats"><span class="pill gold" id="levelPill">LEVEL</span> <span class="pill" id="miniTotal">0</span><span id="cloudSyncSlot"></span></div></div></header><main class="wrap"><section id="home" class="section on"><div class="hero"><div class="card mega"><div><div class="eyebrow">World Cup Command Center</div><div class="title">Olivia's<br><span>Sticker Quest</span></div><div class="statline"><div class="bigpct" id="bigPct">0%</div><div><strong id="ownedLine">0/0</strong><div class="muted">stickers in de tool</div></div></div><div class="progress"><div class="bar" id="mainBar"></div></div><div class="kpis"><div class="kpi"><b id="kOwned">0</b><span>binnen</span></div><div class="kpi"><b id="kMiss">0</b><span>nog nodig</span></div><div class="kpi"><b id="kTeams">0</b><span>landen</span></div><div class="kpi"><b id="kStars">0</b><span>sterren</span></div></div></div><div class="cup">🏆</div></div><div class="grid"><div class="card"><h2>Collector levels</h2><div id="levels" class="levels"></div></div><div class="card"><h2>Missie van de week</h2><div id="mission"></div></div></div></div><div class="section-title"><div><h2>Topteams</h2><p>De teams die het dichtst bij compleet zijn.</p></div></div><div class="card" id="topList"></div></section><section id="teams" class="section"><div class="section-title"><div><h2>Alle landen</h2><p>Zoek, open en vink stickers aan of uit.</p></div></div><div class="filters"><input class="field" id="search" placeholder="Zoek land of code"><select class="field" id="groupFilter"><option value="">Alle groepen</option>${'ABCDEFGHIJKL'.split('').map(g=>`<option value="${g}">Groep ${g}</option>`).join('')}</select></div><div class="teamcards" id="teamCards"></div></section><section id="battle" class="section"><div class="section-title"><div><h2>Group Battle</h2><p>Welke poule loopt het best?</p></div></div><div class="groupgrid" id="groupGrid"></div><div class="section-title"><div><h2>Werelddeel-radar</h2><p>Kleur = voortgang per land.</p></div></div><div class="world" id="worldGrid"></div></section><section id="stars" class="section"><div class="section-title"><div><h2>Superstar Tracker</h2><p>De grote namen van Olivia's jacht.</p></div></div><div class="stars" id="starsGrid"></div></section><section id="trade" class="section"><div class="section-title"><div><h2>Ruilcentrum</h2><p>Nieuwe stickers, dubbels en ruil-lijsten delen.</p></div></div><div class="grid two"><div class="card"><h2>Dubbele stickers</h2><div class="filters"><input class="field" id="tradeInput" placeholder="bv. BEL 15"><button class="btn primary" id="addTrade">Toevoegen</button></div><div id="tradeList"></div></div><div class="card"><h2>Nieuwe stickers</h2><div class="filters"><input class="field" id="newInput" placeholder="bv. ENG 17"><button class="btn primary" id="addNew">Afvinken</button></div><div class="codes" id="newList"></div><hr style="border-color:rgba(255,255,255,.1);margin:16px 0"><button class="btn" id="exportBtn">Backup exporteren</button> <label class="btn" for="importFile">Backup importeren</label><input id="importFile" type="file" accept="application/json" hidden><p class="footer-note">Voortgang wordt via Supabase gesynchroniseerd. Backup blijft als noodherstel.</p></div></div><div class="card" style="margin-top:16px"><h2>Foto-scan preview</h2><div class="scanbox"><label class="filelabel" for="scanFile">📷 Laad een nieuwe stickerfoto als preview</label><input id="scanFile" type="file" accept="image/*" capture="environment" hidden><img id="scanPreview" class="preview" alt="Scan preview"></div><p class="footer-note">Deze versie toont de foto-preview. AI-herkenning kan later als backend worden toegevoegd.</p></div></section></main><nav class="nav"><div class="navin"><button class="navbtn on" data-nav="home"><span>🏠</span>Home</button><button class="navbtn" data-nav="teams"><span>🌍</span>Teams</button><button class="navbtn" data-nav="battle"><span>⚔️</span>Battle</button><button class="navbtn" data-nav="stars"><span>⭐</span>Sterren</button><button class="navbtn" data-nav="trade"><span>🔁</span>Ruil</button></div></nav>`; window.oliviaPaniniCloud?.mountBadge?.(); document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>nav(b.dataset.nav)); $$('#search').oninput=renderTeams; $$('#groupFilter').onchange=renderTeams; $$('#addTrade').onclick=addTrade; $$('#addNew').onclick=addNew; $$('#exportBtn').onclick=exportData; $$('#importFile').onchange=e=>importData(e.target.files[0]); $$('#scanFile').onchange=e=>scanPreview(e.target.files[0]); renderAll(); if(activeShareId())nav('trade');}
 window.openTeam=openTeam; app();
 window.addEventListener('olivia-panini-cloud-updated',()=>{state=normalisePaniniState(JSON.parse(localStorage.getItem(STORE)||'{}')); renderAll(false);});

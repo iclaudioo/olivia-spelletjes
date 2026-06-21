@@ -4,7 +4,13 @@ import { oliviaSVG } from "./art/olivia.js";
 
 const SPELLETJES = [
   { naam: "Poetsen", emoji: "🧹", kleur: "#bfe9ff", url: "/spelletjes/poetsen/", klaar: true },
-  { naam: "Panini WK 2026", emoji: "🏆", kleur: "#ffe58a", url: "/spelletjes/panini/", klaar: true },
+  {
+    naam: "Stickerboek WK 2026",
+    emoji: "🏆",
+    kleur: "#ffe58a",
+    url: "/spelletjes/panini/?familie=1",
+    klaar: true,
+  },
   { naam: "Binnenkort", emoji: "✨", kleur: "#ffe3f1", klaar: false },
 ];
 
