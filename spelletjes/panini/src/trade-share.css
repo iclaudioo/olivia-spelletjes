@@ -125,6 +125,15 @@
   gap: 12px;
 }
 
+.trade-match-card.is-released {
+  border-color: rgba(40, 130, 255, .28);
+}
+
+.trade-match-card.is-completed {
+  background: #f3fff8;
+  border-color: rgba(16, 166, 90, .28);
+}
+
 .trade-match-card header {
   align-items: center;
   display: flex;
@@ -156,6 +165,16 @@
   text-align: center;
 }
 
+.trade-match-card.is-released header b {
+  background: #e4f1ff;
+  color: #173c72;
+}
+
+.trade-match-card.is-completed header b {
+  background: #dff8e8;
+  color: #0b6f43;
+}
+
 .trade-match-score {
   background: rgba(8, 49, 35, .1);
   border-radius: 999px;
@@ -184,6 +203,12 @@
   font-weight: 900;
   margin: 0;
   padding: 9px 10px;
+}
+
+.trade-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .empty-trades {
@@ -221,6 +246,12 @@
   background: #e4f1ff;
   border-color: #9fc9ff;
   color: #173c72;
+}
+
+.code.given {
+  background: #e8fbef;
+  border-color: #9edbb4;
+  color: #0b6f43;
 }
 
 .claim-list {

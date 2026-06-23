@@ -4,17 +4,21 @@ import assert from 'node:assert/strict';
 import {
   addOwnedSticker,
   addTradeSticker,
+  completeTradeClaim,
   createTradeShare,
   mergePaniniExtras,
   mergePaniniStates,
   mergeTradeShares,
   missingStickerLabels,
   removeOwnedSticker,
+  releaseTradeClaim,
+  reserveTradeClaim,
   saveTradeClaim,
   normaliseStickerCode,
   normalisePaniniState,
   tradeShareAvailability,
   tradeShareClaimSummaries,
+  tradeShareReservationCounts,
 } from '../spelletjes/panini/src/sticker-state.js';
 
 test('normaliseStickerCode accepts loose typing and validates known sticker ranges', () => {
@@ -188,6 +192,72 @@ test('trade claims reserve duplicate availability for other friends', () => {
   assert.equal(state.tradeShares.share123.claims.length, 2);
 });
 
+test('released trade claims keep the list but free duplicate availability', () => {
+  const state = normalisePaniniState({
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 15': 1 },
+        missing: ['SUI 20'],
+        claims: [{ friendName: 'Emma', wanted: ['BEL 15'], offered: ['SUI 20'], updatedAt: '2026-06-21T08:00:00.000Z' }],
+      },
+    },
+  });
+
+  const claim = releaseTradeClaim(state, 'share123', 'Emma', { now: '2026-06-21T08:03:00.000Z' });
+
+  assert.equal(claim.status, 'released');
+  assert.deepEqual(tradeShareAvailability(state.tradeShares.share123), { 'BEL 15': 1 });
+  assert.deepEqual(tradeShareReservationCounts(state.tradeShares.share123), {});
+  assert.deepEqual(state.tradeShares.share123.claims[0].wanted, ['BEL 15']);
+});
+
+test('reserved trade claims can be put aside again when stickers are still available', () => {
+  const state = normalisePaniniState({
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 15': 1 },
+        missing: ['SUI 20'],
+        claims: [{ friendName: 'Emma', wanted: ['BEL 15'], offered: ['SUI 20'], status: 'released', updatedAt: '2026-06-21T08:00:00.000Z' }],
+      },
+    },
+  });
+
+  const claim = reserveTradeClaim(state, 'share123', 'Emma', { now: '2026-06-21T08:04:00.000Z' });
+
+  assert.equal(claim.status, 'reserved');
+  assert.deepEqual(tradeShareAvailability(state.tradeShares.share123), { 'BEL 15': 0 });
+});
+
+test('completed trade claims remove given duplicates and add offered stickers', () => {
+  const state = normalisePaniniState({
+    teams: { BEL: [3] },
+    trades: { 'BEL 15': 1, 'CRO 10': 2 },
+    tradeShares: {
+      share123: {
+        id: 'share123',
+        ownerName: 'Olivia',
+        items: { 'BEL 15': 1, 'CRO 10': 2 },
+        missing: ['SUI 20', 'FWC 3'],
+        claims: [{ friendName: 'Emma', wanted: ['BEL 15'], offered: ['SUI 20', 'FWC 3'], updatedAt: '2026-06-21T08:00:00.000Z' }],
+      },
+    },
+  });
+
+  const claim = completeTradeClaim(state, 'share123', 'Emma', { now: '2026-06-21T08:05:00.000Z' });
+
+  assert.equal(claim.status, 'completed');
+  assert.equal(claim.completedAt, '2026-06-21T08:05:00.000Z');
+  assert.deepEqual(state.trades, { 'CRO 10': 2 });
+  assert.deepEqual(state.teams.SUI, [20]);
+  assert.equal(state.extras['FWC 3'], 'owned');
+  assert.deepEqual(state.tradeShares.share123.claims[0].wanted, ['BEL 15']);
+  assert.deepEqual(state.tradeShares.share123.claims[0].offered, ['SUI 20', 'FWC 3']);
+});
+
 test('normalisePaniniState preserves trade shares and normalises claims', () => {
   const state = normalisePaniniState({
     tradeShares: {
@@ -251,6 +321,8 @@ test('tradeShareClaimSummaries prepares ruilkaart metrics without changing claim
 
   assert.deepEqual(summaries, [{
     friendName: 'Aldo',
+    status: 'reserved',
+    statusLabel: 'Opzij gelegd',
     wantedCount: 2,
     offeredCount: 2,
     availableWantedCount: 2,
@@ -258,6 +330,7 @@ test('tradeShareClaimSummaries prepares ruilkaart metrics without changing claim
     wanted: ['BEL 19', 'USA 17'],
     offered: ['FWC 3', 'AUT 8'],
     updatedAt: '2026-06-21T16:20:31.803218+00:00',
+    completedAt: null,
   }]);
   assert.deepEqual(share.claims[0].offered, ['FWC 3', 'AUT 8']);
 });

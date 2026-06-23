@@ -85,11 +85,20 @@ function claimKey(friendName) {
   return friendName.toLowerCase();
 }
 
+function normaliseClaimStatus(value) {
+  return ['reserved', 'released', 'completed'].includes(value) ? value : 'reserved';
+}
+
+function claimReservesStickers(claim) {
+  return normaliseClaimStatus(claim?.status) === 'reserved';
+}
+
 function wantedCounts(claims, excludeFriendName = '') {
   const excludeKey = claimKey(normaliseFriendName(excludeFriendName));
   const counts = {};
   for (const claim of Array.isArray(claims) ? claims : []) {
     if (excludeKey && claimKey(normaliseFriendName(claim?.friendName)) === excludeKey) continue;
+    if (!claimReservesStickers(claim)) continue;
     for (const label of uniqueStickerLabels(claim?.wanted)) {
       counts[label] = (counts[label] || 0) + 1;
     }
@@ -111,16 +120,22 @@ function normaliseTradeShare(rawShare) {
 
   for (const rawClaim of Array.isArray(share.claims) ? share.claims : []) {
     const friendName = normaliseFriendName(rawClaim?.friendName);
-    const wanted = uniqueStickerLabels(rawClaim?.wanted).filter((label) => allowedWanted.has(label));
-    const offered = uniqueStickerLabels(rawClaim?.offered).filter((label) => allowedOffered.has(label));
+    const status = normaliseClaimStatus(rawClaim?.status);
+    const preserveHistory = status !== 'reserved';
+    const wanted = uniqueStickerLabels(rawClaim?.wanted)
+      .filter((label) => preserveHistory || allowedWanted.has(label));
+    const offered = uniqueStickerLabels(rawClaim?.offered)
+      .filter((label) => preserveHistory || allowedOffered.has(label));
     const key = claimKey(friendName);
     if (!friendName || (!wanted.length && !offered.length) || seenClaimKeys.has(key)) continue;
     seenClaimKeys.add(key);
     claims.push({
       friendName,
+      status,
       wanted,
       offered,
       updatedAt: rawClaim?.updatedAt || null,
+      completedAt: rawClaim?.completedAt || null,
     });
   }
 
@@ -148,15 +163,31 @@ export function tradeShareAvailability(rawShare, options = {}) {
   );
 }
 
+export function tradeShareReservationCounts(rawShare) {
+  const share = normaliseTradeShare(rawShare);
+  return wantedCounts(share?.claims);
+}
+
+function tradeStatusLabel(status) {
+  if (status === 'completed') return 'Weggegeven';
+  if (status === 'released') return 'Terug vrij';
+  return 'Opzij gelegd';
+}
+
 export function tradeShareClaimSummaries(rawShare) {
   const share = normaliseTradeShare(rawShare);
   if (!share) return [];
 
   return share.claims.map((claim) => {
     const availability = tradeShareAvailability(share, { excludeFriendName: claim.friendName });
-    const availableWantedCount = claim.wanted.filter((label) => Number(availability[label] || 0) > 0).length;
+    const status = normaliseClaimStatus(claim.status);
+    const availableWantedCount = status === 'reserved'
+      ? claim.wanted.filter((label) => Number(availability[label] || 0) > 0).length
+      : 0;
     return {
       friendName: claim.friendName,
+      status,
+      statusLabel: tradeStatusLabel(status),
       wantedCount: claim.wanted.length,
       offeredCount: claim.offered.length,
       availableWantedCount,
@@ -164,9 +195,11 @@ export function tradeShareClaimSummaries(rawShare) {
       wanted: [...claim.wanted],
       offered: [...claim.offered],
       updatedAt: claim.updatedAt,
+      completedAt: claim.completedAt,
     };
   }).sort((a, b) => (
-    (b.availableWantedCount + b.offeredCount) - (a.availableWantedCount + a.offeredCount)
+    ({ reserved: 0, released: 1, completed: 2 }[a.status] ?? 3) - ({ reserved: 0, released: 1, completed: 2 }[b.status] ?? 3)
+    || (b.availableWantedCount + b.offeredCount) - (a.availableWantedCount + a.offeredCount)
     || a.friendName.localeCompare(b.friendName)
   ));
 }
@@ -395,4 +428,84 @@ export function saveTradeClaim(state, shareId, options = {}) {
   state.tradeShares ??= {};
   state.tradeShares[id] = share;
   return claim;
+}
+
+function updateTradeShareClaim(state, shareId, friendName, updater) {
+  const id = String(shareId || '').trim();
+  const share = normaliseTradeShare(state?.tradeShares?.[id]);
+  if (!share) return null;
+
+  const key = claimKey(normaliseFriendName(friendName));
+  const index = share.claims.findIndex((claim) => claimKey(claim.friendName) === key);
+  if (!key || index < 0) return null;
+
+  const claim = updater({ ...share.claims[index] }, share);
+  if (!claim) return null;
+
+  share.claims[index] = claim;
+  share.updatedAt = claim.updatedAt || new Date().toISOString();
+
+  state.tradeShares ??= {};
+  state.tradeShares[id] = normaliseTradeShare(share);
+  return state.tradeShares[id].claims.find((item) => claimKey(item.friendName) === key) || null;
+}
+
+export function releaseTradeClaim(state, shareId, friendName, options = {}) {
+  const now = options.now || new Date().toISOString();
+  return updateTradeShareClaim(state, shareId, friendName, (claim) => ({
+    ...claim,
+    status: 'released',
+    updatedAt: now,
+  }));
+}
+
+export function reserveTradeClaim(state, shareId, friendName, options = {}) {
+  const now = options.now || new Date().toISOString();
+  return updateTradeShareClaim(state, shareId, friendName, (claim, share) => {
+    const availability = tradeShareAvailability(share, { excludeFriendName: claim.friendName });
+    const wanted = claim.wanted.filter((label) => Number(availability[label] || 0) > 0);
+    if (!wanted.length && !claim.offered.length) return null;
+    return {
+      ...claim,
+      status: 'reserved',
+      wanted,
+      updatedAt: now,
+      completedAt: null,
+    };
+  });
+}
+
+function decrementTradeSticker(state, label) {
+  const sticker = normaliseStickerCode(label);
+  if (!sticker) return;
+
+  state.trades ??= {};
+  const next = Math.floor(Number(state.trades[sticker.label] || 0)) - 1;
+  if (next > 0) state.trades[sticker.label] = next;
+  else delete state.trades[sticker.label];
+}
+
+export function completeTradeClaim(state, shareId, friendName, options = {}) {
+  const now = options.now || new Date().toISOString();
+  const id = String(shareId || '').trim();
+  const claim = updateTradeShareClaim(state, id, friendName, (current) => ({
+    ...current,
+    status: 'completed',
+    updatedAt: now,
+    completedAt: now,
+  }));
+  if (!claim) return null;
+
+  for (const label of claim.wanted) decrementTradeSticker(state, label);
+  for (const label of claim.offered) addOwnedSticker(state, label);
+
+  const share = state.tradeShares?.[id];
+  if (share) {
+    share.items = normaliseStickerMap(state.trades);
+    share.missing = missingStickerLabels(state);
+    share.updatedAt = now;
+    state.tradeShares[id] = normaliseTradeShare(share);
+  }
+
+  return state.tradeShares?.[id]?.claims.find((item) => claimKey(item.friendName) === claimKey(friendName)) || null;
 }
