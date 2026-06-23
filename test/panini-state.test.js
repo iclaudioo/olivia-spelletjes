@@ -10,6 +10,7 @@ import {
   mergePaniniStates,
   mergeTradeShares,
   missingStickerLabels,
+  removeTradeSticker,
   removeOwnedSticker,
   releaseTradeClaim,
   reserveTradeClaim,
@@ -54,6 +55,18 @@ test('addTradeSticker increments normalised duplicate labels', () => {
 
   addTradeSticker(state, 'fwc10');
   assert.equal(result.trades['FWC 10'], 1);
+});
+
+test('removeTradeSticker decrements and removes duplicate labels', () => {
+  const state = { trades: { 'BEL 15': 2, 'CRO 10': 1 } };
+
+  const result = removeTradeSticker(state, 'bel15');
+  assert.deepEqual(result.trades, { 'BEL 15': 1, 'CRO 10': 1 });
+
+  removeTradeSticker(state, 'CRO 10');
+  assert.deepEqual(result.trades, { 'BEL 15': 1 });
+
+  assert.equal(removeTradeSticker(state, 'BAD 99'), null);
 });
 
 test('removeOwnedSticker removes a mistaken sticker and recent entry', () => {

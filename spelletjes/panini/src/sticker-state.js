@@ -365,6 +365,17 @@ export function addTradeSticker(state, codeOrLabel, number) {
   return state;
 }
 
+export function removeTradeSticker(state, codeOrLabel, number) {
+  const sticker = normaliseStickerCode(codeOrLabel, number);
+  if (!sticker) return null;
+
+  state.trades ??= {};
+  const next = Math.floor(Number(state.trades[sticker.label] || 0)) - 1;
+  if (next > 0) state.trades[sticker.label] = next;
+  else delete state.trades[sticker.label];
+  return state;
+}
+
 export function setExtraStatus(state, codeOrLabel, status) {
   const code = normaliseExtraCode(codeOrLabel);
   if (!EXTRA_CODE_SET.has(code)) return null;
@@ -476,13 +487,7 @@ export function reserveTradeClaim(state, shareId, friendName, options = {}) {
 }
 
 function decrementTradeSticker(state, label) {
-  const sticker = normaliseStickerCode(label);
-  if (!sticker) return;
-
-  state.trades ??= {};
-  const next = Math.floor(Number(state.trades[sticker.label] || 0)) - 1;
-  if (next > 0) state.trades[sticker.label] = next;
-  else delete state.trades[sticker.label];
+  removeTradeSticker(state, label);
 }
 
 export function completeTradeClaim(state, shareId, friendName, options = {}) {
