@@ -66,3 +66,71 @@
   font-size: 10px;
   font-weight: 1000;
 }
+
+/* Dubbels-rooster: elke tik voegt een dubbel toe, een klein rood knopje haalt er eentje af. */
+.numberpick.tradepick {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.tradepick-add {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .055);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  padding: 6px;
+  transition: transform .18s, background .18s, border-color .18s;
+}
+
+.tradepick-add:active {
+  transform: translateY(1px) scale(.98);
+}
+
+.tradepick.has-trade .tradepick-add {
+  background: rgba(255, 216, 77, .17);
+  border-color: rgba(255, 216, 77, .38);
+}
+
+.tradepick-add b {
+  font-size: 15px;
+}
+
+.tradepick-add span {
+  font-size: 10px;
+  font-weight: 1000;
+  color: var(--yellow);
+}
+
+.tradepick.neutral .tradepick-add span {
+  color: var(--muted);
+}
+
+.tradepick-sub {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 1000;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--bg2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .45);
+}
+
+.tradepick-sub:active {
+  transform: scale(.92);
+}
