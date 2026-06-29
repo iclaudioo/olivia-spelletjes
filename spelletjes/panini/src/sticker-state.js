@@ -1,7 +1,9 @@
 import {
   EXTRA_CODE_SET,
   mergeExtras,
+  mergeExtrasWithBase,
   mergeRareExtras,
+  mergeRareExtrasWithBase,
   missingExtraLabels,
   missingRareExtraLabels,
   normaliseExtraCode,
@@ -275,24 +277,69 @@ export function mergePaniniRareExtras(leftExtras, rightExtras) {
   return mergeRareExtras(leftExtras, rightExtras);
 }
 
-export function mergePaniniStates(cloudState, localState) {
+// Merge cloud and local owner state. When a synced base snapshot is supplied this
+// performs a three-way merge so that local removals and count decreases sync to the
+// cloud instead of being resurrected by a grow-only union/max merge. Without a base
+// (e.g. the very first sync) it falls back to the additive union/max behaviour, which
+// never loses data but cannot propagate removals.
+export function mergePaniniStates(cloudState, localState, baseState) {
   const left = normalisePaniniState(cloudState);
   const right = normalisePaniniState(localState);
-  const teams = { ...left.teams };
-  for (const [code, stickers] of Object.entries(right.teams)) {
-    teams[code] = normalisePaniniState({ teams: { [code]: [...(teams[code] || []), ...stickers] } }).teams[code] || [];
+  const base = baseState === undefined || baseState === null
+    ? null
+    : normalisePaniniState(baseState);
+
+  const teams = {};
+  const teamCodes = new Set([
+    ...Object.keys(left.teams),
+    ...Object.keys(right.teams),
+    ...(base ? Object.keys(base.teams) : []),
+  ]);
+  for (const code of teamCodes) {
+    if (!TEAM_CODES.has(code)) continue;
+    const cloudNumbers = uniqueNumbers(left.teams[code]);
+    const localNumbers = uniqueNumbers(right.teams[code]);
+    let numbers;
+    if (base) {
+      const baseNumbers = new Set(uniqueNumbers(base.teams[code]));
+      const localSet = new Set(localNumbers);
+      const result = new Set(cloudNumbers);
+      for (const number of localNumbers) if (!baseNumbers.has(number)) result.add(number);
+      for (const number of baseNumbers) if (!localSet.has(number)) result.delete(number);
+      numbers = uniqueNumbers([...result]);
+    } else {
+      numbers = uniqueNumbers([...cloudNumbers, ...localNumbers]);
+    }
+    if (numbers.length) teams[code] = numbers;
   }
 
-  const trades = { ...left.trades };
-  for (const [code, amount] of Object.entries(right.trades)) {
-    trades[code] = Math.max(Number(trades[code] || 0), Number(amount || 0));
+  const trades = {};
+  const tradeLabels = new Set([
+    ...Object.keys(left.trades),
+    ...Object.keys(right.trades),
+    ...(base ? Object.keys(base.trades) : []),
+  ]);
+  for (const label of tradeLabels) {
+    const cloudCount = Math.floor(Number(left.trades[label] || 0));
+    const localCount = Math.floor(Number(right.trades[label] || 0));
+    const count = base
+      ? Math.max(0, cloudCount + (localCount - Math.floor(Number(base.trades[label] || 0))))
+      : Math.max(cloudCount, localCount);
+    if (count > 0) trades[label] = count;
   }
+
+  const extras = base
+    ? mergeExtrasWithBase(left.extras, right.extras, base.extras)
+    : mergePaniniExtras(left.extras, right.extras);
+  const rareExtras = base
+    ? mergeRareExtrasWithBase(left.rareExtras, right.rareExtras, base.rareExtras)
+    : mergePaniniRareExtras(left.rareExtras, right.rareExtras);
 
   return normalisePaniniState({
     cloudSchema: 1,
     teams,
-    extras: mergePaniniExtras(left.extras, right.extras),
-    rareExtras: mergePaniniRareExtras(left.rareExtras, right.rareExtras),
+    extras,
+    rareExtras,
     trades,
     tradeShares: mergeTradeShares(left.tradeShares, right.tradeShares),
     newOnes: [...(left.newOnes || []), ...(right.newOnes || [])].slice(-100),

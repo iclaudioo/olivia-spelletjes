@@ -290,6 +290,30 @@ export function mergeRareExtras(a, b) {
   return Object.fromEntries(RARE_EXTRA_CODES.map((code) => [code, mergeExtraStatus(left[code], right[code])]));
 }
 
+// Three-way merge: when the local status changed relative to the synced base,
+// the local change wins (so toggling a sticker off actually syncs). Otherwise the
+// cloud value wins, preserving a change made on another device.
+function pickExtraStatus(cloud, local, base) {
+  const cloudStatus = normaliseExtraStatus(cloud);
+  const localStatus = normaliseExtraStatus(local);
+  const baseStatus = normaliseExtraStatus(base);
+  return localStatus !== baseStatus ? localStatus : cloudStatus;
+}
+
+export function mergeExtrasWithBase(cloud, local, base) {
+  const cloudExtras = normaliseExtras(cloud);
+  const localExtras = normaliseExtras(local);
+  const baseExtras = normaliseExtras(base);
+  return Object.fromEntries(EXTRA_CODES.map((code) => [code, pickExtraStatus(cloudExtras[code], localExtras[code], baseExtras[code])]));
+}
+
+export function mergeRareExtrasWithBase(cloud, local, base) {
+  const cloudExtras = normaliseRareExtras(cloud);
+  const localExtras = normaliseRareExtras(local);
+  const baseExtras = normaliseRareExtras(base);
+  return Object.fromEntries(RARE_EXTRA_CODES.map((code) => [code, pickExtraStatus(cloudExtras[code], localExtras[code], baseExtras[code])]));
+}
+
 export function extraTotals(extras) {
   const clean = normaliseExtras(extras);
   return {

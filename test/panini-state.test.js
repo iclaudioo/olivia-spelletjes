@@ -271,6 +271,49 @@ test('completed trade claims remove given duplicates and add offered stickers', 
   assert.deepEqual(state.tradeShares.share123.claims[0].offered, ['SUI 20', 'FWC 3']);
 });
 
+test('mergePaniniStates without a base keeps the additive union and max behaviour', () => {
+  const cloud = normalisePaniniState({ teams: { BEL: [3, 7] }, trades: { 'BEL 15': 2 } });
+  const local = normalisePaniniState({ teams: { BEL: [7, 20] }, trades: { 'BEL 15': 1, 'CRO 10': 1 } });
+
+  const merged = mergePaniniStates(cloud, local);
+
+  assert.deepEqual(merged.teams.BEL, [3, 7, 20]);
+  assert.deepEqual(merged.trades, { 'BEL 15': 2, 'CRO 10': 1 });
+});
+
+test('mergePaniniStates with a base syncs a removed duplicate instead of resurrecting it', () => {
+  const base = normalisePaniniState({ teams: { BEL: [3, 7] }, trades: { 'BEL 15': 2 }, extras: { 'FWC 7': 'owned' } });
+  const cloud = base;
+  const local = normalisePaniniState({ teams: { BEL: [7] }, trades: { 'BEL 15': 1 }, extras: { 'FWC 7': 'missing' } });
+
+  const merged = mergePaniniStates(cloud, local, base);
+
+  assert.deepEqual(merged.teams.BEL, [7]);
+  assert.deepEqual(merged.trades, { 'BEL 15': 1 });
+  assert.equal(merged.extras['FWC 7'], 'missing');
+});
+
+test('mergePaniniStates with a base keeps additions made on another device', () => {
+  const base = normalisePaniniState({ teams: { BEL: [7] }, trades: { 'BEL 15': 1 } });
+  const cloud = normalisePaniniState({ teams: { BEL: [7, 9] }, trades: { 'BEL 15': 1, 'CRO 10': 1 } });
+  const local = normalisePaniniState({ teams: { BEL: [7] }, trades: { 'BEL 15': 1 } });
+
+  const merged = mergePaniniStates(cloud, local, base);
+
+  assert.deepEqual(merged.teams.BEL, [7, 9]);
+  assert.deepEqual(merged.trades, { 'BEL 15': 1, 'CRO 10': 1 });
+});
+
+test('mergePaniniStates with a base nets concurrent add and remove of a duplicate', () => {
+  const base = normalisePaniniState({ trades: { 'BEL 15': 2 } });
+  const cloud = normalisePaniniState({ trades: { 'BEL 15': 3 } });
+  const local = normalisePaniniState({ trades: { 'BEL 15': 1 } });
+
+  const merged = mergePaniniStates(cloud, local, base);
+
+  assert.deepEqual(merged.trades, { 'BEL 15': 2 });
+});
+
 test('normalisePaniniState preserves trade shares and normalises claims', () => {
   const state = normalisePaniniState({
     tradeShares: {

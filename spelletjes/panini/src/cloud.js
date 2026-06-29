@@ -2,6 +2,7 @@ import { mergePaniniStates, normalisePaniniState } from './sticker-state.js';
 
 (() => {
   const STORE = 'olivia-panini-v3';
+  const BASE_STORE = 'olivia-panini-v3-base';
   const OWNER_TOKEN_STORE = 'olivia-panini-owner-token';
   const OWNER_LINK_PARAMS = ['koppel', 'beheer'];
   const SUPABASE_URL = 'https://eblgjinuakxdiikscjpe.supabase.co';
@@ -182,8 +183,20 @@ import { mergePaniniStates, normalisePaniniState } from './sticker-state.js';
     return response.json();
   }
 
-  function mergeStates(a, b) {
-    return mergePaniniStates(a, b);
+  function mergeStates(a, b, base) {
+    return mergePaniniStates(a, b, base);
+  }
+
+  // The last cloud state this device synced to. Used as the shared ancestor for a
+  // three-way merge so that local removals (a deleted sticker, a lowered duplicate
+  // count) sync to the cloud instead of bouncing back via a grow-only merge.
+  function readBase() {
+    const raw = localStorage.getItem(BASE_STORE);
+    return raw == null ? undefined : normalise(parseState(raw));
+  }
+
+  function writeBase(state) {
+    originalSetItem(BASE_STORE, JSON.stringify(normalise(state)));
   }
 
   async function fetchCloud(requireToken = false) {
@@ -244,10 +257,11 @@ import { mergePaniniStates, normalisePaniniState } from './sticker-state.js';
       }
       throw error;
     }
-    const merged = mergeStates(cloud, local);
+    const merged = mergeStates(cloud, local, readBase());
     const saved = await pushCloud(merged, requireToken);
     const savedRaw = JSON.stringify(saved);
     if (savedRaw !== beforeRaw) originalSetItem(STORE, savedRaw);
+    writeBase(saved);
     badge('cloud actief', 'ok');
     dispatchStateUpdate();
     if (reloadAfter) location.reload();
@@ -262,10 +276,11 @@ import { mergePaniniStates, normalisePaniniState } from './sticker-state.js';
         badge('opslaan...', 'sync');
         const local = normalise(parseState(localStorage.getItem(STORE)));
         const cloud = await fetchCloud(false);
-        const merged = mergeStates(cloud, local);
+        const merged = mergeStates(cloud, local, readBase());
         const saved = await pushCloud({ ...merged, lastSyncedAt: new Date().toISOString() });
         const savedRaw = JSON.stringify(saved);
         if (savedRaw !== JSON.stringify(local)) originalSetItem(STORE, savedRaw);
+        writeBase(saved);
         badge('opgeslagen', 'ok');
         dispatchStateUpdate();
       } catch (error) {
