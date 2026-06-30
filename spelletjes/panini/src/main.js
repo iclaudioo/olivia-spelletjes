@@ -68,10 +68,11 @@ function owned(code){return new Set(state.teams[code]||[])}
 function countTeam(t){return owned(t.code).size}
 function pct(n,t){return Math.round(n/t*100)}
 function totalDoubles(){return Object.values(state.trades||{}).reduce((sum,count)=>sum+Math.floor(Number(count||0)),0)}
-// Alleen het boek zelf: de 48 landen × 20 stickers. Album- en zeldzame extra's
-// kunnen niet in het boek geplakt worden en horen dus niet in dit overzicht.
-function allOwned(){return TEAMS.reduce((s,t)=>s+countTeam(t),0)}
-function allTotal(){return TEAMS.reduce((s,t)=>s+t.total,0)}
+// Het boek zelf: de 48 landen × 20 stickers + de FWC-albumspecials, die wél in
+// het boek geplakt worden. De zeldzame extra's horen niet in het boek en tellen
+// hier dus niet mee.
+function allOwned(){return TEAMS.reduce((s,t)=>s+countTeam(t),0)+extraTotals(state.extras).owned}
+function allTotal(){return TEAMS.reduce((s,t)=>s+t.total,0)+extraTotals(state.extras).total}
 function level(p){if(p>=100)return'WORLD CHAMPION'; if(p>=75)return'LEGEND'; if(p>=60)return'ELITE'; if(p>=45)return'EXPERT'; if(p>=30)return'SCOUT'; if(p>=15)return'EXPLORER'; return'ROOKIE'}
 function $$(s){return document.querySelector(s)}
 function el(tag,cls,html){const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e}
