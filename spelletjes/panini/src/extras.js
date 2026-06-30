@@ -167,7 +167,7 @@ export const EXTRA_CODE_SET = new Set(EXTRA_CODES);
 export const DEFAULT_EXTRAS = Object.fromEntries(EXTRA_ITEMS.map((item) => [item.code, item.status]));
 
 export const RARE_EXTRA_VARIANTS = [
-  { code: 'REGULAR', label: 'Normaal', aliases: ['REGULAR', 'NORMAL', 'NORMAAL'] },
+  { code: 'REGULAR', label: 'Paars', aliases: ['REGULAR', 'NORMAL', 'NORMAAL', 'PAARS', 'PURPLE'] },
   { code: 'BRONZE', label: 'Brons', aliases: ['BRONZE', 'BRONS'] },
   { code: 'SILVER', label: 'Zilver', aliases: ['SILVER', 'ZILVER'] },
   { code: 'GOLD', label: 'Goud', aliases: ['GOLD', 'GOUD'] },
