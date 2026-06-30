@@ -116,6 +116,71 @@
   }
 }
 
+/* Drijvende snelknop om meteen een nieuwe sticker af te vinken. */
+.fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  z-index: 25;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 0;
+  font-size: 36px;
+  font-weight: 1000;
+  line-height: 1;
+  padding-bottom: 4px;
+  color: #06101b;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  box-shadow: 0 14px 34px rgba(33, 224, 138, .34);
+  display: grid;
+  place-items: center;
+  transition: transform .16s, box-shadow .16s;
+}
+
+.fab:active {
+  transform: scale(.9);
+}
+
+.fab:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px rgba(88, 166, 255, .4), 0 14px 34px rgba(33, 224, 138, .34);
+}
+
+body.share-mode .fab {
+  display: none;
+}
+
+@media (min-width: 981px) {
+  .fab {
+    right: 24px;
+    bottom: 24px;
+  }
+}
+
+/* Confetti bij een compleet land of een nieuw collector-level. */
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -14px;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confetti-fall 1700ms cubic-bezier(.2, .6, .5, 1) forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-14px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(104vh) rotate(var(--spin, 360deg)); opacity: .9; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
