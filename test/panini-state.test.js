@@ -116,6 +116,23 @@ test('createTradeShare snapshots current duplicate stickers into a share board',
   assert.deepEqual(state.tradeShares.share123, board);
 });
 
+test('createTradeShare re-snapshots all duplicate types and keeps existing claims', () => {
+  const state = normalisePaniniState({ teams: { BEL: [3] }, trades: { 'BEL 15': 1 } });
+  createTradeShare(state, { id: 'share-abc12345', ownerName: 'Olivia', now: '2026-06-30T10:00:00.000Z' });
+  saveTradeClaim(state, 'share-abc12345', { friendName: 'Emma', wanted: ['BEL 15'], offered: [], now: '2026-06-30T10:01:00.000Z' });
+
+  // Add more duplicates of different kinds after the link already exists.
+  addTradeSticker(state, 'BEL 15');
+  addTradeSticker(state, 'ENG 9');
+  addTradeSticker(state, 'fwc10');
+  addTradeSticker(state, 'messi gold');
+
+  const refreshed = createTradeShare(state, { id: 'share-abc12345', ownerName: 'Olivia', now: '2026-06-30T10:02:00.000Z' });
+
+  assert.deepEqual(refreshed.items, { 'BEL 15': 2, 'ENG 9': 1, 'FWC 10': 1, 'MESSI GOLD': 1 });
+  assert.deepEqual(refreshed.claims.map((claim) => claim.friendName), ['Emma']);
+});
+
 test('missingStickerLabels lists stickers Olivia does not own', () => {
   const labels = missingStickerLabels({ teams: { BEL: [1, 2, 3] } });
 
