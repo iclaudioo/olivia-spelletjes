@@ -4,6 +4,7 @@
 // De merge is grow-only (sterren en prijzen kunnen alleen bijkomen), dus twee
 // toestellen tegelijk gebruiken kan geen voortgang wissen.
 import { state, bewaar } from "./state.js";
+import { merge, kanoniek } from "./merge.js";
 
 const OWNER_TOKEN_STORE = "olivia-panini-owner-token";
 const SUPABASE_URL = "https://eblgjinuakxdiikscjpe.supabase.co";
@@ -44,27 +45,9 @@ async function rpc(naam, body) {
   return response.json();
 }
 
-// Grow-only samenvoegen: van elk veld de hoogste stand houden.
-function merge(cloud, lokaal) {
-  const c = cloud && typeof cloud === "object" ? cloud : {};
-  const maxGetal = (a, b) => Math.max(Number(a) || 0, Number(b) || 0);
-  const unie = (a, b) => ({ ...(a || {}), ...(b || {}) });
-  const groepGoed = {};
-  for (const groep of new Set([...Object.keys(c.groepGoed || {}), ...Object.keys(lokaal.groepGoed || {})])) {
-    groepGoed[groep] = maxGetal(c.groepGoed?.[groep], lokaal.groepGoed?.[groep]);
-  }
-  return {
-    sterren: maxGetal(c.sterren, lokaal.sterren),
-    geschreven: unie(c.geschreven, lokaal.geschreven),
-    groepGoed,
-    memoryKlaar: unie(c.memoryKlaar, lokaal.memoryKlaar),
-    oefenrondes: maxGetal(c.oefenrondes, lokaal.oefenrondes),
-    oefenrondeLaatst: [c.oefenrondeLaatst || "", lokaal.oefenrondeLaatst || ""].sort().pop(),
-  };
-}
-
 function pasToe(samengevoegd) {
-  const veranderd = JSON.stringify(samengevoegd) !== JSON.stringify({ ...state });
+  // Beide kanten canoniek (merge.js) vergelijken, anders telt sleutelvolgorde als verschil.
+  const veranderd = JSON.stringify(samengevoegd) !== JSON.stringify(kanoniek(state));
   aanHetToepassen = true;
   Object.assign(state, samengevoegd);
   bewaar();
@@ -77,7 +60,7 @@ async function sync() {
   badge("cloud sync...", "sync");
   const cloud = await rpc("olivia_grieks_read_state", { p_owner_token: token() });
   const samengevoegd = merge(cloud, state);
-  if (JSON.stringify(samengevoegd) !== JSON.stringify(cloud)) {
+  if (JSON.stringify(samengevoegd) !== JSON.stringify(kanoniek(cloud))) {
     await rpc("olivia_grieks_write_state", { p_owner_token: token(), p_state: samengevoegd });
   }
   pasToe(samengevoegd);

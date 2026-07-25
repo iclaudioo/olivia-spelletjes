@@ -112,6 +112,19 @@ export function initQuizzen() {
     return (opties) => knoppen.forEach((k, i) => { k._optie = opties[i]; });
   }
 
+  // Twee foute opties zonder dubbel plaatje of dubbele betekenis, anders staan
+  // er twee keer dezelfde emoji tussen de antwoorden (bv. 👧 zus en 👧 ik heet Olivia).
+  function kiesFouteWoorden(juist, aantal = 2) {
+    const fouten = [];
+    for (const w of schud(ALLE_WOORDEN)) {
+      if (w.nl === juist.nl || w.emoji === juist.emoji) continue;
+      if (fouten.some((f) => f.nl === w.nl || f.emoji === w.emoji)) continue;
+      fouten.push(w);
+      if (fouten.length === aantal) break;
+    }
+    return fouten;
+  }
+
   function letterVraag() {
     const juist = kiesUit(LETTERS);
     const opties = schud([juist, ...schud(LETTERS.filter((l) => l.naam !== juist.naam)).slice(0, 2)]);
@@ -128,8 +141,7 @@ export function initQuizzen() {
 
   function luisterVraag() {
     const juist = kiesUit(ALLE_WOORDEN);
-    const anders = schud(ALLE_WOORDEN.filter((w) => w.nl !== juist.nl)).slice(0, 2);
-    const opties = schud([juist, ...anders]);
+    const opties = schud([juist, ...kiesFouteWoorden(juist)]);
     kaart.innerHTML =
       kop("Welk woord hoor je?") +
       '<button class="luisterknop" aria-label="Luister nog eens">🔊</button>' +
@@ -153,8 +165,7 @@ export function initQuizzen() {
 
   function woordVraag() {
     const juist = kiesUit(ALLE_WOORDEN);
-    const anders = schud(ALLE_WOORDEN.filter((w) => w.nl !== juist.nl)).slice(0, 2);
-    const opties = schud([juist, ...anders]);
+    const opties = schud([juist, ...kiesFouteWoorden(juist)]);
     kaart.innerHTML =
       kop("Wat betekent dit woord?") +
       `<div class="quizwoord">${juist.grieks}</div>` +
