@@ -67,20 +67,26 @@ import { mergePaniniStates, normalisePaniniState } from './sticker-state.js';
 
   async function consumeFamilyEntryFromUrl() {
     const url = new URL(location.href);
-    const wantsFamilyEntry = url.searchParams.get('familie') === '1';
-    if (!wantsFamilyEntry) return '';
+    const familieGeheim = url.searchParams.get('familie')?.trim();
+    if (!familieGeheim) return '';
 
     url.searchParams.delete('familie');
     history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
 
-    const response = await fetch('/api/panini-owner-token', {
+    // Al gekoppeld (bv. via de homepage-tegel met ?familie=1): geen fetch nodig.
+    const bestaande = ownerToken();
+    if (bestaande) return bestaande;
+
+    // Het endpoint eist het familie-geheim; zonder juist geheim gewoon
+    // ongekoppeld verder (koppel-paneel), niet hard falen.
+    const response = await fetch(`/api/panini-owner-token?geheim=${encodeURIComponent(familieGeheim)}`, {
       headers: { Accept: 'application/json' },
     });
-    if (!response.ok) throw new Error('owner token required');
+    if (!response.ok) return '';
 
     const data = await response.json();
     const token = String(data?.ownerToken || '').trim();
-    if (!token) throw new Error('owner token required');
+    if (!token) return '';
     localStorage.setItem(OWNER_TOKEN_STORE, token);
     return token;
   }

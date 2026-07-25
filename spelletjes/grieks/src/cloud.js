@@ -127,13 +127,14 @@ function toonKoppelPaneel(melding = "Open de panini koppel-link op dit toestel, 
   setTimeout(() => input.focus(), 0);
 }
 
-// Koppelen via de URL: ?koppel=<code> zet de code direct, ?familie=1 haalt ze
-// op via hetzelfde beveiligde endpoint als panini.
+// Koppelen via de URL: ?koppel=<code> zet de code direct, ?familie=<geheim>
+// haalt ze op via hetzelfde beveiligde endpoint als panini. Zonder juist geheim
+// blijft het toestel gewoon ongekoppeld (badge "koppel toestel"), geen harde fout.
 async function koppelUitUrl() {
   const url = new URL(location.href);
   const code = url.searchParams.get("koppel")?.trim();
-  const familie = url.searchParams.get("familie") === "1";
-  if (!code && !familie) return "";
+  const familieGeheim = url.searchParams.get("familie")?.trim();
+  if (!code && !familieGeheim) return "";
   url.searchParams.delete("koppel");
   url.searchParams.delete("familie");
   history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
@@ -141,11 +142,14 @@ async function koppelUitUrl() {
     localStorage.setItem(OWNER_TOKEN_STORE, code);
     return code;
   }
-  const response = await fetch("/api/panini-owner-token", { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error("owner token required");
+  if (token()) return token();
+  const response = await fetch(`/api/panini-owner-token?geheim=${encodeURIComponent(familieGeheim)}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) return "";
   const data = await response.json();
   const opgehaald = String(data?.ownerToken || "").trim();
-  if (!opgehaald) throw new Error("owner token required");
+  if (!opgehaald) return "";
   localStorage.setItem(OWNER_TOKEN_STORE, opgehaald);
   return opgehaald;
 }
