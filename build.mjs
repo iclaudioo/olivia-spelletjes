@@ -27,5 +27,10 @@ bouw(
   "npx vite build --base=./ --outDir ../../dist/spelletjes/panini --emptyOutDir",
   "spelletjes/panini"
 );
+bouw(
+  "Grieks",
+  "npx vite build --base=./ --outDir ../../dist/spelletjes/grieks --emptyOutDir",
+  "spelletjes/grieks"
+);
 
-console.log("\n✓ Klaar: dist/ bevat de homepage + spelletjes/poetsen/ + spelletjes/panini/");
+console.log("\n✓ Klaar: dist/ bevat de homepage + spelletjes/poetsen/ + panini/ + grieks/");

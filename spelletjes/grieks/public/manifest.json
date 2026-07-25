@@ -1,0 +1,9 @@
+{
+  "name": "Grieks voor Olivia",
+  "short_name": "Grieks",
+  "start_url": "/spelletjes/grieks/",
+  "display": "standalone",
+  "background_color": "#cfe4ff",
+  "theme_color": "#cfe4ff",
+  "icons": []
+}

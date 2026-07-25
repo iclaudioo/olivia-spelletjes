@@ -11,6 +11,7 @@ const SPELLETJES = [
     url: "/spelletjes/panini/?familie=1",
     klaar: true,
   },
+  { naam: "Grieks leren", emoji: "🇬🇷", kleur: "#d6ecff", url: "/spelletjes/grieks/", klaar: true },
   { naam: "Binnenkort", emoji: "✨", kleur: "#ffe3f1", klaar: false },
 ];
 

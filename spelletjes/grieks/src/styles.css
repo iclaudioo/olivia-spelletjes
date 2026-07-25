@@ -1,0 +1,304 @@
+:root {
+  --blauw: #1e6fd9;
+  --donkerblauw: #124a94;
+  --lichtblauw: #e8f1fd;
+  --geel: #ffc93c;
+  --wit: #ffffff;
+  --groen: #35b06f;
+  --rood: #e85b5b;
+  --paars: #8e6fd9;
+  --tekst: #1c2b3a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: "Trebuchet MS", "Comic Sans MS", "Segoe UI", sans-serif;
+  background: linear-gradient(180deg, #cfe4ff 0%, #eef6ff 40%, #fdfdff 100%);
+  color: var(--tekst);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  /* Geen dubbeltik-zoom op de iPad: elk kaartje is een knop. */
+  touch-action: manipulation;
+}
+button { touch-action: manipulation; }
+header {
+  position: relative;
+  text-align: center;
+  padding: 18px 12px 10px;
+}
+header h1 {
+  font-size: 1.5rem;
+  color: var(--donkerblauw);
+  letter-spacing: 0.5px;
+}
+header .sub {
+  font-size: 0.9rem;
+  color: #4a6584;
+  margin-top: 4px;
+}
+.terug {
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  font-size: 1.4rem;
+  text-decoration: none;
+  background: var(--wit);
+  border-radius: 12px;
+  padding: 6px 10px;
+  box-shadow: 0 2px 6px rgba(30, 80, 160, 0.15);
+}
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  flex-wrap: wrap;
+}
+.tab {
+  border: none;
+  background: var(--wit);
+  color: var(--donkerblauw);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: bold;
+  padding: 10px 14px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(30, 80, 160, 0.15);
+  cursor: pointer;
+}
+.tab.actief {
+  background: var(--blauw);
+  color: var(--wit);
+}
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 12px 40px;
+}
+.paneel { display: none; }
+.paneel.actief { display: block; animation: verschijn 0.25s ease; }
+@keyframes verschijn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.uitleg {
+  background: var(--wit);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(30, 80, 160, 0.1);
+}
+
+/* Alfabet */
+.letterrooster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+.letterkaart {
+  background: var(--wit);
+  border: none;
+  border-radius: 16px;
+  padding: 12px 6px 10px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(30, 80, 160, 0.15);
+  font-family: inherit;
+  transition: transform 0.1s ease;
+}
+.letterkaart:active { transform: scale(0.95); }
+.letterkaart .groot {
+  font-size: 1.9rem;
+  font-weight: bold;
+  color: var(--blauw);
+}
+.letterkaart .naam {
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-top: 4px;
+}
+.letterkaart .klank {
+  font-size: 0.72rem;
+  color: #4a6584;
+  margin-top: 2px;
+  line-height: 1.25;
+}
+
+/* Woordjes */
+.categorieen {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.cat-knop {
+  border: none;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--wit);
+  color: var(--donkerblauw);
+  box-shadow: 0 2px 5px rgba(30, 80, 160, 0.12);
+  cursor: pointer;
+}
+.cat-knop.actief { background: var(--geel); color: var(--tekst); }
+.woordenlijst {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.woordkaart {
+  background: var(--wit);
+  border: none;
+  font-family: inherit;
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(30, 80, 160, 0.15);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+.woordkaart:active { transform: scale(0.95); }
+.woordkaart .emoji { font-size: 2rem; }
+.woordkaart .grieks {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: var(--blauw);
+  margin-top: 4px;
+}
+.woordkaart .zegmaar {
+  font-size: 0.85rem;
+  color: var(--paars);
+  margin-top: 2px;
+}
+.woordkaart .nl {
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+/* Memory */
+.memory-balk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.knop {
+  border: none;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--groen);
+  color: var(--wit);
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(30, 120, 80, 0.25);
+}
+.memory-rooster {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.memkaart {
+  aspect-ratio: 3 / 3.4;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  background: var(--blauw);
+  color: var(--wit);
+  box-shadow: 0 3px 8px rgba(30, 80, 160, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+}
+.memkaart .vraagteken { font-size: 1.6rem; }
+.memkaart.open { background: var(--wit); color: var(--tekst); }
+.memkaart.klaar { background: var(--geel); color: var(--tekst); }
+.memkaart .mem-emoji { font-size: 1.7rem; }
+.memkaart .mem-woord { font-size: 0.95rem; color: var(--blauw); overflow-wrap: anywhere; }
+.memkaart.klaar .mem-woord { color: var(--donkerblauw); }
+
+/* Quiz */
+.quizkaart {
+  background: var(--wit);
+  border-radius: 18px;
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(30, 80, 160, 0.15);
+}
+.quizletter {
+  font-size: 4rem;
+  font-weight: bold;
+  color: var(--blauw);
+  margin: 8px 0 14px;
+}
+.quizopties {
+  display: grid;
+  gap: 10px;
+}
+.quizoptie {
+  border: none;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: bold;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--lichtblauw);
+  color: var(--donkerblauw);
+  cursor: pointer;
+}
+.quizoptie.goed { background: var(--groen); color: var(--wit); }
+.quizoptie.fout { background: var(--rood); color: var(--wit); }
+.sterrenbalk {
+  font-size: 1.3rem;
+  margin-top: 14px;
+  min-height: 1.6rem;
+}
+.feedback {
+  font-size: 1.05rem;
+  font-weight: bold;
+  margin-top: 10px;
+  min-height: 1.4rem;
+}
+.geluidstip {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #5a7391;
+  margin-top: 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* Confetti bij mijlpalen */
+.confetti {
+  position: fixed;
+  z-index: 99;
+  font-size: 1.3rem;
+  pointer-events: none;
+  animation: confetti-vlucht 0.9s ease-out forwards;
+}
+@keyframes confetti-vlucht {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) scale(0.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paneel.actief { animation: none; }
+  .letterkaart, .woordkaart { transition: none; }
+  .confetti { display: none; }
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#cfe4ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Grieks" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./src/styles.css" />
+  <title>Grieks voor Olivia 🇬🇷</title>
+</head>
+<body>
+  <header>
+    <a class="terug" href="/" aria-label="Terug naar de spelletjes">🏠</a>
+    <h1>🇬🇷 Grieks voor Olivia</h1>
+    <div class="sub">Tik op een kaartje en luister!</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab actief" data-doel="alfabet">🔤 Alfabet</button>
+    <button class="tab" data-doel="woordjes">🗣️ Woordjes</button>
+    <button class="tab" data-doel="memory">🧠 Memory</button>
+    <button class="tab" data-doel="quiz">⭐ Quiz</button>
+  </nav>
+
+  <main>
+    <section id="alfabet" class="paneel actief">
+      <div class="uitleg">Dit is het Griekse alfabet, met 24 letters. Tik op een letter om te horen hoe die klinkt.</div>
+      <div class="letterrooster" id="letterrooster"></div>
+    </section>
+
+    <section id="woordjes" class="paneel">
+      <div class="uitleg">Kies een groep en tik op een woordje om het te horen. Het paarse woord zegt hoe je het uitspreekt.</div>
+      <div class="categorieen" id="categorieen"></div>
+      <div class="woordenlijst" id="woordenlijst"></div>
+    </section>
+
+    <section id="memory" class="paneel">
+      <div class="uitleg">Zoek de twee kaartjes die bij elkaar horen: het Griekse woord en het plaatje.</div>
+      <div class="memory-balk">
+        <span id="memory-score"></span>
+        <button class="knop" id="memory-opnieuw">Nieuw spel</button>
+      </div>
+      <div class="memory-rooster" id="memory-rooster"></div>
+    </section>
+
+    <section id="quiz" class="paneel">
+      <div class="uitleg">Welke letter zie je? Kies het juiste antwoord en verdien sterren!</div>
+      <div class="quizkaart">
+        <div>Hoe heet deze letter?</div>
+        <div class="quizletter" id="quizletter"></div>
+        <div class="quizopties" id="quizopties"></div>
+        <div class="feedback" id="quizfeedback"></div>
+        <div class="sterrenbalk" id="sterrenbalk"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="geluidstip">Hoor je niets? Zet het geluid van je toestel aan.</div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
