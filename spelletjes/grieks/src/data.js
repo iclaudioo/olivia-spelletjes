@@ -38,6 +38,16 @@ export const WOORDEN = {
     { grieks: "Ναι",        zegmaar: "nè",             nl: "ja",           emoji: "✅" },
     { grieks: "Όχι",        zegmaar: "O-chie",         nl: "nee",          emoji: "❌" },
   ],
+  "🗣️ Handige zinnetjes": [
+    { grieks: "Με λένε Ολίβια", zegmaar: "me LE-ne o-LIE-vi-a", nl: "ik heet Olivia",  emoji: "👧" },
+    { grieks: "Τι κάνεις;",     zegmaar: "tie KA-nis",          nl: "hoe gaat het?",   emoji: "🤗" },
+    { grieks: "Πολύ καλά",      zegmaar: "po-LIE ka-LA",        nl: "heel goed",       emoji: "👍" },
+    { grieks: "Σ' αγαπώ",       zegmaar: "sa-gha-PO",           nl: "ik hou van jou",  emoji: "❤️" },
+    { grieks: "Έλα!",           zegmaar: "E-la",                nl: "kom!",            emoji: "🏃‍♀️" },
+    { grieks: "Μπράβο!",        zegmaar: "BRA-vo",              nl: "goed zo!",        emoji: "👏" },
+    { grieks: "Καλή όρεξη",     zegmaar: "ka-LIE O-rek-si",     nl: "smakelijk",       emoji: "🍽️" },
+    { grieks: "Πάμε!",          zegmaar: "PA-me",               nl: "we gaan!",        emoji: "🚗" },
+  ],
   "🔢 Tellen tot 10": [
     { grieks: "ένα",     zegmaar: "E-na",      nl: "een (1)",   emoji: "1️⃣" },
     { grieks: "δύο",     zegmaar: "THIE-o",    nl: "twee (2)",  emoji: "2️⃣" },
@@ -50,6 +60,29 @@ export const WOORDEN = {
     { grieks: "εννέα",   zegmaar: "en-NE-a",   nl: "negen (9)", emoji: "9️⃣" },
     { grieks: "δέκα",    zegmaar: "THE-ka",    nl: "tien (10)", emoji: "🔟" },
   ],
+  "🎨 Kleuren": [
+    { grieks: "κόκκινο",   zegmaar: "KO-ki-no",       nl: "rood",   emoji: "🔴" },
+    { grieks: "μπλε",      zegmaar: "blè",            nl: "blauw",  emoji: "🔵" },
+    { grieks: "κίτρινο",   zegmaar: "KIE-tri-no",     nl: "geel",   emoji: "🟡" },
+    { grieks: "πράσινο",   zegmaar: "PRA-si-no",      nl: "groen",  emoji: "🟢" },
+    { grieks: "πορτοκαλί", zegmaar: "por-to-ka-LIE",  nl: "oranje", emoji: "🟠" },
+    { grieks: "ροζ",       zegmaar: "roz",            nl: "roze",   emoji: "🌸" },
+    { grieks: "μωβ",       zegmaar: "mov",            nl: "paars",  emoji: "🟣" },
+    { grieks: "άσπρο",     zegmaar: "A-spro",         nl: "wit",    emoji: "⚪" },
+    { grieks: "μαύρο",     zegmaar: "MAV-ro",         nl: "zwart",  emoji: "⚫" },
+  ],
+  "🍎 Eten en drinken": [
+    { grieks: "ψωμί",     zegmaar: "pso-MIE",     nl: "brood",     emoji: "🍞" },
+    { grieks: "γάλα",     zegmaar: "GA-la",       nl: "melk",      emoji: "🥛" },
+    { grieks: "νερό",     zegmaar: "ne-RO",       nl: "water",     emoji: "💧" },
+    { grieks: "μήλο",     zegmaar: "MIE-lo",      nl: "appel",     emoji: "🍎" },
+    { grieks: "μπανάνα",  zegmaar: "ba-NA-na",    nl: "banaan",    emoji: "🍌" },
+    { grieks: "τυρί",     zegmaar: "tie-RIE",     nl: "kaas",      emoji: "🧀" },
+    { grieks: "παγωτό",   zegmaar: "pa-go-TO",    nl: "ijsje",     emoji: "🍦" },
+    { grieks: "σοκολάτα", zegmaar: "so-ko-LA-ta", nl: "chocolade", emoji: "🍫" },
+    { grieks: "αυγό",     zegmaar: "av-GO",       nl: "ei",        emoji: "🥚" },
+    { grieks: "πίτσα",    zegmaar: "PIE-tsa",     nl: "pizza",     emoji: "🍕" },
+  ],
   "🐾 Dieren": [
     { grieks: "γάτα",      zegmaar: "GA-ta",        nl: "kat",     emoji: "🐱" },
     { grieks: "σκύλος",    zegmaar: "SKIE-los",     nl: "hond",    emoji: "🐶" },
@@ -57,6 +90,10 @@ export const WOORDEN = {
     { grieks: "πουλί",     zegmaar: "poe-LIE",      nl: "vogel",   emoji: "🐦" },
     { grieks: "άλογο",     zegmaar: "A-lo-go",      nl: "paard",   emoji: "🐴" },
     { grieks: "ελέφαντας", zegmaar: "e-LE-fan-das", nl: "olifant", emoji: "🐘" },
+    { grieks: "κουνέλι",   zegmaar: "koe-NE-li",    nl: "konijn",  emoji: "🐰" },
+    { grieks: "αρκούδα",   zegmaar: "ar-KOE-tha",   nl: "beer",    emoji: "🐻" },
+    { grieks: "λιοντάρι",  zegmaar: "ljon-DA-ri",   nl: "leeuw",   emoji: "🦁" },
+    { grieks: "πάπια",     zegmaar: "PA-pja",       nl: "eend",    emoji: "🦆" },
   ],
   "👨‍👩‍👧 Familie": [
     { grieks: "μαμά",    zegmaar: "ma-MA",      nl: "mama",  emoji: "👩" },
@@ -66,4 +103,39 @@ export const WOORDEN = {
     { grieks: "γιαγιά",  zegmaar: "ja-JA",      nl: "oma",   emoji: "👵" },
     { grieks: "παππούς", zegmaar: "pa-POES",    nl: "opa",   emoji: "👴" },
   ],
+  "🧍 Mijn lichaam": [
+    { grieks: "κεφάλι", zegmaar: "ke-FA-li", nl: "hoofd", emoji: "🙂" },
+    { grieks: "μάτι",   zegmaar: "MA-ti",    nl: "oog",   emoji: "👁️" },
+    { grieks: "μύτη",   zegmaar: "MIE-ti",   nl: "neus",  emoji: "👃" },
+    { grieks: "στόμα",  zegmaar: "STO-ma",   nl: "mond",  emoji: "👄" },
+    { grieks: "αυτί",   zegmaar: "af-TIE",   nl: "oor",   emoji: "👂" },
+    { grieks: "χέρι",   zegmaar: "CHE-ri",   nl: "hand",  emoji: "✋" },
+    { grieks: "πόδι",   zegmaar: "PO-thi",   nl: "voet",  emoji: "🦶" },
+    { grieks: "μαλλιά", zegmaar: "ma-LJA",   nl: "haar",  emoji: "💇‍♀️" },
+  ],
+  "🏖️ Aan zee": [
+    { grieks: "θάλασσα", zegmaar: "THA-la-sa",  nl: "zee",     emoji: "🌊" },
+    { grieks: "ήλιος",   zegmaar: "IE-ljos",    nl: "zon",     emoji: "☀️" },
+    { grieks: "άμμος",   zegmaar: "A-mos",      nl: "zand",    emoji: "🏖️" },
+    { grieks: "ομπρέλα", zegmaar: "om-BRE-la",  nl: "parasol", emoji: "⛱️" },
+    { grieks: "βάρκα",   zegmaar: "VAR-ka",     nl: "bootje",  emoji: "⛵" },
+    { grieks: "κοχύλι",  zegmaar: "ko-CHIE-li", nl: "schelp",  emoji: "🐚" },
+    { grieks: "δελφίνι", zegmaar: "thel-FIE-ni", nl: "dolfijn", emoji: "🐬" },
+    { grieks: "καβούρι", zegmaar: "ka-VOE-ri",  nl: "krab",    emoji: "🦀" },
+  ],
+  "🏠 Thuis en school": [
+    { grieks: "σπίτι",   zegmaar: "SPIE-ti",   nl: "huis",    emoji: "🏠" },
+    { grieks: "βιβλίο",  zegmaar: "viv-LIE-o", nl: "boek",    emoji: "📖" },
+    { grieks: "μολύβι",  zegmaar: "mo-LIE-vi", nl: "potlood", emoji: "✏️" },
+    { grieks: "τσάντα",  zegmaar: "TSAN-da",   nl: "tas",     emoji: "🎒" },
+    { grieks: "τραπέζι", zegmaar: "tra-PE-zi", nl: "tafel",   emoji: "🪑" },
+    { grieks: "καρέκλα", zegmaar: "ka-RE-kla", nl: "stoel",   emoji: "💺" },
+    { grieks: "κρεβάτι", zegmaar: "kre-VA-ti", nl: "bed",     emoji: "🛏️" },
+    { grieks: "πόρτα",   zegmaar: "POR-ta",    nl: "deur",    emoji: "🚪" },
+  ],
 };
+
+// Vlakke lijst met groepsnaam erbij, voor de quizzen en de prijzenkast.
+export const ALLE_WOORDEN = Object.entries(WOORDEN).flatMap(([groep, lijst]) =>
+  lijst.map((w) => ({ ...w, groep }))
+);

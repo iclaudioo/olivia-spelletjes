@@ -183,7 +183,60 @@ main {
   margin-top: 2px;
 }
 
+/* Schrijven */
+.letterkiezer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.letterchip {
+  border: none;
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: bold;
+  padding: 8px 0;
+  border-radius: 10px;
+  background: var(--wit);
+  color: var(--donkerblauw);
+  box-shadow: 0 2px 5px rgba(30, 80, 160, 0.12);
+  cursor: pointer;
+}
+.letterchip.actief { background: var(--blauw); color: var(--wit); }
+.letterchip.geschreven { background: var(--geel); }
+.letterchip.geschreven.actief { background: var(--blauw); color: var(--geel); }
+.schrijfvak { text-align: center; }
+.canvasstapel {
+  position: relative;
+  width: min(340px, 100%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  background: var(--wit);
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(30, 80, 160, 0.15);
+}
+.canvasstapel canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+}
+#tekencanvas { touch-action: none; }
+.schrijfknoppen {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.knop.knop-grijs { background: #8298b3; box-shadow: 0 3px 8px rgba(90, 115, 145, 0.25); }
+
 /* Memory */
+.memory-groep {
+  font-weight: bold;
+  color: var(--donkerblauw);
+  margin-bottom: 10px;
+}
 .memory-balk {
   display: flex;
   align-items: center;
@@ -276,6 +329,102 @@ main {
   margin-top: 10px;
   min-height: 1.4rem;
 }
+.quizwoord {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--blauw);
+  margin: 10px 0 2px;
+}
+.quizzegmaar {
+  font-size: 1rem;
+  color: var(--paars);
+  margin-bottom: 14px;
+}
+.luisterknop {
+  border: none;
+  font-family: inherit;
+  font-size: 2.6rem;
+  background: var(--lichtblauw);
+  border-radius: 50%;
+  width: 92px;
+  height: 92px;
+  margin: 10px auto 16px;
+  display: block;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(30, 80, 160, 0.2);
+  transition: transform 0.1s ease;
+}
+.luisterknop:active { transform: scale(0.92); }
+.optie-emoji { font-size: 1.3rem; margin-right: 6px; }
+.rondeteller {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--paars);
+  margin-bottom: 6px;
+}
+.rondeklaar { padding: 10px 0; }
+.rondeklaar-emoji { font-size: 3.2rem; }
+.rondeklaar-titel {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--donkerblauw);
+  margin: 6px 0;
+}
+.rondeklaar-bonus {
+  font-weight: bold;
+  color: var(--groen);
+  margin: 8px 0 14px;
+}
+
+/* Prijzen */
+.prijsblok {
+  background: var(--wit);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 3px 8px rgba(30, 80, 160, 0.12);
+}
+.prijsblok-sterren { text-align: center; }
+.prijs-groot {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--donkerblauw);
+}
+.prijsblok-titel {
+  font-weight: bold;
+  color: var(--donkerblauw);
+  margin-bottom: 10px;
+}
+.prijsletters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.prijsletter {
+  width: 38px;
+  padding: 6px 0;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 10px;
+  background: var(--lichtblauw);
+  color: #9db3cd;
+}
+.prijsletter.verdiend { background: var(--geel); color: var(--tekst); }
+.prijsrij {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--lichtblauw);
+}
+.prijsrij:last-child { border-bottom: none; }
+.prijsrij-badges { font-size: 1.2rem; }
+.prijsrij-tel {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #7c93af;
+}
+
 .geluidstip {
   text-align: center;
   font-size: 0.8rem;

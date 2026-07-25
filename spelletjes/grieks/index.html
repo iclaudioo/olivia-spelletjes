@@ -21,8 +21,10 @@
   <nav class="tabs">
     <button class="tab actief" data-doel="alfabet">🔤 Alfabet</button>
     <button class="tab" data-doel="woordjes">🗣️ Woordjes</button>
+    <button class="tab" data-doel="schrijven">✍️ Schrijven</button>
     <button class="tab" data-doel="memory">🧠 Memory</button>
     <button class="tab" data-doel="quiz">⭐ Quiz</button>
+    <button class="tab" data-doel="prijzen">🏆 Prijzen</button>
   </nav>
 
   <main>
@@ -37,24 +39,42 @@
       <div class="woordenlijst" id="woordenlijst"></div>
     </section>
 
+    <section id="schrijven" class="paneel">
+      <div class="uitleg">Kies een letter en schrijf hem na met je vinger. Volg de grijze letter!</div>
+      <div class="letterkiezer" id="letterkiezer"></div>
+      <div class="schrijfvak">
+        <div class="canvasstapel">
+          <canvas id="voorbeeldcanvas" width="340" height="340"></canvas>
+          <canvas id="tekencanvas" width="340" height="340"></canvas>
+        </div>
+        <div class="schrijfknoppen">
+          <button class="knop knop-grijs" id="schrijf-wis">🧽 Wis</button>
+          <button class="knop" id="schrijf-klaar">Klaar!</button>
+        </div>
+        <div class="feedback" id="schrijffeedback"></div>
+      </div>
+    </section>
+
     <section id="memory" class="paneel">
       <div class="uitleg">Zoek de twee kaartjes die bij elkaar horen: het Griekse woord en het plaatje.</div>
       <div class="memory-balk">
         <span id="memory-score"></span>
         <button class="knop" id="memory-opnieuw">Nieuw spel</button>
       </div>
+      <div class="memory-groep" id="memory-groep"></div>
       <div class="memory-rooster" id="memory-rooster"></div>
     </section>
 
     <section id="quiz" class="paneel">
-      <div class="uitleg">Welke letter zie je? Kies het juiste antwoord en verdien sterren!</div>
-      <div class="quizkaart">
-        <div>Hoe heet deze letter?</div>
-        <div class="quizletter" id="quizletter"></div>
-        <div class="quizopties" id="quizopties"></div>
-        <div class="feedback" id="quizfeedback"></div>
-        <div class="sterrenbalk" id="sterrenbalk"></div>
-      </div>
+      <div class="uitleg">Kies een quiz en verdien sterren! Bij de oefenronde krijg je tien vragen door elkaar.</div>
+      <div class="categorieen" id="quizmodes"></div>
+      <div class="quizkaart" id="quizkaart"></div>
+      <div class="sterrenbalk" id="sterrenbalk"></div>
+    </section>
+
+    <section id="prijzen" class="paneel">
+      <div class="uitleg">Hier zie je alles wat je al verdiend hebt. Knap gedaan!</div>
+      <div id="prijzenkast"></div>
     </section>
   </main>
 
