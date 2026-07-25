@@ -197,6 +197,11 @@ export function initQuizzen() {
     ronde = null;
   }
 
+  window.addEventListener("olivia-grieks-cloud-updated", () => {
+    toonSterren();
+    toonModes();
+  });
+
   toonSterren();
   start("letters");
 }

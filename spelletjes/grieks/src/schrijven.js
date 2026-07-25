@@ -129,6 +129,8 @@ export function initSchrijven() {
     }
   });
 
+  window.addEventListener("olivia-grieks-cloud-updated", maakChips);
+
   maakChips();
   // De eerste letter klaarzetten zonder ze meteen voor te lezen.
   huidige = LETTERS[0];

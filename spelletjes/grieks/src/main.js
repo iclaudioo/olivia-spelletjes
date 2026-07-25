@@ -5,6 +5,7 @@ import { initSchrijven } from "./schrijven.js";
 import { initMemory } from "./memory.js";
 import { initQuizzen } from "./quizzen.js";
 import { renderPrijzen } from "./prijzen.js";
+import { initCloud } from "./cloud.js";
 
 document.querySelectorAll(".tab").forEach((knop) => {
   knop.addEventListener("click", () => {
@@ -23,6 +24,12 @@ initSchrijven();
 initMemory();
 initQuizzen();
 renderPrijzen();
+initCloud();
+
+// Na een cloud-sync met nieuwe voortgang: de open prijzenkast verversen.
+window.addEventListener("olivia-grieks-cloud-updated", () => {
+  if (document.getElementById("prijzen").classList.contains("actief")) renderPrijzen();
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

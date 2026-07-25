@@ -34,6 +34,8 @@ export const state = laad();
 
 export function bewaar() {
   try { localStorage.setItem(SLEUTEL, JSON.stringify(state)); } catch { /* privémodus */ }
+  // cloud.js luistert hiernaar om de wijziging (vertraagd) naar Supabase te sturen.
+  window.dispatchEvent(new CustomEvent("olivia-grieks-bewaard"));
 }
 
 export function vandaag() {

@@ -433,6 +433,65 @@ main {
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
+/* Cloud-sync badge en koppelpaneel */
+.cloudbadge {
+  position: fixed;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 50;
+  border: none;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: #4a6584;
+  background: var(--wit);
+  padding: 5px 10px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(30, 80, 160, 0.18);
+  cursor: pointer;
+}
+.koppelpaneel {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(18, 42, 76, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.koppelkaart {
+  position: relative;
+  background: var(--wit);
+  border-radius: 18px;
+  padding: 20px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 8px 24px rgba(10, 30, 60, 0.3);
+}
+.koppelkaart h2 { color: var(--donkerblauw); font-size: 1.15rem; }
+.koppelmelding { font-size: 0.9rem; margin: 8px 0 10px; }
+.koppelinput {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border: 2px solid var(--lichtblauw);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.koppelknoppen { display: flex; gap: 8px; flex-wrap: wrap; }
+.koppelsluit {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  color: #4a6584;
+  cursor: pointer;
+}
+
 /* Confetti bij mijlpalen */
 .confetti {
   position: fixed;
